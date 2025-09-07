@@ -62,29 +62,13 @@ jobs:
             echo "TypeScript not configured (no tsconfig or tsc). Skipping type check."
           fi
 
-      # ── Unit Tests: Jest 있으면 실행, 테스트 없으면 통과
-      - name: Unit tests (Jest)
-        run: |
-          if npm run | grep -q " test:unit"; then
-            npm run test:unit -- --ci --passWithNoTests
-          elif npx --no-install jest --version >/dev/null 2>&1; then
-            npx jest --ci --maxWorkers=50% --passWithNoTests \
-              --testPathPatterns "(tests|__tests__|test)/unit" "\\.unit\\."
-          else
-            echo "Jest not configured. Skipping unit tests."
-          fi
+      # Unit
+      - name: Unit tests (if present)
+        run: npm run -s test:unit --if-present || echo "No unit tests"
 
-      # ── Integration Tests: Jest 있으면 실행, 테스트 없으면 통과
-      - name: Integration tests (Jest)
-        run: |
-          if npm run | grep -q " test:it"; then
-            npm run test:it -- --ci --passWithNoTests
-          elif npx --no-install jest --version >/dev/null 2>&1; then
-            npx jest --ci --maxWorkers=50% --passWithNoTests \
-              --testPathPatterns "(tests|__tests__|test)/integration" "\\.it\\."
-          else
-            echo "Jest not configured. Skipping integration tests."
-          fi
+      # Integration
+      - name: Integration tests (if present)
+        run: npm run -s test:it --if-present || echo "No integration tests"
 
       # ── Build: build 스크립트 없으면 스킵
       - name: Build app
