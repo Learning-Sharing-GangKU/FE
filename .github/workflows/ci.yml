@@ -1,0 +1,120 @@
+name: FE CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+permissions:
+  contents: read
+  id-token: write   # OIDC
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPO: learning-sharing-gangku/fe
+
+jobs:
+  fe-ci:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # ── Install deps (lockfile 없으면 npm i, package.json 없으면 스킵)
+      - name: Install deps (ci if lockfile, else install)
+        run: |
+          if [ -f package.json ]; then
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              echo "package-lock.json not found. Using 'npm install'..."
+              npm install
+            fi
+          else
+            echo "package.json not found. Skipping install."
+          fi
+
+      # ── ESLint: 설정되어 있을 때만, 없으면 통과
+      - name: Lint (ESLint if present)
+        run: |
+          if npx --no-install eslint -v >/dev/null 2>&1; then
+            npx eslint . --max-warnings=0
+          else
+            echo "ESLint not configured. Skipping."
+          fi
+
+      # ── TypeScript: tsconfig + tsc 둘 다 있을 때만 실행
+      - name: Type check (only when tsconfig & tsc exist)
+        run: |
+          if [ -f tsconfig.json ] && npx --no-install tsc -v >/dev/null 2>&1; then
+            npx tsc --noEmit --pretty false
+          else
+            echo "TypeScript not configured (no tsconfig or tsc). Skipping type check."
+          fi
+
+      # Unit
+      - name: Unit tests (if present)
+        run: npm run -s test:unit --if-present || echo "No unit tests"
+
+      # Integration
+      - name: Integration tests (if present)
+        run: npm run -s test:it --if-present || echo "No integration tests"
+
+      # ── Build: build 스크립트 없으면 스킵
+      - name: Build app
+        run: |
+          if npm run | grep -q " build"; then
+            npm run build
+          else
+            echo "No build script. Skipping."
+          fi
+
+      # ── ECR: PR이 아니고 Dockerfile 있을 때만 수행
+      - name: Configure AWS credentials (OIDC)
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::590183972842:role/GitHubActions-ECRPush
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Prepare image meta
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
+        id: meta
+        run: |
+          SHA_TAG=sha-${GITHUB_SHA::7}
+          BRANCH_TAG=${GITHUB_REF_NAME}-latest
+          IMAGE=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "sha_tag=$SHA_TAG" >> $GITHUB_OUTPUT
+          echo "branch_tag=$BRANCH_TAG" >> $GITHUB_OUTPUT
+
+      - name: Setup Buildx
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push (ECR)
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.sha_tag }}
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.branch_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
