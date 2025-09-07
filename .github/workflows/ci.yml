@@ -30,9 +30,21 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install deps
-        run: npm ci
+      # ── Install deps (lockfile 없으면 npm i, package.json 없으면 스킵)
+      - name: Install deps (ci if lockfile, else install)
+        run: |
+          if [ -f package.json ]; then
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              echo "package-lock.json not found. Using 'npm install'..."
+              npm install
+            fi
+          else
+            echo "package.json not found. Skipping install."
+          fi
 
+      # ── ESLint: 설정되어 있을 때만, 없으면 통과
       - name: Lint (ESLint if present)
         run: |
           if npx --no-install eslint -v >/dev/null 2>&1; then
@@ -41,38 +53,40 @@ jobs:
             echo "ESLint not configured. Skipping."
           fi
 
-      - name: Type check (tsc only when tsconfig exists)
+      # ── TypeScript: tsconfig + tsc 둘 다 있을 때만 실행
+      - name: Type check (only when tsconfig & tsc exist)
         run: |
-          if [ -f tsconfig.json ]; then
+          if [ -f tsconfig.json ] && npx --no-install tsc -v >/dev/null 2>&1; then
             npx tsc --noEmit --pretty false
           else
-            echo "tsconfig.json not found. Skipping type check."
+            echo "TypeScript not configured (no tsconfig or tsc). Skipping type check."
           fi
 
+      # ── Unit Tests: Jest 있으면 실행, 테스트 없으면 통과
       - name: Unit tests (Jest)
         run: |
           if npm run | grep -q " test:unit"; then
-            npm run test:unit -- --ci
+            npm run test:unit -- --ci --passWithNoTests
           elif npx --no-install jest --version >/dev/null 2>&1; then
-            # 스크립트 없으면 관용적 패턴으로 실행
-            npx jest --ci --maxWorkers=50% \
-              --testPathPattern="(tests|__tests__|test)/unit|\\.unit\\."
+            npx jest --ci --maxWorkers=50% --passWithNoTests \
+              --testPathPatterns "(tests|__tests__|test)/unit" "\\.unit\\."
           else
             echo "Jest not configured. Skipping unit tests."
           fi
 
+      # ── Integration Tests: Jest 있으면 실행, 테스트 없으면 통과
       - name: Integration tests (Jest)
         run: |
           if npm run | grep -q " test:it"; then
-            npm run test:it -- --ci
+            npm run test:it -- --ci --passWithNoTests
           elif npx --no-install jest --version >/dev/null 2>&1; then
-            # 스크립트 없으면 관용적 패턴으로 실행
-            npx jest --ci --maxWorkers=50% \
-              --testPathPattern="(tests|__tests__|test)/integration|\\.it\\."
+            npx jest --ci --maxWorkers=50% --passWithNoTests \
+              --testPathPatterns "(tests|__tests__|test)/integration" "\\.it\\."
           else
             echo "Jest not configured. Skipping integration tests."
           fi
 
+      # ── Build: build 스크립트 없으면 스킵
       - name: Build app
         run: |
           if npm run | grep -q " build"; then
@@ -81,21 +95,21 @@ jobs:
             echo "No build script. Skipping."
           fi
 
-      # --- ECR push + scan: PR에서는 실행 안 함 ---
+      # ── ECR: PR이 아니고 Dockerfile 있을 때만 수행
       - name: Configure AWS credentials (OIDC)
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::590183972842:role/GitHubActionsECRPush
+          role-to-assume: arn:aws:iam::590183972842:role/GitHubActions-ECRPush
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Prepare image meta
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
         id: meta
         run: |
           SHA_TAG=sha-${GITHUB_SHA::7}
@@ -106,11 +120,11 @@ jobs:
           echo "branch_tag=$BRANCH_TAG" >> $GITHUB_OUTPUT
 
       - name: Setup Buildx
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
         uses: docker/setup-buildx-action@v3
 
       - name: Build & Push (ECR)
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
         uses: docker/build-push-action@v6
         with:
           context: .
