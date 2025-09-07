@@ -41,12 +41,12 @@ jobs:
             echo "ESLint not configured. Skipping."
           fi
 
-      - name: Type check (tsc if present)
+      - name: Type check (tsc only when tsconfig exists)
         run: |
-          if npx --no-install tsc -v >/dev/null 2>&1; then
-            npx tsc --noEmit
+          if [ -f tsconfig.json ]; then
+            npx tsc --noEmit --pretty false
           else
-            echo "TypeScript not configured. Skipping."
+            echo "tsconfig.json not found. Skipping type check."
           fi
 
       - name: Unit tests (Jest)
