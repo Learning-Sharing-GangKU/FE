@@ -84,7 +84,7 @@ jobs:
         if: github.event_name != 'pull_request' && hashFiles('Dockerfile') != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::590183972842:role/GitHubActions-ECRPush
+          role-to-assume: arn:aws:iam::590183972842:role/GitHubActionsECRPush
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
