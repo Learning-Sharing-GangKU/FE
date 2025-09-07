@@ -123,7 +123,7 @@ jobs:
 
       - name: Trivy scan (fail on HIGH/CRITICAL)
         if: github.event_name != 'pull_request'
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           image-ref: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.sha_tag }}
           vuln-type: 'os,library'
