@@ -35,10 +35,9 @@ jobs:
 
       # --- Unit Test ---
       - name: Unit Test (Jest)
-        if: hashFiles('**/*.test.*') != '' || hashFiles('**/*.spec.*') != ''
-        run: npx jest --ci --reporters=default
+        run: npx jest --ci --reporters=default --passWithNoTests
 
-      # --- Integration Test (PR to dev/main) ---
+      # --- Integration Test ---
       - name: Integration Test (Jest)
         if: github.event_name == 'pull_request' && (github.base_ref == 'dev' || github.base_ref == 'main')
-        run: npx jest --ci --testMatch "**/?(*.)+(i|int|integration).[jt]s?(x)"
+        run: npx jest --ci --testMatch "**/?(*.)+(i|int|integration).[jt]s?(x)" --passWithNoTests
