@@ -49,7 +49,7 @@ export default function SignupPage() {
             // S3 직접 업로드 처리
             try {
                 // 1. 백엔드에서 presigned URL 요청
-                const presignedResponse = await fetch('/api/upload/presigned-url', {
+                const presignedResponse = await fetch('/api/v1/images/presigned-url', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -275,7 +275,7 @@ export default function SignupPage() {
         }
 
         try {
-            const res = await fetch('/api/signup', {
+            const res = await fetch('/api/v1/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
