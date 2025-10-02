@@ -1,3 +1,25 @@
+# 의존성
 node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+pnpm-lock.yaml
+
+# VCS / IDE
 .git
+.gitignore
+.env
+*.swp
+*.swo
+.DS_Store
+.vscode
+.idea
+
+# Next.js 빌드 아티팩트
 .next/cache
+.next/output
+
+# 테스트 / 빌드 산출물
+coverage
+dist
+tmp
