@@ -1,0 +1,31 @@
+version: 0.0
+os: linux
+
+files:
+  - source: .next/standalone
+    destination: /opt/next-fe/.next/standalone
+  - source: .next/static
+    destination: /opt/next-fe/.next/static
+  - source: public
+    destination: /opt/next-fe/public
+
+permissions:
+  - object: /opt/next-fe
+    pattern: "**"
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+
+hooks:
+  BeforeInstall:
+    - location: scripts/before_install.sh
+      runas: root
+  AfterInstall:
+    - location: scripts/after_install.sh
+      runas: root
+  ApplicationStart:
+    - location: scripts/application_start.sh
+      runas: ubuntu
+  ValidateService:
+    - location: scripts/validate_service.sh
+      runas: ubuntu
