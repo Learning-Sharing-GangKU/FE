@@ -18,7 +18,6 @@ env:
   CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
   SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
   ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
-  CONCURRENCY_GROUP: "cd-prod-fe"
 
 jobs:
   deploy:
@@ -29,7 +28,7 @@ jobs:
       }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ env.CONCURRENCY_GROUP }}
+      group: cd-prod-fe
       cancel-in-progress: false
 
     steps:
