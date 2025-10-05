@@ -1,14 +1,6 @@
 version: 0.0
 os: linux
 
-files:
-  - source: .next/standalone
-    destination: /opt/next-fe/.next/standalone
-  - source: .next/static
-    destination: /opt/next-fe/.next/static
-  - source: public
-    destination: /opt/next-fe/public
-
 permissions:
   - object: /opt/next-fe
     pattern: "**"
