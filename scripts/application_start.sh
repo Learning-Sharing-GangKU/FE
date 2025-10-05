@@ -1,9 +1,20 @@
 #!/bin/bash
-set -euo pipefail
+set -euxo pipefail
+cd "$(dirname "$0")/.."
 
-cd /opt/next-fe
+APP_IMAGE="$(grep '^APP_IMAGE=' .env | cut -d= -f2)"
+PORT="$(grep '^SERVICE_PORT=' .env | cut -d= -f2)"
 
-# nohup으로 백그라운드 실행 (로그는 app.log)
-nohup node .next/standalone/server.js \
-  --port 3000 \
-  > /opt/next-fe/app.log 2>&1 &
+# 기존 컨테이너 정리
+sudo docker rm -f fe-app || true
+
+# 컨테이너 실행
+sudo docker run -d --name fe-app \
+  -p "${PORT}:${PORT}" \
+  -e NODE_ENV=production \
+  -e PORT="${PORT}" \
+  -e HOSTNAME=0.0.0.0 \
+  "$APP_IMAGE"
+
+# 기동 여유
+sleep 10
