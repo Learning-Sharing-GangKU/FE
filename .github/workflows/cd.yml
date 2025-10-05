@@ -57,7 +57,7 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" -f ./FE/Dockerfile ./FE
+          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" -f ./Dockerfile ./
 
       - name: Push image to ECR
         run: |
