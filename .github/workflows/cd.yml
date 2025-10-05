@@ -55,9 +55,12 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION \
             | docker login --username AWS --password-stdin ${{ env.ECR_REPO_URI }}
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Build image
         run: |
-          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" -f ./Dockerfile ./
+          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" .
 
       - name: Push image to ECR
         run: |
