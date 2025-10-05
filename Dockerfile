@@ -18,8 +18,6 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 
-COPY --from=builder /app/.next/standalone ./
-
 USER node
 
 EXPOSE 3000
