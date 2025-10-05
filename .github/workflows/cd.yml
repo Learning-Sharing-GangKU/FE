@@ -57,7 +57,7 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" .
+          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" ../../fe
 
       - name: Push image to ECR
         run: |
@@ -68,7 +68,7 @@ jobs:
       - name: Build deployment bundle
         run: |
           mkdir -p bundle/scripts
-          cp appspec.yml docker-compose.yml bundle/
+          cp appspec.yml bundle/
           cp scripts/*.sh bundle/scripts/
 
           echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" > bundle/.env
