@@ -37,7 +37,8 @@ export default function LoginPage() {
   //로그인 요청 함수
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const response = await fetch('/api/login', {
+      console.log("📦 요청 URL:", `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -57,7 +58,8 @@ export default function LoginPage() {
 
       //성공 시 accessToken 추출하여 메모리에 저장
       const { accessToken } = await response.json()
-      accessTokenRef.current = accessToken //Access Token을 메모리에 저장
+
+      localStorage.setItem('accessToken', accessToken)
 
       // 로그인 성공 -> 홈 페이지 이동
       window.location.href = '/home'
