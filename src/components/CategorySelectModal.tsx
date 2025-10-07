@@ -45,7 +45,7 @@ export default function CategorySelectModal({ selected, setSelected, onClose }: 
     const fetchCategories = async () => {
       try {
         // 백엔드 API 호출
-        const response = await fetch('/api/categories', {
+        const response = await fetch('http://localhost:8080/api/categories', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

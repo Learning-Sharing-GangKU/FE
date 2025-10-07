@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import CategorySelectModal from '@/components/CategorySelectModal'
 import styles from './signup.module.css'
+import { useRouter } from 'next/navigation'
 
 /**
  * 회원가입 페이지 컴포넌트
@@ -42,64 +43,67 @@ export default function SignupPage() {
     const [errors, setErrors] = useState<{ [key: string]: string }>({}) // 폼 검증 에러 메시지
     const [toast, setToast] = useState('') // 토스트 메시지
 
-    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
+    // const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const file = e.target.files?.[0]
+    //     if (file) {
         
-            // S3 직접 업로드 처리
-            try {
-                // 1. 백엔드에서 presigned URL 요청
-                const presignedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/images/presigned-url`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                    },
-                    body: JSON.stringify({
-                        fileName: file.name,
-                        fileType: file.type,
-                    }),
-                })
+    //         // S3 직접 업로드 처리
+    //         try {
+    //             // 1. 백엔드에서 presigned URL 요청
+    //             const presignedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/images/presigned-url`, {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     Accept: 'application/json',
+    //                 },
+    //                 body: JSON.stringify({
+    //                     fileName: file.name,
+    //                     fileType: file.type,
+    //                 }),
+    //             })
 
-                if (!presignedResponse.ok) {
-                    const errorRes = await presignedResponse.json()
-                    throw new Error(errorRes?.error?.message || '업로드 URL 생성 실패')
-                }
+    //             if (!presignedResponse.ok) {
+    //                 const errorRes = await presignedResponse.json()
+    //                 throw new Error(errorRes?.error?.message || '업로드 URL 생성 실패')
+    //             }
 
-                const { uploadURL, key } = await presignedResponse.json()
+    //             const { uploadURL, key } = await presignedResponse.json()
 
-                // 2. S3에 직접 업로드
-                const uploadResponse = await fetch(uploadURL, {
-                    method: 'PUT',
-                    body: file,
-                    headers: {
-                        'Content-Type': file.type,
-                    },
-                })
+    //             // 2. S3에 직접 업로드
+    //             const uploadResponse = await fetch(uploadURL, {
+    //                 method: 'PUT',
+    //                 body: file,
+    //                 headers: {
+    //                     'Content-Type': file.type,
+    //                 },
+    //             })
 
-                if (!uploadResponse.ok) {
-                    throw new Error('이미지 업로드 실패')
-                }
+    //             if (!uploadResponse.ok) {
+    //                 if (uploadResponse.status === 413) throw new Error('업로드 가능한 파일 크기를 초과했습니다.')
+    //                 throw new Error('이미지 업로드 실패')
+    //               }
 
-                // 3. 업로드 성공 시 파일과 메타데이터 저장
-                setProfileImage(file)
-                setErrors((prev) => ({ ...prev, profileImage: '' }))
                 
-                // 업로드된 이미지 정보를 상태에 저장 (회원가입 시 사용)
-                const imageInfo = {
-                    bucket: 'app-user-profile', // 백엔드에서 제공하거나 고정값
-                    key: key,
-                    url: uploadURL.split('?')[0], // presigned URL에서 실제 URL 추출
-                }
                 
-                // 임시로 sessionStorage에 저장 (회원가입 시 사용)
-                sessionStorage.setItem('profileImageInfo', JSON.stringify(imageInfo))
+    //             // 업로드된 이미지 정보를 상태에 저장 (회원가입 시 사용)
+    //             const imageInfo = {
+    //                 bucket: 'app-user-profile', // 백엔드에서 제공하거나 고정값
+    //                 key: key,
+    //                 url: uploadURL.split('?')[0], // presigned URL에서 실제 URL 추출
+    //             }
                 
-            } catch (err: any) {
-                setErrors({ profileImage: err.message })
-            }
-        }
-    }
+    //             // 3. 업로드 성공 시 파일과 메타데이터 저장
+    //             setProfileImage(file)
+    //             sessionStorage.setItem('profileImageInfo', JSON.stringify(imageInfo))
+    //             setErrors((prev) => ({ ...prev, profileImage: '' }))
+    //             // 임시로 sessionStorage에 저장 (회원가입 시 사용)
+                
+                
+    //         } catch (err: any) {
+    //             setErrors({ profileImage: err.message })
+    //         }
+    //     }
+    // }
 
     /**
      * 이메일 인증 발송 처리 함수
@@ -232,6 +236,8 @@ export default function SignupPage() {
         }
     }
 
+    const router = useRouter()
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -252,15 +258,22 @@ export default function SignupPage() {
         }
 
         // 업로드된 프로필 이미지 정보 가져오기
-        let profileImagePayload = undefined
-        if (profileImage) {
-            const imageInfo = sessionStorage.getItem('profileImageInfo')
-            if (imageInfo) {
-                profileImagePayload = JSON.parse(imageInfo)
-            } else {
-                setErrors({ profileImage: '이미지 업로드 정보를 찾을 수 없습니다. 다시 업로드해주세요.' })
-                return
-            }
+        // let profileImagePayload = undefined
+        // if (profileImage) {
+        //     const imageInfo = sessionStorage.getItem('profileImageInfo')
+        //     if (imageInfo) {
+        //         profileImagePayload = JSON.parse(imageInfo)
+        //     } else {
+        //         setErrors({ profileImage: '이미지 업로드 정보를 찾을 수 없습니다. 다시 업로드해주세요.' })
+        //         return
+        //     }
+        // }
+
+        // 이미지 업로드 없이 테스트하려고 더미 값 설정
+        const profileImagePayload = {
+            bucket: 'test-bucket',
+            key: 'placeholder.png',
+            url: 'https://example.com/placeholder.png',
         }
 
         const body = {
@@ -281,6 +294,7 @@ export default function SignupPage() {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(body),
             })
 
@@ -289,9 +303,12 @@ export default function SignupPage() {
                 throw new Error(errorRes?.error?.message || '회원가입 실패')
             }
 
-            setToast('회원가입에 성공했습니다!')
+            alert('회원가입에 성공했습니다!')
             setErrors({})
-            setTimeout(() => setToast(''), 3000)
+            setTimeout(() => {
+                setToast('')
+                router.push('/login') // ✅ 로그인 페이지로 이동
+              }, 2000)
         } catch (err: any) {
             setErrors({ general: err.message })
         }
@@ -370,7 +387,7 @@ export default function SignupPage() {
                             type="file" 
                             accept="image/*"
                             hidden 
-                            onChange={handleImageChange} 
+                            // onChange={handleImageChange} 
                         />📷
                     </label>
                 </div>
@@ -481,4 +498,4 @@ export default function SignupPage() {
             )}
         </div>
     )
-}
+    }
