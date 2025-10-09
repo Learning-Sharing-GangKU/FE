@@ -37,8 +37,8 @@ export default function LoginPage() {
   //로그인 요청 함수
   const onSubmit = async (data: LoginFormData) => {
     try {
-      console.log("📦 요청 URL:", `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
+      console.log("📦 요청 URL:", "/api/v1/auth/login");
+      const response = await fetch("/api/v1/auth/login", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json',
                     'Accept': 'application/json',
