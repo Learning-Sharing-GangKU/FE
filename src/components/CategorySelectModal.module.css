@@ -1,0 +1,151 @@
+/* ===== 모달 오버레이 스타일 ===== */
+/* 모달 뒤 배경을 어둡게 처리하여 모달에 집중할 수 있도록 함 */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4); /* 반투명 검은색 배경 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999; /* 다른 요소들 위에 표시 */
+  }
+  
+  /* ===== 모달 컨테이너 스타일 ===== */
+/* 모달의 메인 컨테이너, 중앙에 위치하며 그림자 효과 적용 */
+.modal {
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 320px; /* 모바일에서도 적절한 크기 유지 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 부드러운 그림자 효과 */
+  }
+  
+  /* ===== 모달 제목 스타일 ===== */
+.title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  /* ===== 부제목 스타일 ===== */
+/* 사용자에게 선택 가이드를 제공하는 텍스트 */
+.subtitle {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  /* ===== 선택 개수 카운터 스타일 ===== */
+/* 현재 선택된 카테고리 개수를 실시간으로 표시 */
+.counter {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  
+  /* ===== 카테고리 목록 컨테이너 ===== */
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* ===== 개별 카테고리 아이템 스타일 ===== */
+/* 각 카테고리 항목의 기본 스타일 및 호버 효과 */
+.item {
+    padding: 12px;
+    text-align: center;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease; /* 부드러운 전환 효과 */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* ===== 카테고리 아이템 호버 효과 ===== */
+/* 비활성화되지 않은 아이템에 마우스 오버 시 색상 변화 */
+.item:hover:not(.disabled) {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+  }
+
+  /* ===== 선택된 카테고리 스타일 ===== */
+/* 선택된 카테고리는 파란색 테마로 강조 표시 */
+.item.selected {
+    background-color: #e3f2fd; /* 연한 파란색 배경 */
+    border-color: #2196f3; /* 파란색 테두리 */
+    color: #1976d2; /* 파란색 텍스트 */
+  }
+
+  /* ===== 비활성화된 카테고리 스타일 ===== */
+/* 3개 선택 완료 시 선택되지 않은 카테고리들을 비활성화 */
+.item.disabled {
+    opacity: 0.5; /* 반투명 처리 */
+    cursor: not-allowed; /* 금지 커서 표시 */
+  }
+
+  /* ===== 체크마크 스타일 ===== */
+/* 선택된 카테고리 오른쪽에 표시되는 체크마크 */
+.checkmark {
+    position: absolute;
+    right: 12px;
+    font-weight: bold;
+    color: #2196f3;
+  }
+
+  /* ===== 버튼 컨테이너 스타일 ===== */
+.buttonContainer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ===== 완료 버튼 스타일 ===== */
+.confirmButton {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  /* ===== 완료 버튼 호버 효과 ===== */
+.confirmButton:hover {
+    background-color: #1976d2; /* 호버 시 더 진한 파란색 */
+  }
+
+  /* ===== 로딩 상태 스타일 ===== */
+/* 카테고리 목록을 불러오는 중일 때 표시되는 텍스트 */
+.loading {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin: 20px 0;
+  }
+
+  /* ===== 에러 메시지 스타일 ===== */
+/* API 호출 실패 등 에러 발생 시 표시되는 메시지 */
+.error {
+    color: #f44336; /* 빨간색 텍스트 */
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 12px;
+    padding: 8px;
+    background-color: #ffebee; /* 연한 빨간색 배경 */
+    border-radius: 4px;
+  }

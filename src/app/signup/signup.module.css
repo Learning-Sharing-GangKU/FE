@@ -1,0 +1,218 @@
+/* ===== 메인 컨테이너 스타일 ===== */
+/* 회원가입 폼의 최대 너비를 제한하고 중앙 정렬 */
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  
+  /* ===== 페이지 제목 스타일 ===== */
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  /* ===== 폼 컨테이너 스타일 ===== */
+/* 세로 방향으로 배치되며 요소 간 간격 설정 */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* ===== 행 레이아웃 스타일 ===== */
+/* 이메일 입력과 버튼을 같은 줄에 배치할 때 사용 */
+.row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  /* ===== 입력 필드 스타일 ===== */
+/* 텍스트 입력, 비밀번호 입력 등 모든 input 요소의 기본 스타일 */
+.input {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  
+  /* ===== 도메인 표시 스타일 ===== */
+/* 이메일 입력 필드 옆에 표시되는 @konkuk.ac.kr 텍스트 */
+.domain {
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap; /* 줄바꿈 방지 */
+  }
+  
+  /* ===== 인증 버튼 스타일 ===== */
+/* 이메일 인증, 카테고리 선택 등 액션 버튼의 기본 스타일 */
+.verifyButton {
+    padding: 10px 14px;
+    font-size: 14px;
+    background-color: #1976D2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  /* ===== 셀렉트 박스 스타일 ===== */
+/* 나이, 성별, 학번 선택 드롭다운의 스타일 */
+.select {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  
+  /* ===== 프로필 이미지 업로드 영역 ===== */
+/* 이미지 미리보기와 업로드 버튼을 가로로 배치 */
+.avatarUpload {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  /* ===== 프로필 이미지 미리보기 ===== */
+/* 원형으로 표시되는 프로필 이미지 */
+.avatarPreview {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%; /* 원형으로 만들기 */
+    object-fit: cover; /* 이미지 비율 유지하며 영역에 맞춤 */
+    background-color: #eee; /* 기본 배경색 */
+  }
+  
+  /* ===== 업로드 라벨 스타일 ===== */
+/* 카메라 아이콘을 클릭하여 파일 선택할 수 있는 영역 */
+.uploadLabel {
+    cursor: pointer;
+    font-size: 24px;
+  }
+
+  
+  /* ===== 회원가입 완료 버튼 스타일 ===== */
+/* 폼 제출 버튼의 스타일 */
+.submitButton {
+    background-color: #1976D2;
+    color: white;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+   
+  /* ===== 선택된 카테고리 태그 컨테이너 ===== */
+/* 선택된 카테고리들을 태그 형태로 표시하는 영역 */
+.selectedTags {
+    display: flex;
+    flex-wrap: wrap; /* 태그들이 여러 줄로 배치될 수 있도록 */
+    gap: 8px;
+    margin-top: 8px;
+    min-height: 32px;
+  }
+
+  /* ===== 개별 카테고리 태그 스타일 ===== */
+/* 선택된 카테고리를 나타내는 태그의 기본 스타일 */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #e3f2fd; /* 연한 파란색 배경 */
+    color: #1976d2; /* 파란색 텍스트 */
+    padding: 6px 12px;
+    border-radius: 16px; /* 둥근 모서리 */
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #bbdefb;
+    transition: all 0.2s ease; /* 부드러운 전환 효과 */
+  }
+
+  /* ===== 카테고리 태그 호버 효과 ===== */
+.tag:hover {
+    background-color: #bbdefb;
+    border-color: #90caf9;
+  }
+
+  /* ===== 태그 삭제 버튼 스타일 ===== */
+/* 각 태그의 × 버튼 스타일 */
+.tagRemove {
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1976d2;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    padding: 0;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ===== 태그 삭제 버튼 호버 효과 ===== */
+.tagRemove:hover {
+    opacity: 1;
+    color: #d32f2f; /* 호버 시 빨간색으로 변경 */
+  }
+
+  /* ===== 에러 메시지 스타일 ===== */
+/* 폼 검증 실패 시 표시되는 에러 메시지 */
+.error {
+    color: red;
+    font-size: 12px;
+    margin-top: 1px;  /* 기존보다 좁게 */
+    margin-bottom: -8px; /* 다음 요소와 겹치지 않도록 간격 조절 */
+    line-height: 1.2;
+  }
+
+  /* ===== 이메일 인증 메시지 스타일 ===== */
+/* 이메일 인증 과정에서 표시되는 안내 메시지 */
+.emailMessage {
+    font-size: 12px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    line-height: 1.2;
+    color: #666;
+  }
+
+  /* ===== 인증 완료 버튼 스타일 ===== */
+/* 이메일 인증이 완료된 상태의 버튼 (비활성화) */
+.verifiedButton {
+    padding: 10px 14px;
+    font-size: 14px;
+    background-color: #4caf50; /* 초록색 배경 */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: default; /* 클릭 불가능 */
+    white-space: nowrap;
+  }
+  
+  /* ===== 토스트 메시지 스타일 ===== */
+/* 화면 하단에 표시되는 임시 알림 메시지 */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* 중앙 정렬 */
+    background-color: #111;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+  }

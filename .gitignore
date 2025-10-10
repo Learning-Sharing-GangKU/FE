@@ -20,3 +20,6 @@ pnpm-debug.log*
 # editor
 .vscode/
 .idea/
+
+# macOS
+.DS_Store
