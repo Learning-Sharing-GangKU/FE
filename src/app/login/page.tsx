@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuth } from '@/contexts/AuthContext' 
 import {useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,6 +16,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+  const { login } = useAuth()
   const {
     register,
     handleSubmit,
@@ -22,7 +24,7 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) })
 
  
-  const accessTokenRef = useRef<string | null>(null)
+  // const accessTokenRef = useRef<string | null>(null)
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({
     visible: false,
     message: '',
@@ -51,17 +53,28 @@ export default function LoginPage() {
     })
 
     //실패 시 에러 메시지 추출
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error?.error?.message || '로그인 실패')
+    if (!response.ok) {
+      let errorMessage = '로그인 실패';
+    
+      try {
+        // JSON으로 먼저 시도
+        const errorBody = await response.clone().json(); // ✅ clone()으로 복제본 사용
+        errorMessage = errorBody?.error?.message || errorMessage;
+      } catch {
+        try {
+          // JSON이 아니면 text로 fallback
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        } catch {
+          // 아무 것도 못 읽으면 기본 메시지 사용
+        }
       }
-
+    
+      throw new Error(errorMessage);
+    }
       //성공 시 accessToken 추출하여 메모리에 저장
       const { accessToken } = await response.json()
-
-      localStorage.setItem('accessToken', accessToken)
-
-      // 로그인 성공 -> 홈 페이지 이동
+      login(accessToken)
       window.location.href = '/home'
     } catch (err: any) {
       showToast(err.message || '로그인 중 오류가 발생했습니다.')

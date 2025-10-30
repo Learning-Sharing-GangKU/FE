@@ -1,0 +1,143 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 80px;
+  font-family: 'Pretendard', sans-serif;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.label {
+  font-weight: 500;
+  margin: 10px 0 5px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.verifyButton {
+  padding: 10px 14px;
+  font-size: 14px;
+  background-color: #1976D2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.categorySection {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #bbdefb;
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background-color: #bbdefb;
+  border-color: #90caf9;
+}
+
+.tagRemove {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  color: #1976d2;
+  opacity: 0.7;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.tagRemove:hover {
+  opacity: 1;
+  color: #d32f2f;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.submitButton:hover {
+  background-color: #0056b3;
+}
+
+.error {
+  color: red;
+  font-size: 0.9rem;
+  margin: 10px 0;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #333;
+  text-decoration: none;
+}
