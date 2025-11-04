@@ -43,67 +43,70 @@ export default function SignupPage() {
     const [errors, setErrors] = useState<{ [key: string]: string }>({}) // 폼 검증 에러 메시지
     const [toast, setToast] = useState('') // 토스트 메시지
 
-    // const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = e.target.files?.[0]
-    //     if (file) {
-        
-    //         // S3 직접 업로드 처리
-    //         try {
-    //             // 1. 백엔드에서 presigned URL 요청
-    //             const presignedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/images/presigned-url`, {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                     Accept: 'application/json',
-    //                 },
-    //                 body: JSON.stringify({
-    //                     fileName: file.name,
-    //                     fileType: file.type,
-    //                 }),
-    //             })
+ const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0];
+     if (!file) return;
 
-    //             if (!presignedResponse.ok) {
-    //                 const errorRes = await presignedResponse.json()
-    //                 throw new Error(errorRes?.error?.message || '업로드 URL 생성 실패')
-    //             }
+     try {
+         // 1) Presigned URL 요청
+         const presignedResponse = await fetch(
+             `${process.env.NEXT_PUBLIC_API_URL}/api/v1/objects/presigned-url`,
+             {
+                 method: "POST",
+                 headers: {
+                     "Content-Type": "application/json",
+                     Accept: "application/json",
+                 },
+                 body: JSON.stringify({
+                     fileName: file.name,
+                     fileType: file.type,
+                 }),
+             }
+         );
 
-    //             const { uploadURL, key } = await presignedResponse.json()
+         if (!presignedResponse.ok) {
+             const errorRes = await presignedResponse.json().catch(() => null);
+             throw new Error(errorRes?.error?.message || "업로드 URL 생성 실패");
+         }
 
-    //             // 2. S3에 직접 업로드
-    //             const uploadResponse = await fetch(uploadURL, {
-    //                 method: 'PUT',
-    //                 body: file,
-    //                 headers: {
-    //                     'Content-Type': file.type,
-    //                 },
-    //             })
+         // 백엔드 응답 스펙: { objectKey, uploadUrl, fileUrl, expiresIn, requiredHeaders? }
+         const { uploadUrl, objectKey, fileUrl, requiredHeaders } = await presignedResponse.json();
 
-    //             if (!uploadResponse.ok) {
-    //                 if (uploadResponse.status === 413) throw new Error('업로드 가능한 파일 크기를 초과했습니다.')
-    //                 throw new Error('이미지 업로드 실패')
-    //               }
+         // 2) S3에 PUT 업로드
+         // presign 시점에 서명에 포함된 헤더가 있다면 동일하게 보내야 함
+         // (없으면 Content-Type만 보내면 됨)
+         const putHeaders: Record<string, string> = {
+             "Content-Type": file.type,
+             ...(requiredHeaders ?? {}),
+         };
 
-                
-                
-    //             // 업로드된 이미지 정보를 상태에 저장 (회원가입 시 사용)
-    //             const imageInfo = {
-    //                 bucket: 'app-user-profile', // 백엔드에서 제공하거나 고정값
-    //                 key: key,
-    //                 url: uploadURL.split('?')[0], // presigned URL에서 실제 URL 추출
-    //             }
-                
-    //             // 3. 업로드 성공 시 파일과 메타데이터 저장
-    //             setProfileImage(file)
-    //             sessionStorage.setItem('profileImageInfo', JSON.stringify(imageInfo))
-    //             setErrors((prev) => ({ ...prev, profileImage: '' }))
-    //             // 임시로 sessionStorage에 저장 (회원가입 시 사용)
-                
-                
-    //         } catch (err: any) {
-    //             setErrors({ profileImage: err.message })
-    //         }
-    //     }
-    // }
+         const uploadResponse = await fetch(uploadUrl, {
+             method: "PUT",
+             body: file,
+             headers: putHeaders,
+         });
+
+         if (!uploadResponse.ok) {
+             if (uploadResponse.status === 413) throw new Error("업로드 가능한 파일 크기를 초과했습니다.");
+             const text = await uploadResponse.text().catch(() => "");
+             throw new Error(`이미지 업로드 실패 (${uploadResponse.status}) ${text}`);
+         }
+
+         // 3) 업로드 결과를 상태/세션에 저장
+         // - 백엔드가 권장하는 형태: DB에는 objectKey 저장, 화면표시는 fileUrl 사용
+         const imageInfo = {
+             objectKey, // ex) statics/image/dev/2025/11/uuid.jpg
+             url: fileUrl, // ex) https://cdn.../statics/image/dev/2025/11/uuid.jpg
+         };
+
+         setProfileImage(file);
+         sessionStorage.setItem("profileImageInfo", JSON.stringify(imageInfo));
+         setErrors((prev) => ({ ...prev, profileImage: "" }));
+     } catch (err: any) {
+         setErrors({ profileImage: err.message ?? "업로드 중 오류가 발생했습니다." });
+     }
+ };
+
 
     /**
      * 이메일 인증 발송 처리 함수
@@ -265,7 +268,7 @@ export default function SignupPage() {
         //         profileImagePayload = JSON.parse(imageInfo)
         //     } else {
         //         setErrors({ profileImage: '이미지 업로드 정보를 찾을 수 없습니다. 다시 업로드해주세요.' })
-        //         return
+        //         return;
         //     }
         // }
 
@@ -327,10 +330,10 @@ export default function SignupPage() {
                         placeholder="이메일을 입력하세요"
                         value={email}
                         onChange={(e) => {
-                            setEmail(e.target.value)
-                            setEmailSent(false)
-                            setEmailVerified(false)
-                            setEmailVerifyMessage('')
+                            setEmail(e.target.value);
+                            setEmailSent(false);
+                            setEmailVerified(false);
+                            setEmailVerifyMessage("");
                         }}
                     />
                     <span className={styles.domain}>@konkuk.ac.kr</span>
@@ -348,9 +351,7 @@ export default function SignupPage() {
                         </button>
                     )}
                 </div>
-                {emailVerifyMessage && (
-                    <p className={styles.emailMessage}>{emailVerifyMessage}</p>
-                )}
+                {emailVerifyMessage && <p className={styles.emailMessage}>{emailVerifyMessage}</p>}
 
                 <input
                     type="password"
@@ -358,8 +359,8 @@ export default function SignupPage() {
                     placeholder="비밀번호"
                     value={password}
                     onChange={(e) => {
-                        setPassword(e.target.value)
-                        if (errors.password) setErrors((prev) => ({ ...prev, password: '' }))
+                        setPassword(e.target.value);
+                        if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
                     }}
                 />
                 {errors.password && <p className={styles.error}>{errors.password}</p>}
@@ -370,26 +371,28 @@ export default function SignupPage() {
                     placeholder="비밀번호 확인"
                     value={confirmPassword}
                     onChange={(e) => {
-                        setConfirmPassword(e.target.value)
-                        if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: '' }))
+                        setConfirmPassword(e.target.value);
+                        if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: "" }));
                     }}
                 />
                 {errors.confirmPassword && <p className={styles.error}>{errors.confirmPassword}</p>}
 
                 <div className={styles.avatarUpload}>
-                    <img
-                        src={profileImage ? URL.createObjectURL(profileImage) : '/images/logo.png'}
-                        alt="프로필"
-                        className={styles.avatarPreview}
-                    />
-                    <label className={styles.uploadLabel}>
-                        <input 
-                            type="file" 
-                            accept="image/*"
-                            hidden 
-                            // onChange={handleImageChange} 
-                        />📷
+                    <img src={profileImage ? URL.createObjectURL(profileImage) : "/images/logo.png"} alt="프로필" className={styles.avatarPreview} />
+                    <label htmlFor="profileImage" className={styles.uploadLabel} title="프로필 이미지 업로드">
+                        {" "}
+                        📷{" "}
                     </label>
+                    <input
+                        id="profileImage"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={async (e) => {
+                            await handleImageChange(e);
+                            if (e.target) e.target.value = "";
+                        }}
+                    />
                 </div>
                 {errors.profileImage && <p className={styles.error}>{errors.profileImage}</p>}
 
@@ -398,13 +401,14 @@ export default function SignupPage() {
                         className={styles.select}
                         value={age}
                         onChange={(e) => {
-                            setAge(e.target.value)
-                            if (errors.age) setErrors((prev) => ({ ...prev, age: '' }))
-                        }}
-                    >
+                            setAge(e.target.value);
+                            if (errors.age) setErrors((prev) => ({ ...prev, age: "" }));
+                        }}>
                         <option value="">나이</option>
                         {Array.from({ length: 87 }, (_, i) => (
-                            <option key={i} value={i + 14}>{i + 14}</option>
+                            <option key={i} value={i + 14}>
+                                {i + 14}
+                            </option>
                         ))}
                     </select>
 
@@ -412,10 +416,9 @@ export default function SignupPage() {
                         className={styles.select}
                         value={gender}
                         onChange={(e) => {
-                            setGender(e.target.value)
-                            if (errors.gender) setErrors((prev) => ({ ...prev, gender: '' }))
-                        }}
-                    >
+                            setGender(e.target.value);
+                            if (errors.gender) setErrors((prev) => ({ ...prev, gender: "" }));
+                        }}>
                         <option value="">성별</option>
                         <option value="MALE">남성</option>
                         <option value="FEMALE">여성</option>
@@ -428,14 +431,17 @@ export default function SignupPage() {
                     className={styles.select}
                     value={studentId}
                     onChange={(e) => {
-                        setStudentId(e.target.value)
-                        if (errors.studentId) setErrors((prev) => ({ ...prev, studentId: '' }))
-                    }}
-                >
+                        setStudentId(e.target.value);
+                        if (errors.studentId) setErrors((prev) => ({ ...prev, studentId: "" }));
+                    }}>
                     <option value="">학번</option>
                     {Array.from({ length: 20 }, (_, i) => {
-                        const year = 10 + i
-                        return <option key={year} value={year}>{year}</option>
+                        const year = 10 + i;
+                        return (
+                            <option key={year} value={year}>
+                                {year}
+                            </option>
+                        );
                     })}
                 </select>
                 {errors.studentId && <p className={styles.error}>{errors.studentId}</p>}
@@ -446,20 +452,14 @@ export default function SignupPage() {
                     placeholder="닉네임"
                     value={nickname}
                     onChange={(e) => {
-                        setNickname(e.target.value)
-                        if (errors.nickname) setErrors((prev) => ({ ...prev, nickname: '' }))
+                        setNickname(e.target.value);
+                        if (errors.nickname) setErrors((prev) => ({ ...prev, nickname: "" }));
                     }}
                 />
                 {errors.nickname && <p className={styles.error}>{errors.nickname}</p>}
 
-                <button
-                    type="button"
-                    className={styles.verifyButton}
-                    onClick={() => setShowCategoryModal(true)}
-                >
-                    {preferredCategories.length > 0 
-                        ? `카테고리 선택 (${preferredCategories.length}/3)` 
-                        : '카테고리 선택 (최대 3개)'}
+                <button type="button" className={styles.verifyButton} onClick={() => setShowCategoryModal(true)}>
+                    {preferredCategories.length > 0 ? `카테고리 선택 (${preferredCategories.length}/3)` : "카테고리 선택 (최대 3개)"}
                 </button>
                 {preferredCategories.length > 0 && (
                     <div className={styles.selectedTags}>
@@ -470,10 +470,9 @@ export default function SignupPage() {
                                     type="button"
                                     className={styles.tagRemove}
                                     onClick={() => {
-                                        setPreferredCategories(prev => prev.filter(c => c !== cat))
+                                        setPreferredCategories((prev) => prev.filter((c) => c !== cat));
                                     }}
-                                    title={`${cat} 제거`}
-                                >
+                                    title={`${cat} 제거`}>
                                     ×
                                 </button>
                             </div>
@@ -484,18 +483,16 @@ export default function SignupPage() {
 
                 {errors.general && <p className={styles.error}>❗ {errors.general}</p>}
 
-                <button type="submit" className={styles.submitButton}>회원가입 완료</button>
+                <button type="submit" className={styles.submitButton}>
+                    회원가입 완료
+                </button>
             </form>
 
             {toast && <div className={styles.toast}>{toast}</div>}
 
             {showCategoryModal && (
-                <CategorySelectModal
-                    selected={preferredCategories}
-                    setSelected={setPreferredCategories}
-                    onClose={() => setShowCategoryModal(false)}
-                />
+                <CategorySelectModal selected={preferredCategories} setSelected={setPreferredCategories} onClose={() => setShowCategoryModal(false)} />
             )}
         </div>
-    )
+    );
     }
