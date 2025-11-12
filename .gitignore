@@ -25,4 +25,4 @@ pnpm-debug.log*
 .DS_Store
 
 # redis-data
-./redis-data/
+redis-data/
