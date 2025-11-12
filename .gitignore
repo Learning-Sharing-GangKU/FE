@@ -23,3 +23,6 @@ pnpm-debug.log*
 
 # macOS
 .DS_Store
+
+# redis-data
+./redis-data/
