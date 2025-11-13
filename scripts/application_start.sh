@@ -9,7 +9,9 @@ PORT="$(grep '^SERVICE_PORT=' .env | cut -d= -f2)"
 sudo docker rm -f fe-app || true
 
 # 컨테이너 실행
-sudo docker run -d --name fe-app \
+sudo docker run -d \
+  --name fe-app \
+  --network app-net \
   -p "${PORT}:${PORT}" \
   -e NODE_ENV=production \
   -e PORT="${PORT}" \
