@@ -1,66 +1,56 @@
-// src/app/gathering/[id]/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { getAccessToken } from '@/lib/auth';
-import styles from './detail.module.css';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getGatheringDetail } from '@/lib/rooms';
+import {
+  HeaderDetail,
+  RoomImage,
+  CategoryTag,
+  RoomTitle,
+  RoomDescription,
+  RoomMeta,
+  ParticipantSection,
+  ChatLink,
+  ActionButton,
+} from './index';
+import styles from './roomDetail.module.css';
 
-export default function GatheringDetailPage({ params }: { params: { id: string } }) {
-  const { id: gatheringId } = params;
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+export default function RoomDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
-  useEffect(() => {
-    const fetchGathering = async () => {
-      try {
-        const token = getAccessToken();
-        if (!token) {
-          router.push('/login');
-          return;
-        }
+  // ❗ Promise를 React.use 로 언래핑해야 함
+  const { id } = React.use(params); 
+  const gatheringId = id; // "gath_1" 이런 형태로 들어옴
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['gathering', gatheringId],
+    queryFn: () => getGatheringDetail(gatheringId),
+  });
 
-        const res = await fetch(`/api/v1/gatherings/${gatheringId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
+  if (isLoading) return <div className={styles.pageContainer}>로딩 중...</div>;
+  if (error || !data) return <div className={styles.pageContainer}>불러오기 실패</div>;
 
-        if (!res.ok) {
-          if (res.status === 401) router.push('/login');
-          else if (res.status === 404) setError('존재하지 않는 모임입니다.');
-          else setError('오류가 발생했습니다.');
-          return;
-        }
+  const participants = Array.isArray(data.participants) ? data.participants : [];
+  const capacity = typeof data.capacity === 'number' ? data.capacity : 0;
+  const myUserId = Number(localStorage.getItem('userId'));
+  const isJoined = participants.some(p => p.userId === myUserId);
+  const isFull = participants.length >= capacity;
+  const showChat = isJoined; // 참여자에게만 노출
 
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        setError('요청 중 오류가 발생했습니다.');
-      }
-    };
-
-    fetchGathering();
-  }, [gatheringId]);
-
-  if (error) return <div className={styles.error}>{error}</div>;
-  if (!data) return <div className={styles.loading}>로딩 중...</div>;
-
+  console.log("isJoined =", data.isJoined);
+  console.log("participants =", data.participants);
+  console.log("myUserId =", localStorage.getItem('userId'));
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>{data.title}</h1>
-      <img className={styles.image} src={data.imageUrl} alt="모임 이미지" />
-      <p className={styles.category}>카테고리: {data.category}</p>
-      <p className={styles.description}>{data.description}</p>
-      <p className={styles.meta}>호스트: {data.host.nickname}</p>
-      <p className={styles.meta}>날짜: {new Date(data.date).toLocaleDateString()}</p>
-      <p className={styles.meta}>장소: {data.location}</p>
-      <p className={styles.meta}>참여 인원: {data.participantsPreview.data.length} / {data.capacity}</p>
-      <a className={styles.chatLink} href={data.openChatUrl}>오픈채팅방</a>
+    <div className={styles.pageContainer}>
+      <HeaderDetail title="모임 상세" />
+      <RoomImage src={data.imageUrl} alt="모임 이미지" />
+      <div className={styles.divider} />
+      <CategoryTag label={data.category} />
+      <RoomTitle title={data.title} />
+      <RoomDescription description={data.description} />
+      <RoomMeta host={data.host.nickname} date={data.date} place={data.location} />
+      <ParticipantSection participants={participants} capacity={capacity} />
+      <ChatLink url={data.openChatUrl} visible={showChat} />
+      <ActionButton gatheringId={gatheringId} isJoined={isJoined} isFull={isFull} />
     </div>
   );
 }

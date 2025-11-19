@@ -124,7 +124,7 @@ export default function SignupPage() {
 
         try {
             const fullEmail = `${email}@konkuk.ac.kr`
-            const res = await fetch("/api/v1/auth/email/verification", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/email/verification`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ export default function SignupPage() {
      */
     const handleCheckVerification = async () => {
         try {
-            const res = await fetch("/api/v1/auth/email/verification/confirm", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/email/verification/confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

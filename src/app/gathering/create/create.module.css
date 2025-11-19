@@ -113,10 +113,111 @@
   background-color: #0056b3;
 }
 
+.submitButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 .error {
   color: red;
   font-size: 0.9rem;
   margin: 10px 0;
+}
+
+.imageUploadSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.imageUploadButton {
+  padding: 10px 14px;
+  font-size: 14px;
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.imageUploadButton:hover:not(:disabled) {
+  background-color: #e5e7eb;
+}
+
+.imageUploadButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.imagePreview {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.removeImageButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.removeImageButton:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.descriptionSection {
+  margin-bottom: 10px;
+}
+
+.descriptionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.aiGenerateButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.aiGenerateButton:hover:not(:disabled) {
+  background-color: #4f46e5;
+}
+
+.aiGenerateButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .bottomNav {
