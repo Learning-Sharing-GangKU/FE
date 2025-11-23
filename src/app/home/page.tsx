@@ -156,7 +156,7 @@ const HomePage = () => {
 
       {/* 하단 네비게이션 */}
       <nav className={styles.bottomNav}>
-        <Link href="/" className={styles.navItem}>
+        <Link href="/home" className={styles.navItem}>
           <Home size={20} />
           <div>홈</div>
         </Link>

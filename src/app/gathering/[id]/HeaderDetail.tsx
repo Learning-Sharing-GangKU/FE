@@ -16,3 +16,6 @@ export function HeaderDetail({ title }: { title: string }) {
   );
 }
 
+
+
+

@@ -5,3 +5,6 @@ export function CategoryTag({ label }: { label: string }) {
   return <span className={styles.categoryTag}>{label}</span>;
 }
 
+
+
+

@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import Link from 'next/link';
 import styles from './profile.module.css';
 import { Home, List, Plus, Users, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import LoginRequiredModal from '@/components/LoginRequiredModal';
 
 const MyProfilePage: React.FC = () => {
   const { logout } = useAuth();
@@ -36,6 +37,28 @@ const MyProfilePage: React.FC = () => {
   };
 
   const visibleReviews = showMore ? user.reviews : user.reviews.slice(0, 2);
+
+   // ⭐ 로그인 차단 상태
+    const [isReady, setIsReady] = useState(false);
+    const { isLoggedIn } = useAuth();
+
+    // ⭐ 로그인 여부 판단 후 UI 차단/허용
+    useEffect(() => {
+      if (isLoggedIn === null || isLoggedIn === undefined) return;
+      setIsReady(true);
+    }, [isLoggedIn]);
+  
+    // ⭐ 로그인 여부 확인 전 → 아무것도 보여주지 않기
+    if (!isReady) return null;
+  
+    // ⭐ 로그인 안 된 상태 → 모달만 표시
+    if (isLoggedIn === false) {
+      return (
+        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+          <LoginRequiredModal />
+        </div>
+      );
+    }
 
   return (
     <div className={styles.container}>

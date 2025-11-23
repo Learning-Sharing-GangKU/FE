@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styles from './manage.module.css';
 import { getAccessToken } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
+import LoginRequiredModal from '@/components/LoginRequiredModal';
 import { Home, List, Plus, Users, User } from 'lucide-react';
 
 interface GatheringItem {
@@ -17,19 +19,35 @@ interface GatheringItem {
 }
 
 const ManagePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'host' | 'guest'>('host');
+  const { isLoggedIn } = useAuth();
+  
+  // 로그인 여부 체크 직후 등장
   const [gatherings, setGatherings] = useState<GatheringItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'host' | 'guest'>('host');
 
+  // isLoggedIn 체크 전에는 아무것도 띄우지 않음
+  if (isLoggedIn === null || isLoggedIn === undefined) {
+    return null;
+  }
+
+  // ⭐ 2) 로그인 안 된 상태면 모달만 표시 (배경 안 보임)
+  if (isLoggedIn === false) {
+    return (
+      <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+        <LoginRequiredModal />
+      </div>
+    );
+  }
+
+  // ⭐ 3) 로그인된 상태에서만 fetch 실행
   const fetchUserGatherings = async (role: 'host' | 'guest') => {
     try {
       setLoading(true);
       const token = getAccessToken();
       const userId = localStorage.getItem('userId');
-      if (!token || !userId) {
-        console.warn('로그인 정보가 없습니다.');
-        return;
-      }
+
+      if (!token || !userId) return;
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/gatherings?role=${role}&size=10&sort=createdAt,desc`,
@@ -54,11 +72,12 @@ const ManagePage: React.FC = () => {
     fetchUserGatherings(activeTab);
   }, [activeTab]);
 
+  //  정상 화면 렌더링
   return (
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>모임 관리</h1>
 
-      {/* ① 탭 버튼 */}
+      {/* 탭 */}
       <div className={styles.tabWrapper}>
         <button
           className={`${styles.tabButton} ${activeTab === 'host' ? styles.active : ''}`}
@@ -74,7 +93,6 @@ const ManagePage: React.FC = () => {
         </button>
       </div>
 
-      {/* ② 리스트 / 빈 상태 */}
       {loading ? (
         <div className={styles.loading}>불러오는 중...</div>
       ) : gatherings.length > 0 ? (
@@ -100,28 +118,15 @@ const ManagePage: React.FC = () => {
         </div>
       ) : (
         <div className={styles.emptyWrapper}>
-          {/* 로고 이미지 */}
           <div className={styles.emptyBox}>
-            <img
-              src="/images/logo.png"
-              alt="GangKU 로고"
-              className={styles.logoImage}
-            />
+            <img src="/images/logo.png" alt="GangKU 로고" className={styles.logoImage} />
           </div>
-
-          {/* 빈 상태 텍스트 */}
           <p className={styles.emptyText}>
-            {activeTab === 'host'
-              ? '만든 모임이 없습니다'
-              : '참여한 모임이 없습니다'}
+            {activeTab === 'host' ? '만든 모임이 없습니다' : '참여한 모임이 없습니다'}
           </p>
           <p className={styles.subText}>
-            {activeTab === 'host'
-              ? '어떤 모임을 만들지 고민이신가요?'
-              : '새로운 모임을 찾아보세요!'}
+            {activeTab === 'host' ? '어떤 모임을 만들지 고민이신가요?' : '새로운 모임을 찾아보세요!'}
           </p>
-
-          {/* 버튼 */}
           <Link
             href={activeTab === 'host' ? '/gathering/create' : '/category'}
             className={styles.actionButton}
@@ -131,28 +136,14 @@ const ManagePage: React.FC = () => {
         </div>
       )}
 
-      {/* ③ 하단 네비게이션 */}
       <nav className={styles.bottomNav}>
-        <Link href="/home" className={styles.navItem}>
-          <Home size={20} />
-          <div>홈</div>
-        </Link>
-        <Link href="/category" className={styles.navItem}>
-          <List size={20} />
-          <div>카테고리</div>
-        </Link>
-        <Link href="/gathering/create" className={styles.navItem}>
-          <Plus size={20} />
-          <div>모임 생성</div>
-        </Link>
+        <Link href="/home" className={styles.navItem}><Home size={20} /><div>홈</div></Link>
+        <Link href="/category" className={styles.navItem}><List size={20} /><div>카테고리</div></Link>
+        <Link href="/gathering/create" className={styles.navItem}><Plus size={20} /><div>모임 생성</div></Link>
         <Link href="/manage" className={`${styles.navItem} ${styles.active}`}>
-          <Users size={20} />
-          <div>모임 관리</div>
+          <Users size={20} /><div>모임 관리</div>
         </Link>
-        <Link href="/profile" className={styles.navItem}>
-          <User size={20} />
-          <div>내 페이지</div>
-        </Link>
+        <Link href="/profile" className={styles.navItem}><User size={20} /><div>내 페이지</div></Link>
       </nav>
     </div>
   );

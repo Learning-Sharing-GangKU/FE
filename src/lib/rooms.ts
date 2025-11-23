@@ -37,7 +37,16 @@ export interface GatheringDetailResponse {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 async function apiFetch(input: string, init: RequestInit = {}) {
-  const token = getAccessToken();
+  // const token = getAccessToken();
+  let token: string | null = null;
+  try {
+    const t = getAccessToken(); 
+    if (typeof t === 'string' && t.trim() !== '') {
+      token = t.trim(); // '' 방지
+    }
+  } catch {
+    token = null;
+  }
   const headers = new Headers(init.headers ?? {});
   if (!headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
@@ -147,23 +156,33 @@ export async function getGatherings(): Promise<GatheringSummary[]> {
   })) as GatheringSummary[];
 }
 
-export async function joinGathering(gatheringId: string, userId: number): Promise<void> {
+export async function joinGathering(gatheringId: string): Promise<void> {
+  const numericId = gatheringId.replace("gath_", "");
   console.log("JOIN GATHERING 실행됨", gatheringId);
+  const token = getAccessToken();
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${gatheringId}/participants/${userId}`,
-    { method: 'POST' }
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${numericId}/participants`,
+    { method: 'POST',
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${token}`,
+     }
+    }
   );
 }
 
-export async function exitGathering(gatheringId: string,  userId: number): Promise<void> {
-  
+export async function exitGathering(gatheringId: string): Promise<void> {
+  const numericId = gatheringId.replace("gath_", "");
+  const token = getAccessToken();
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${gatheringId}/participants/${userId}`,
-    { method: 'DELETE' }
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${numericId}/participants`,
+    { method: 'DELETE' ,
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${token}`,
+     }
+    }
   );
 }
-
-
-
 
 

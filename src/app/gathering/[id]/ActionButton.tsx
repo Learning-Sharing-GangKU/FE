@@ -7,19 +7,20 @@ import { exitGathering, joinGathering } from '@/lib/rooms';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function ActionButton({ gatheringId, isJoined, isFull }: { gatheringId: string; isJoined: boolean; isFull: boolean }) {
+
   const qc = useQueryClient();
   const [toast, setToast] = React.useState<string | null>(null);
-  const { myUserId } = useAuth();
 
+  
   const joinMut = useMutation({
-    mutationFn: () => joinGathering(gatheringId, myUserId!),
+    mutationFn: () => joinGathering(gatheringId),
     onSuccess: async () => {
       setToast('참여가 완료되었습니다.');
       await qc.invalidateQueries({ queryKey: ['gathering', gatheringId] });
     },
   });
   const exitMut = useMutation({
-    mutationFn: () => exitGathering(gatheringId, myUserId!),
+    mutationFn: () => exitGathering(gatheringId),
     onSuccess: async () => {
       setToast('참여가 취소되었습니다.');
       await qc.invalidateQueries({ queryKey: ['gathering', gatheringId] });
@@ -51,7 +52,9 @@ export function ActionButton({ gatheringId, isJoined, isFull }: { gatheringId: s
         className={styles.joinButton}
         onClick={() => {
           console.log("CLICKED JOIN BUTTON");
+          console.log("Before mutate:", joinMut);
           joinMut.mutate();
+          console.log("After mutate call");
         }}
         disabled={joinMut.isPending}
       >

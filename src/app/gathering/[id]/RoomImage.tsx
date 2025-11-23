@@ -10,3 +10,5 @@ export function RoomImage({ src, alt }: { src?: string | null; alt: string }) {
   );
 }
 
+
+
