@@ -22,11 +22,13 @@ import styles from './CategorySelectModal.module.css'
  */
 type Props = {
     selected: string[]
-    setSelected: React.Dispatch<React.SetStateAction<string[]>>
+    setSelected: (selected: string[] | ((prev: string[]) => string[])) => void;
+    // setSelected: React.Dispatch<React.SetStateAction<string[]>>
     onClose: () => void
+    max?: number; // ✅ 추가: 최대 선택 가능 수 (기본값 3)
 }
 
-export default function CategorySelectModal({ selected, setSelected, onClose }: Props) {
+export default function CategorySelectModal({ selected, setSelected, onClose, max=3, }: Props) {
   // ===== 상태 관리 =====
   const [categories, setCategories] = useState<string[]>([]) // 백엔드에서 가져온 카테고리 목록
   const [loading, setLoading] = useState(true) // 카테고리 목록 로딩 상태
@@ -45,7 +47,7 @@ export default function CategorySelectModal({ selected, setSelected, onClose }: 
     const fetchCategories = async () => {
       try {
         // 백엔드 API 호출
-        const response = await fetch('/api/categories', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/categories`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -58,7 +60,8 @@ export default function CategorySelectModal({ selected, setSelected, onClose }: 
         }
 
         const data = await response.json()
-        setCategories(data.categories || [])
+        const names = data.map((category: {name: string }) => category.name);
+        setCategories(names)
       } catch (err: any) {
         setError(err.message)
         // 에러 발생 시 기본 카테고리 사용 (fallback)
@@ -87,10 +90,9 @@ export default function CategorySelectModal({ selected, setSelected, onClose }: 
       setSelected(prev => prev.filter(cat => cat !== category))
     } else {
       // 최대 3개까지만 선택 가능
-      if (selected.length < 3) {
+      if (selected.length < max) {
         setSelected(prev => [...prev, category])
       }
-      // 3개 초과 시 아무 동작 안함 (UI에서 비활성화됨)
     }
   }
 
@@ -115,12 +117,12 @@ export default function CategorySelectModal({ selected, setSelected, onClose }: 
         
         {/* 사용자 안내 메시지 */}
         <p className={styles.subtitle}>
-          관심 카테고리를 선택해주세요 (최대 3개)
+          관심 카테고리를 선택해주세요 (최대 {max}개)
         </p>
         
         {/* 선택 개수 카운터 */}
         <p className={styles.counter}>
-          {selected.length}/3 선택됨
+          {selected.length}/{max} 선택됨
         </p>
         
         {/* 에러 메시지 표시 */}
@@ -130,7 +132,7 @@ export default function CategorySelectModal({ selected, setSelected, onClose }: 
         <ul className={styles.list}>
           {categories.map((category) => {
             const isSelected = selected.includes(category) // 선택 상태 확인
-            const isDisabled = !isSelected && selected.length >= 3 // 비활성화 상태 확인
+            const isDisabled = !isSelected && selected.length >= max // 비활성화 상태 확인
             
             return (
               <li
