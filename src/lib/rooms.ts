@@ -156,6 +156,31 @@ export async function getGatherings(): Promise<GatheringSummary[]> {
   })) as GatheringSummary[];
 }
 
+
+// 👉 최신 3개
+export async function getLatestGatherings() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=latest&size=3`);
+  if (!res.ok) throw new Error("최신 모임 불러오기 실패");
+  return res.json();
+}
+
+// 👉 인기 3개
+export async function getPopularGatherings() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=popular&size=3`);
+  if (!res.ok) throw new Error("인기 모임 불러오기 실패");
+  return res.json();
+}
+
+// 👉 추천 3개
+export async function getRecommendedGatherings() {
+  // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=recommended&size=3`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=popular&size=3`);
+  if (!res.ok) throw new Error("추천 모임 불러오기 실패");
+  return res.json();
+}
+
+
+
 export async function joinGathering(gatheringId: string): Promise<void> {
   const numericId = gatheringId.replace("gath_", "");
   console.log("JOIN GATHERING 실행됨", gatheringId);
