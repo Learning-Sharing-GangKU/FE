@@ -6,8 +6,59 @@ import styles from "./home.module.css";
 import { Home, List, Plus, Users, User, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { getGatherings, GatheringSummary } from "@/lib/rooms";
+import { getGatherings, GatheringSummary} from "@/lib/rooms";
 import { useSearchParams, useRouter } from "next/navigation";
+import { 
+  getLatestGatherings, 
+  getPopularGatherings, 
+  getRecommendedGatherings 
+} from "@/lib/rooms";
+function Section({
+  title,
+  rooms,
+  carouselRef,
+  onLeft,
+  onRight
+}: {
+  title: string;
+  rooms: any[];
+  carouselRef: React.RefObject<HTMLDivElement | null>;
+  onLeft: () => void;
+  onRight: () => void;
+}) {
+  return (
+    <div className={styles.section}>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+
+      <div className={styles.carouselWrapper}>
+        <button onClick={onLeft} className={styles.arrowButton}>
+          <ArrowLeft size={20} />
+        </button>
+
+        <div className={styles.carousel} ref={carouselRef}>
+          {rooms.map((room) => (
+            <Link key={room.id} href={`/gathering/${room.id}`} className={styles.roomCard}>
+              <div className={styles.roomCardBox}>
+                <div className={styles.roomCardImage}>
+                  <img
+                    src={room.imageUrl || "/images/logo.png"}
+                    alt={room.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+              </div>
+              <div className={styles.roomCardTitle}>{room.title}</div>
+            </Link>
+          ))}
+        </div>
+
+        <button onClick={onRight} className={styles.arrowButton}>
+          <ArrowRight size={20} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const renderGroupSection = (
   title: string,
@@ -54,11 +105,21 @@ const HomePage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // 실제 데이터 로드
-  const { data: gatherings, isLoading, error } = useQuery({
-    queryKey: ['gatherings'],
-    queryFn: getGatherings,
+  const recommendedQuery = useQuery({
+    queryKey: ["home", "recommended"],
+    queryFn: getRecommendedGatherings,
   });
+
+  const latestQuery = useQuery({
+    queryKey: ["home", "latest"],
+    queryFn: getLatestGatherings,
+  });
+
+  const popularQuery = useQuery({
+    queryKey: ["home", "popular"],
+    queryFn: getPopularGatherings,
+  });
+
 
   const scrollLeft = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
@@ -122,36 +183,44 @@ const HomePage = () => {
             {toast}
           </div>
         )}
-        {isLoading && <div>로딩 중...</div>}
-        {error && <div>불러오기 실패</div>}
-        {!isLoading && !error && gatherings && gatherings.length > 0 && (
+        {/* {isLoading && <div>로딩 중...</div>}
+        {error && <div>불러오기 실패</div>} */}
+        {/* {!isLoading && !error && getHomeData && getHomeData.length > 0 && ( */}
           <>
-            {renderGroupSection(
-              "추천 모임",
-              gatherings,
-              refRecommended,
-              () => scrollLeft(refRecommended),
-              () => scrollRight(refRecommended)
-            )}
-            {renderGroupSection(
-              "최신 모임",
-              gatherings,
-              refLatest,
-              () => scrollLeft(refLatest),
-              () => scrollRight(refLatest)
-            )}
-            {renderGroupSection(
-              "인기 모임",
-              gatherings,
-              refPopular,
-              () => scrollLeft(refPopular),
-              () => scrollRight(refPopular)
-            )}
+            {recommendedQuery.isSuccess && (
+               <Section 
+                title="추천 모임"
+                rooms={recommendedQuery.data.data}
+                carouselRef={refRecommended}
+                onLeft={() => scrollLeft(refRecommended)}
+                onRight={() => scrollRight(refRecommended)}
+          />
+        )}
+            {/* 최신 */}
+            {latestQuery.isSuccess && (
+              <Section 
+                title="최신 모임"
+                rooms={latestQuery.data.data}
+                carouselRef={refLatest}
+                onLeft={() => scrollLeft(refLatest)}
+                onRight={() => scrollRight(refLatest)}
+          />
+        )}
+             {/* 인기 */}
+            {popularQuery.isSuccess && (
+              <Section 
+                title="인기 모임"
+                rooms={popularQuery.data.data}
+                carouselRef={refPopular}
+                onLeft={() => scrollLeft(refPopular)}
+                onRight={() => scrollRight(refPopular)}
+          />
+        )}
           </>
-        )}
-        {!isLoading && !error && gatherings && gatherings.length === 0 && (
+         {/* )} */}
+        {/* {!isLoading && !error && getHomeData && getHomeData.length === 0 && (
           <div>표시할 모임이 없습니다.</div>
-        )}
+        )} */}
       </div>
 
       {/* 하단 네비게이션 */}
