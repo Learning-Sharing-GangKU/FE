@@ -9,20 +9,21 @@ import React, {
   useCallback,
 } from 'react';
 import axios from 'axios';
+axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL;
+axios.defaults.withCredentials = true;
+
 import {
   getAccessToken,
   setAccessToken,
   removeAccessToken,
   isTokenExpiredOrNearExpiry,
 } from '@/lib/auth';
-
 interface AuthContextType {
   isLoggedIn: boolean | null; // null = 로딩 중, true = 로그인, false = 로그아웃
   myUserId: number | null;    // 현재 로그인한 유저의 ID (JWT sub)
   login: (token: string) => void;
   logout: () => Promise<void>;
 }
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /** ✅ JWT accessToken 에서 sub(userId) 파싱 */
@@ -58,10 +59,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isReissuingRef.current = true;
 
         const res = await axios.post(
-          '/api/v1/auth/reissue',
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/reissue`,
           {},
           { withCredentials: true }
         );
+        console.log("login response:", res.data);
 
         if (res.data?.accessToken) {
           const newToken = res.data.accessToken;
