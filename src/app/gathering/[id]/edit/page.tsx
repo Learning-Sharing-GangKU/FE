@@ -237,8 +237,14 @@ export default function GatheringEditPage() {
             {toast && <div className={styles.toast}>{toast}</div>}
 
             {/* 제목 */}
-            <h1 className={styles.title}>모임 수정</h1>
-
+            <div className={styles.headerContainer}>
+                <div className={styles.headerDetail}>
+                    <button aria-label="뒤로" className={styles.backButton} onClick={() => router.back()}>
+                        ←
+                    </button>
+                </div>
+                <h1 className={styles.title}>모임 수정</h1>
+            </div>
             {/* ===========================
           이미지 업로드
       ============================ */}
