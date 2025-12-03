@@ -27,7 +27,7 @@ export default function ManagePage() {
   const fetchUserGatherings = async (role: 'host' | 'guest'): Promise<GatheringItem[]> => {
     const token = getAccessToken();
     const userId = localStorage.getItem('userId');
-    
+
     if (!token || !userId) return [];
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/gatherings?role=${role}&page=1&size=10&sort=createdAt,desc`,
@@ -59,7 +59,10 @@ export default function ManagePage() {
     queryKey: ['myGatherings', activeTab],
     queryFn: () => fetchUserGatherings(activeTab),
     enabled: isLoggedIn === true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
+
 
   // 로그인 체크 중
   if (isLoggedIn === null) return null;

@@ -1,14 +1,24 @@
 "use client";
 
+import React from 'react';
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import styles from "./edit.module.css";
 import { getAccessToken } from "@/lib/auth";
 import CategorySelectModal from "@/components/CategorySelectModal";
+import AiIntroModal from '@/components/AiIntroModal';
+import GatheringFailedModal from '@/components/GatheringFailedModal';
+
 
 export default function GatheringEditPage() {
     const [selectedCategoryList, setSelectedCategoryList] = useState<string[]>([]);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [toast, setToast] = React.useState<string | null>(null);
+    const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
     const params = useParams();
     const router = useRouter();
     const gatheringId = params.id as string;
@@ -18,7 +28,6 @@ export default function GatheringEditPage() {
 
     const [original, setOriginal] = useState<any>(null); // 🔥 원본 데이터 저장
     const [loading, setLoading] = useState(true);
-    const [toast, setToast] = useState<string | null>(null);
 
     // 입력값 상태
     const [title, setTitle] = useState("");
@@ -31,6 +40,7 @@ export default function GatheringEditPage() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [imageObjectKey, setImageObjectKey] = useState<string | null>(null);
 
+    const [failedMessage, setFailedMessage] = useState<string | null>(null);
     // ==================================================
     // 1) GET — 기존 정보 불러오기
     // ==================================================
@@ -93,6 +103,29 @@ export default function GatheringEditPage() {
     const handleSave = async () => {
         if (!original) return;
 
+        // 🔥 프론트단 필수값 검사
+        if (!title.trim()) {
+            setFailedMessage("모임 이름을 입력해주세요.");
+            return;
+        }
+        if (!category) {
+            setFailedMessage("카테고리를 선택해주세요.");
+            return;
+        }
+        if (!location.trim()) {
+            setFailedMessage("장소를 입력해주세요.");
+            return;
+        }
+        if (!date) {
+            setFailedMessage("날짜를 선택해주세요.");
+            return;
+        }
+        if (!capacity || capacity < 1) {
+            setFailedMessage("최대 인원은 1명 이상이어야 합니다.");
+            return;
+        }
+        if (!original) return;
+
         const updated: any = {}; // 🔥 바뀐 항목만 담는 객체
 
         // 변경 감지(diff)
@@ -147,6 +180,57 @@ export default function GatheringEditPage() {
     };
 
     if (loading) return <div>로딩중...</div>;
+
+    // -------------------------------
+    // ⭐ AI 모임 설명 자동 생성
+    // -------------------------------
+
+    const handleAIGenerateDescription = () => {
+        if (!title || !category || !capacity || !date || !location) {
+            setError("모든 기본 정보를 먼저 입력해주세요.");
+            return;
+        }
+        setShowAiModal(true); // 🔥 모달 열기
+    };
+
+    const handleSubmitAiIntro = async (keywords: string) => {
+        setShowAiModal(false);
+
+        try {
+            const token = getAccessToken();
+
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/intro`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        title,
+                        category,
+                        capacity,
+                        date: new Date(date).toISOString(),
+                        location,
+                        keywords: keywords.split(",").map(k => k.trim()),
+                    }),
+                }
+            );
+
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.error?.message || "AI 생성 실패");
+                return;
+            }
+
+            // 🔥 설명 자동 생성 적용
+            setDescription(data.intro);
+
+        } catch (e) {
+            setError("AI 요청 중 오류가 발생했습니다.");
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -275,16 +359,28 @@ export default function GatheringEditPage() {
                 placeholder="https:// 로 시작하는 링크"
             />
 
-            {/* ===========================
-                    모임 설명
-            ============================ */}
-            <div className={styles.label}>모임 설명</div>
-            <textarea
-                className={styles.textarea}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="모임 설명을 입력하세요"
-            />
+            {/* 모임 설명 */}
+            <div className={styles.descriptionSection}>
+                <div className={styles.descriptionHeader}>
+                    <label className={styles.label}>모임 설명</label>
+
+                    <button
+                        className={styles.aiGenerateButton}
+                        onClick={handleAIGenerateDescription}
+                    >
+                        AI 자동생성
+                    </button>
+                </div>
+
+                <textarea
+                    className={styles.textarea}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                />
+            </div>
+
+            {error && <div className={styles.error}>{error}</div>}
+
 
             {/* ===========================
                     저장 버튼
@@ -292,7 +388,21 @@ export default function GatheringEditPage() {
             <button className={styles.submitButton} onClick={handleSave}>
                 수정 완료
             </button>
+            {showAiModal && (
+                <AiIntroModal
+                    onClose={() => setShowAiModal(false)}
+                    onSubmit={handleSubmitAiIntro}
+                />
+            )}
+            {failedMessage && (
+                <GatheringFailedModal
+                    message={failedMessage}
+                    onClose={() => setFailedMessage(null)}
+                />
+            )}
+
         </div>
     );
+
 
 }

@@ -265,3 +265,36 @@
   text-align: center;
   font-size: 16px;
 }
+
+/* AI 버튼 */
+.descriptionSection {
+  margin-bottom: 10px;
+}
+
+.descriptionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.aiGenerateButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.aiGenerateButton:hover:not(:disabled) {
+  background-color: #4f46e5;
+}
+
+.aiGenerateButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
