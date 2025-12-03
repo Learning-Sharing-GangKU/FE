@@ -37,7 +37,7 @@ function Section({
 
         <div className={styles.carousel} ref={carouselRef}>
           {rooms.map((room) => (
-            <Link key={room.id} href={`/gathering/${room.id}`} className={styles.roomCard}>
+            <Link key={room.id} href={`/gathering/gath_${room.id}`} className={styles.roomCard}>
               <div className={styles.roomCardBox}>
                 <div className={styles.roomCardImage}>
                   <img
@@ -190,7 +190,7 @@ const HomePage = () => {
             {recommendedQuery.isSuccess && (
                <Section 
                 title="추천 모임"
-                rooms={recommendedQuery.data.data}
+                rooms={recommendedQuery.data?.data ?? []}
                 carouselRef={refRecommended}
                 onLeft={() => scrollLeft(refRecommended)}
                 onRight={() => scrollRight(refRecommended)}
@@ -200,7 +200,7 @@ const HomePage = () => {
             {latestQuery.isSuccess && (
               <Section 
                 title="최신 모임"
-                rooms={latestQuery.data.data}
+                rooms={latestQuery.data?.data ?? []}
                 carouselRef={refLatest}
                 onLeft={() => scrollLeft(refLatest)}
                 onRight={() => scrollRight(refLatest)}
@@ -210,7 +210,7 @@ const HomePage = () => {
             {popularQuery.isSuccess && (
               <Section 
                 title="인기 모임"
-                rooms={popularQuery.data.data}
+                rooms={popularQuery.data?.data ?? []}
                 carouselRef={refPopular}
                 onLeft={() => scrollLeft(refPopular)}
                 onRight={() => scrollRight(refPopular)}

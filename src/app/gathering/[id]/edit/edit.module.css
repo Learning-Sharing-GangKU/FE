@@ -1,3 +1,6 @@
+/* ===========================
+   공통 Layout
+=========================== */
 .container {
   max-width: 600px;
   margin: 0 auto;
@@ -13,6 +16,9 @@
   text-align: center;
 }
 
+/* ===========================
+   Label / Input / Textarea
+=========================== */
 .label {
   font-weight: 500;
   margin: 10px 0 5px;
@@ -34,6 +40,9 @@
   resize: vertical;
 }
 
+/* ===========================
+   카테고리 선택
+=========================== */
 .verifyButton {
   padding: 10px 14px;
   font-size: 14px;
@@ -120,12 +129,9 @@
   cursor: not-allowed;
 }
 
-.error {
-  color: red;
-  font-size: 0.9rem;
-  margin: 10px 0;
-}
-
+/* ===========================
+   이미지 업로드
+=========================== */
 .imageUploadSection {
   display: flex;
   flex-direction: column;
@@ -144,13 +150,8 @@
   width: fit-content;
 }
 
-.imageUploadButton:hover:not(:disabled) {
+.imageUploadButton:hover {
   background-color: #e5e7eb;
-}
-
-.imageUploadButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .imagePreview {
@@ -190,57 +191,77 @@
   background: rgba(0, 0, 0, 0.8);
 }
 
-.descriptionSection {
-  margin-bottom: 10px;
-}
-
-.descriptionHeader {
+/* ===========================
+   인원 + 날짜 2열 Row
+=========================== */
+.row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.aiGenerateButton {
-  padding: 6px 12px;
-  font-size: 12px;
-  background-color: #6366f1;
+.col {
+  flex: 1;
+  font-size: 13px;
+}
+
+/* ===========================
+   저장 버튼
+=========================== */
+.submitButton,
+.saveBtn {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
+  font-size: 1rem;
   cursor: pointer;
-  white-space: nowrap;
+  margin-top: 10px;
 }
 
-.aiGenerateButton:hover:not(:disabled) {
-  background-color: #4f46e5;
+.submitButton:hover,
+.saveBtn:hover {
+  background-color: #0056b3;
 }
 
-.aiGenerateButton:disabled {
-  background-color: #9ca3af;
+.submitButton:disabled {
+  background-color: #ccc;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-.bottomNav {
+/* ===========================
+   오류 메시지
+=========================== */
+.error {
+  color: red;
+  font-size: 0.9rem;
+  margin: 10px 0;
+}
+
+/* ===========================
+   Toast 메시지
+=========================== */
+.toast {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  border-top: 1px solid #e5e5e5;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  opacity: 0.9;
   z-index: 1000;
-  width: 100%;
+  font-size: 14px;
 }
 
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 0.75rem;
-  color: #333;
-  text-decoration: none;
+/* ===========================
+   로딩
+=========================== */
+.loading {
+  padding: 40px;
+  text-align: center;
+  font-size: 16px;
 }

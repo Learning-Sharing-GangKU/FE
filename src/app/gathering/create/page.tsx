@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import LoginRequiredModal from '@/components/LoginRequiredModal';
+import { Home, List, Plus, Users, User, ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function CreateGatheringPage() {
   const router = useRouter();
@@ -356,12 +357,28 @@ export default function CreateGatheringPage() {
       </button>
 
       {/* 하단 네비 */}
+      {/* 하단 네비게이션 */}
       <nav className={styles.bottomNav}>
-        <Link href="/" className={styles.navItem}>홈</Link>
-        <Link href="/category" className={styles.navItem}>카테고리</Link>
-        <Link href="/gathering/create" className={styles.navItem}>모임 생성</Link>
-        <Link href="/manage" className={styles.navItem}>모임 관리</Link>
-        <Link href="/profile" className={styles.navItem}>내 프로필</Link>
+        <Link href="/home" className={styles.navItem}>
+          <Home size={20} />
+          <div>홈</div>
+        </Link>
+        <Link href="/category" className={`${styles.navItem} ${styles.active}`}>
+          <List size={20} />
+          <div>카테고리</div>
+        </Link>
+        <Link href="/gathering/create" className={styles.navItem}>
+          <Plus size={20} />
+          <div>모임 생성</div>
+        </Link>
+        <Link href="/manage" className={styles.navItem}>
+          <Users size={20} />
+          <div>모임 관리</div>
+        </Link>
+        <Link href="/profile" className={styles.navItem}>
+          <User size={20} />
+          <div>내 페이지</div>
+        </Link>
       </nav>
     </div>
   );

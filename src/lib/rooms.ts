@@ -66,8 +66,7 @@ async function apiFetch(input: string, init: RequestInit = {}) {
 
 // ✅ "gath_" 접두어를 제거하고 숫자만 백엔드로 보냄
 export async function getGatheringDetail(gatheringId: string): Promise<GatheringDetailResponse> {
-  const numericId = gatheringId.replace("gath_", "");
-  const raw = await apiFetch(`/api/v1/gatherings/${numericId}`);
+  const raw = await apiFetch(`/api/v1/gatherings/${gatheringId}`);
   // Normalize backend response to the expected shape defensively
 
   // inside getGatheringDetail()
@@ -99,7 +98,7 @@ export async function getGatheringDetail(gatheringId: string): Promise<Gathering
       : { id: 0, nickname: '' });
 
   return {
-    id: raw?.id ?? raw?.gatheringId ?? Number(numericId),
+    id: raw?.id ?? raw?.gatheringId ?? Number(gatheringId),
     title: raw?.title ?? raw?.name ?? '',
     description: raw?.description ?? '',
     category: raw?.category ?? raw?.categoryName ?? '',
@@ -159,34 +158,76 @@ export async function getGatherings(): Promise<GatheringSummary[]> {
 
 // 👉 최신 3개
 export async function getLatestGatherings() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=latest&size=3`);
-  if (!res.ok) throw new Error("최신 모임 불러오기 실패");
+  const query = new URLSearchParams();
+  query.append('page', '1');
+  query.append('sort', 'latest');
+  query.append('size', '3');
+  const token = getAccessToken();
+  const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            credentials: 'include',
+          }
+        );
+  if (!res.ok) 
+    throw new Error("최신 모임 불러오기 실패");
   return res.json();
 }
 
 // 👉 인기 3개
 export async function getPopularGatherings() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=popular&size=3`);
-  if (!res.ok) throw new Error("인기 모임 불러오기 실패");
+  const query = new URLSearchParams();
+  query.append('sort', 'popular');
+  query.append('size', '3');
+  const token = getAccessToken();
+  const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            credentials: 'include',
+          }
+        );
+  if (!res.ok) 
+    throw new Error("인기 모임 불러오기 실패");
   return res.json();
 }
 
 // 👉 추천 3개
 export async function getRecommendedGatherings() {
   // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=recommended&size=3`);
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=popular&size=3`);
-  if (!res.ok) throw new Error("추천 모임 불러오기 실패");
+  const query = new URLSearchParams();
+  query.append('sort', 'latest');
+  query.append('size', '3');
+  const token = getAccessToken();
+  const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            credentials: 'include',
+          }
+        );
+  if (!res.ok) 
+    throw new Error("추천 모임 불러오기 실패");
   return res.json();
 }
 
 
 
 export async function joinGathering(gatheringId: string): Promise<void> {
-  const numericId = gatheringId.replace("gath_", "");
   console.log("JOIN GATHERING 실행됨", gatheringId);
   const token = getAccessToken();
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${numericId}/participants`,
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${gatheringId}/participants`,
     { method: 'POST',
       credentials: 'include',
       headers: {
@@ -197,10 +238,9 @@ export async function joinGathering(gatheringId: string): Promise<void> {
 }
 
 export async function exitGathering(gatheringId: string): Promise<void> {
-  const numericId = gatheringId.replace("gath_", "");
   const token = getAccessToken();
   await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${numericId}/participants`,
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${gatheringId}/participants`,
     { method: 'DELETE' ,
       credentials: 'include',
       headers: {

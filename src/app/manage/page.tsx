@@ -27,20 +27,31 @@ export default function ManagePage() {
   const fetchUserGatherings = async (role: 'host' | 'guest'): Promise<GatheringItem[]> => {
     const token = getAccessToken();
     const userId = localStorage.getItem('userId');
-
+    
     if (!token || !userId) return [];
-
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/gatherings?role=${role}&size=10&sort=createdAt,desc`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/gatherings?role=${role}&page=1&size=10&sort=createdAt,desc`,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         credentials: 'include',
       }
     );
 
     if (!res.ok) throw new Error('모임 불러오기 실패');
     const data = await res.json();
-    return data.data ?? [];
+    const list = data.data ?? [];
+    return list.map((g: any) => ({
+      id: g.id,
+      title: g.title,
+      category: g.category,
+      imageUrl: g.gatheringImageUrl ?? null, // 매핑 중요!!
+      hostName: g.hostName,
+      participantCount: g.participantCount,
+      capacity: g.capacity
+    }));
   };
 
   /** 🔥 React Query */
@@ -87,7 +98,7 @@ export default function ManagePage() {
       ) : gatherings.length > 0 ? (
         <div className={styles.listWrapper}>
           {gatherings.map((g) => (
-            <Link href={`/gathering/${g.id}`} key={g.id} className={styles.card}>
+            <Link href={`/gathering/gath_${g.id}`} key={g.id} className={styles.card}>
               <div className={styles.imageBox}>
                 <img src={g.imageUrl || '/images/placeholder.png'} alt={g.title} className={styles.image} />
               </div>

@@ -99,7 +99,7 @@ export default function CategoryPage() {
           <div className={styles.empty}>모임이 없습니다.</div>
         ) : (
           gatherings.map((g) => (
-            <Link href={`/gathering/${g.id}`} key={g.id} className={styles.card}>
+            <Link href={`/gathering/gath_${g.id}`} key={g.id} className={styles.card}>
               <div className={styles.imageBox}>
                 <img
                   src={g.imageUrl || '/images/placeholder.png'}
