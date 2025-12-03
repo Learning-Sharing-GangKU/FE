@@ -60,7 +60,7 @@ export default function CategorySelectModal({ selected, setSelected, onClose, ma
         }
 
         const data = await response.json()
-        const names = data.categories; 
+        const names = data.categories;
         setCategories(names)
       } catch (err: any) {
         setError(err.message)
