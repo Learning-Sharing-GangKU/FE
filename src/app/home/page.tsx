@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from '@/contexts/AuthContext'
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import styles from "./home.module.css";
 import { Home, List, Plus, Users, User, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -95,7 +95,7 @@ const renderGroupSection = (
   </div>
 );
 
-const HomePage = () => {
+const HomePageContent = () => {
   // 캐러셀 DOM 참조
   const refRecommended = useRef<HTMLDivElement | null>(null);
   const refLatest = useRef<HTMLDivElement | null>(null);
@@ -265,5 +265,11 @@ const HomePage = () => {
     </div>
   );
 };
+
+const HomePage = () => (
+  <Suspense fallback={<div />}>
+    <HomePageContent />
+  </Suspense>
+);
 
 export default HomePage;
