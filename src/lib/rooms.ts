@@ -14,6 +14,7 @@ export interface GatheringDetailResponse {
   description: string;
   category: string;
   imageUrl?: string | null;
+  // gatheringImageUrl: string | null;
   capacity: number;
   date: string; // ISO string
   location: string;
@@ -120,7 +121,13 @@ export async function getGatheringDetail(gatheringId: string): Promise<Gathering
     title: raw?.title ?? raw?.name ?? '',
     description: raw?.description ?? '',
     category: raw?.category ?? raw?.categoryName ?? '',
-    imageUrl: raw?.imageUrl ?? raw?.thumbnailUrl ?? raw?.mainImageUrl ?? raw?.image ?? null,
+    imageUrl:
+    raw?.gatheringImageUrl ??
+    raw?.fileUrl ?? 
+    raw?.thumbnailUrl ??
+    raw?.mainImageUrl ??
+    raw?.image ??
+    null,
     capacity: Number(raw?.capacity ?? raw?.maxParticipants ?? 0),
     date: raw?.date ?? raw?.scheduledAt ?? '',
     location: raw?.location ?? raw?.place ?? '',

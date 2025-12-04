@@ -50,7 +50,20 @@ export default function CategoryPage() {
 
         if (!res.ok) throw new Error(`모임 불러오기 실패: ${res.status}`);
         const data = await res.json();
-        setGatherings(data.data ?? []);
+        const list = data.data ?? [];
+        
+        setGatherings(
+          list.map((g: any) => ({
+            id: g.id,
+            title: g.title,
+            category: g.category,
+            imageUrl: g.gatheringImageUrl ?? null,
+            hostName: g.hostName,
+            participantCount: g.participantCount,
+            capacity: g.capacity,
+          }))
+        );
+        
       } catch (err) {
         console.error('❌ 카테고리 모임 불러오기 실패:', err);
       } finally {

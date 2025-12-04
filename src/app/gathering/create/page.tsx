@@ -49,7 +49,7 @@ export default function CreateGatheringPage() {
   // -------------------------------
   const [imageUrl, setImageUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [gatheringImage, setGatheringImage] = useState<{ bucket: string; key: string } | null>(null);
+  const [gatheringImage, setGatheringImage] = useState<{key: string } | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // -------------------------------
@@ -72,7 +72,9 @@ export default function CreateGatheringPage() {
     setError(null);
 
     try {
-      const presignedResponse = await fetch('/api/v1/images/presigned-url', {
+      const presignedResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/objects/presigned-url`, 
+      {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,22 +89,30 @@ export default function CreateGatheringPage() {
       });
 
       const presignedData = await presignedResponse.json();
+      console.log("🔍 presignedData:", presignedData);
 
       // ⭐ bucket/key 저장
+      // setGatheringImage({
+      //   bucket: presignedData.bucket,
+      //   key: presignedData.key,
+      // });
       setGatheringImage({
-        bucket: presignedData.bucket,
-        key: presignedData.key,
+          key: presignedData.objectKey,  // 백엔드 필드명과 정확히 일치
       });
 
-      const uploadURL = presignedData.uploadURL;
-
-      await fetch(uploadURL, {
-        method: 'PUT',
+      const uploadURL = presignedData.uploadUrl;
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
         body: file,
-        headers: { 'Content-Type': file.type },
+        headers: { "Content-Type": file.type },
       });
+      
+      if (!uploadResponse.ok) {
+        throw new Error("S3 업로드 실패");
+      }
+      
 
-      const url = presignedData.url || uploadURL.split('?')[0];
+      const url = presignedData.fileUrl;
       setImageUrl(url);
 
       const reader = new FileReader();
@@ -232,13 +242,13 @@ export default function CreateGatheringPage() {
 
     const payload = {
       title,
-      gatheringImage: gatheringImage ?? fallbackImage,
       category,
       capacity: capacity ?? 0,
       date: new Date(date).toISOString(),
       location,
       openChatUrl,
       description,
+      gatheringImageObjectKey: gatheringImage?.key ?? null,
     };
 
     try {
