@@ -16,6 +16,7 @@ sudo docker run -d --name fe-app \
   -e NODE_ENV=production \
   -e PORT="${PORT}" \
   -e HOSTNAME=0.0.0.0 \
+  --restart unless-stopped \
   "$APP_IMAGE"
 
 # 기동 여유
