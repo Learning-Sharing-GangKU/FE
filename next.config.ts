@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
         }
         return [];
     },
+    eslint: {
+      ignoreDuringBuilds: process.env.NODE_ENV !== "production",
+    },
 };
 
 export default nextConfig;
