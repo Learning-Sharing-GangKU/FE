@@ -16,6 +16,7 @@ env:
   CODEDEPLOY_APP: ${{ secrets.CODEDEPLOY_APP }}
   CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
   SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
+  NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
 
 jobs:
@@ -50,7 +51,10 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" -f Dockerfile .
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="${{ env.NEXT_PUBLIC_API_URL }}" \
+            -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" \
+            -f Dockerfile .
 
       - name: Push image to ECR
         run: |
