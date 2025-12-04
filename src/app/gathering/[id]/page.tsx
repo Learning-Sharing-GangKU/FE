@@ -115,6 +115,7 @@ export default function RoomDetailPage({ params }: { params: { id: string } }) {
       {/* =========================
         상세 내용
     ========================= */}
+      {/* <RoomImage src={data.imageUrl} alt="모임 이미지" /> */}
       <RoomImage src={data.imageUrl} alt="모임 이미지" />
       <div className={styles.divider} />
 

@@ -187,33 +187,49 @@ const HomePage = () => {
         {error && <div>불러오기 실패</div>} */}
         {/* {!isLoading && !error && getHomeData && getHomeData.length > 0 && ( */}
           <>
-            {recommendedQuery.isSuccess && (
-               <Section 
-                title="추천 모임"
-                rooms={recommendedQuery.data?.data ?? []}
-                carouselRef={refRecommended}
-                onLeft={() => scrollLeft(refRecommended)}
-                onRight={() => scrollRight(refRecommended)}
+        {recommendedQuery.isSuccess && (
+          <Section
+            title="추천 모임"
+            rooms={
+              recommendedQuery.data?.data?.map((g: any) => ({
+                id: g.id,
+                title: g.title,
+                imageUrl: g.gatheringImageUrl ?? null,
+              })) ?? []
+            }
+            carouselRef={refRecommended}
+            onLeft={() => scrollLeft(refRecommended)}
+            onRight={() => scrollRight(refRecommended)}
           />
         )}
-            {/* 최신 */}
-            {latestQuery.isSuccess && (
-              <Section 
-                title="최신 모임"
-                rooms={latestQuery.data?.data ?? []}
-                carouselRef={refLatest}
-                onLeft={() => scrollLeft(refLatest)}
-                onRight={() => scrollRight(refLatest)}
+        {latestQuery.isSuccess && (
+          <Section
+            title="최신 모임"
+            rooms={
+              latestQuery.data?.data?.map((g: any) => ({
+                id: g.id,
+                title: g.title,
+                imageUrl: g.gatheringImageUrl ?? null,
+              })) ?? []
+            }
+            carouselRef={refLatest}
+            onLeft={() => scrollLeft(refLatest)}
+            onRight={() => scrollRight(refLatest)}
           />
         )}
-             {/* 인기 */}
-            {popularQuery.isSuccess && (
-              <Section 
-                title="인기 모임"
-                rooms={popularQuery.data?.data ?? []}
-                carouselRef={refPopular}
-                onLeft={() => scrollLeft(refPopular)}
-                onRight={() => scrollRight(refPopular)}
+        {popularQuery.isSuccess && (
+          <Section
+            title="인기 모임"
+            rooms={
+              popularQuery.data?.data?.map((g: any) => ({
+                id: g.id,
+                title: g.title,
+                imageUrl: g.gatheringImageUrl ?? null,
+              })) ?? []
+            }
+            carouselRef={refPopular}
+            onLeft={() => scrollLeft(refPopular)}
+            onRight={() => scrollRight(refPopular)}
           />
         )}
           </>
