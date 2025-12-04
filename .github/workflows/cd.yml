@@ -52,7 +52,7 @@ jobs:
       - name: Build image
         run: |
           docker build \
-            --build-arg NEXT_PUBLIC_API_URL="${{ env.NEXT_PUBLIC_API_URL }}" \
+            --build-arg NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
             -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" \
             -f Dockerfile .
 
