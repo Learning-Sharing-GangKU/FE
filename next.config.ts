@@ -8,10 +8,10 @@ const nextConfig: NextConfig = {
             return [{ source: "/api/:path*", destination: `${BE_URL}/api/:path*` }];
         }
         return [];
-  },
-  eslint: {
-      ignoreDuringBuilds: true,
-    }
+    },
+    eslint: {
+      ignoreDuringBuilds: process.env.NODE_ENV !== "production",
+    },
 };
 
 export default nextConfig;
