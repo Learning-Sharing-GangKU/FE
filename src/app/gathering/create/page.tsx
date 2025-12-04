@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import styles from './create.module.css';
 import { useRouter } from 'next/navigation';
@@ -8,6 +9,9 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import LoginRequiredModal from '@/components/LoginRequiredModal';
+import { Home, List, Plus, Users, User, ArrowLeft, ArrowRight } from "lucide-react";
+import AiIntroModal from '@/components/AiIntroModal';
+import GatheringFailedModal from '@/components/GatheringFailedModal';
 
 export default function CreateGatheringPage() {
   const router = useRouter();
@@ -38,6 +42,7 @@ export default function CreateGatheringPage() {
   const [location, setLocation] = useState('');
   const [openChatUrl, setOpenChatUrl] = useState('');
   const [description, setDescription] = useState('');
+  const [failedMessage, setFailedMessage] = useState<string | null>(null);
 
   // -------------------------------
   // ⭐ 이미지 업로드 관련 State
@@ -52,6 +57,8 @@ export default function CreateGatheringPage() {
   // -------------------------------
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [toast, setToast] = React.useState<string | null>(null);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
   const accessToken = localStorage.getItem("accessToken");
@@ -127,17 +134,54 @@ export default function CreateGatheringPage() {
   // -------------------------------
   // ⭐ AI 모임 설명 자동 생성
   // -------------------------------
-  const handleAIGenerateDescription = async () => {
-    if (!title || !category) {
-      setError('모임 이름과 카테고리를 먼저 입력해주세요.');
+
+  const handleAIGenerateDescription = () => {
+    if (!title || !category || !capacity || !date || !location) {
+      setError("모든 기본 정보를 먼저 입력해주세요.");
       return;
     }
-
-    setIsGeneratingDescription(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setDescription(`${title}에 참여하실 분들을 모집합니다. ${category} 관련 활동을 함께 하며 즐겁게 소통할 수 있는 모임입니다.`);
-    setIsGeneratingDescription(false);
+    setShowAiModal(true); // 🔥 모달 열기
   };
+
+  const handleSubmitAiIntro = async (keywords: string) => {
+    setShowAiModal(false);
+
+    try {
+      const token = getAccessToken();
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/intro`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title,
+            category,
+            capacity,
+            date: new Date(date).toISOString(),
+            location,
+            keywords: keywords.split(",").map(k => k.trim()),
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error?.message || "AI 생성 실패");
+        return;
+      }
+
+      // 🔥 설명 자동 생성 적용
+      setDescription(data.intro);
+
+    } catch (e) {
+      setError("AI 요청 중 오류가 발생했습니다.");
+    }
+  };
+
 
 
   // -------------------------------
@@ -154,10 +198,37 @@ export default function CreateGatheringPage() {
   // -------------------------------
   const handleSubmit = async () => {
     const token = getAccessToken();
-    if (!token) return router.push('/login');
+    if (!token) return router.push("/login");
 
+    // ✅ 1. 프론트에서 필수 정보 먼저 검증
+    if (!title.trim()) {
+      setFailedMessage("모임 이름을 입력해주세요.");
+      return;
+    }
+
+    if (!category) {
+      setFailedMessage("카테고리를 선택해주세요.");
+      return;
+    }
+
+    if (!capacity || capacity <= 0) {
+      setFailedMessage("최대 인원을 1명 이상으로 입력해주세요.");
+      return;
+    }
+
+    if (!date) {
+      setFailedMessage("날짜와 시간을 선택해주세요.");
+      return;
+    }
+
+    if (!location.trim()) {
+      setFailedMessage("장소를 입력해주세요.");
+      return;
+    }
+
+    // ✅ 2. 서버 요청 시작
     setIsSubmitting(true);
-    setError(null);
+    setFailedMessage(null); // 모달 초기화
 
     const payload = {
       title,
@@ -171,30 +242,40 @@ export default function CreateGatheringPage() {
     };
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (res.status === 201) {
-        router.push('/home?created=1');
-      } else {
-        const errorBody = await res.json().catch(() => null);
-        setError(errorBody?.error?.message || '모임 생성 실패');
+        router.push("/home?created=1");
+        return;
       }
 
+      const errorBody = await res.json().catch(() => null);
+
+      // 🔥 서버 쪽 Validation 실패 시에도 모달로 안내
+      setFailedMessage(
+        errorBody?.error?.message || "모임 생성에 필요한 정보가 누락되었어요."
+      );
+
     } catch (err: any) {
-      setError(err.message || '네트워크 오류가 발생했습니다.');
+      setFailedMessage(err.message || "네트워크 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+
 
 
   // ======================================================
@@ -330,14 +411,19 @@ export default function CreateGatheringPage() {
         onChange={(e) => setOpenChatUrl(e.target.value)}
       />
 
-      {/* 설명 */}
+      {/* 모임 설명 */}
       <div className={styles.descriptionSection}>
         <div className={styles.descriptionHeader}>
           <label className={styles.label}>모임 설명</label>
-          <button className={styles.aiGenerateButton} onClick={handleAIGenerateDescription}>
-            {isGeneratingDescription ? '생성 중...' : 'AI 자동생성'}
+
+          <button
+            className={styles.aiGenerateButton}
+            onClick={handleAIGenerateDescription}
+          >
+            AI 자동생성
           </button>
         </div>
+
         <textarea
           className={styles.textarea}
           value={description}
@@ -354,14 +440,42 @@ export default function CreateGatheringPage() {
       >
         {isSubmitting ? '생성 중...' : '모임 만들기'}
       </button>
+      {showAiModal && (
+        <AiIntroModal
+          onClose={() => setShowAiModal(false)}
+          onSubmit={handleSubmitAiIntro}
+        />
+      )}
+      {failedMessage && (
+        <GatheringFailedModal
+          message={failedMessage}
+          onClose={() => setFailedMessage(null)}
+        />
+      )}
 
       {/* 하단 네비 */}
+      {/* 하단 네비게이션 */}
       <nav className={styles.bottomNav}>
-        <Link href="/" className={styles.navItem}>홈</Link>
-        <Link href="/category" className={styles.navItem}>카테고리</Link>
-        <Link href="/gathering/create" className={styles.navItem}>모임 생성</Link>
-        <Link href="/manage" className={styles.navItem}>모임 관리</Link>
-        <Link href="/profile" className={styles.navItem}>내 프로필</Link>
+        <Link href="/home" className={styles.navItem}>
+          <Home size={20} />
+          <div>홈</div>
+        </Link>
+        <Link href="/category" className={`${styles.navItem} ${styles.active}`}>
+          <List size={20} />
+          <div>카테고리</div>
+        </Link>
+        <Link href="/gathering/create" className={styles.navItem}>
+          <Plus size={20} />
+          <div>모임 생성</div>
+        </Link>
+        <Link href="/manage" className={styles.navItem}>
+          <Users size={20} />
+          <div>모임 관리</div>
+        </Link>
+        <Link href="/profile" className={styles.navItem}>
+          <User size={20} />
+          <div>내 페이지</div>
+        </Link>
       </nav>
     </div>
   );

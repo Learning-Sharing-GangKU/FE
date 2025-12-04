@@ -4,22 +4,27 @@ import React from 'react';
 import styles from './roomDetail.module.css';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { exitGathering, joinGathering } from '@/lib/rooms';
+import { getGatheringDetail } from '@/lib/rooms';
+import { fetchUserGatherings } from '@/lib/rooms';
 
 export function ActionButton({ gatheringId, isJoined, isFull }: { gatheringId: string; isJoined: boolean; isFull: boolean }) {
 
   const qc = useQueryClient();
   const [toast, setToast] = React.useState<string | null>(null);
-
   const joinMut = useMutation({
     mutationFn: () => joinGathering(gatheringId),
     onSuccess: async () => {
       setToast('참여가 완료되었습니다.');
 
-      // 상세 페이지 갱신
-      await qc.invalidateQueries({ queryKey: ['gathering', gatheringId] });
+      // 🔥 최신 데이터 직접 다시 요청
+      const updatedHostList = await fetchUserGatherings("host");
+      const updatedGuestList = await fetchUserGatherings("guest");
+      const updatedDetail = await getGatheringDetail(gatheringId);
 
-      // 관리 페이지 갱신
-      await qc.invalidateQueries({ queryKey: ['myGatherings'] });
+      // 🔥 React Query 캐시 즉시 업데이트 → UI 즉시 반영
+      qc.setQueryData(["myGatherings", "host"], updatedHostList);
+      qc.setQueryData(["myGatherings", "guest"], updatedGuestList);
+      qc.setQueryData(["gathering", gatheringId], updatedDetail);
     },
   });
 
@@ -28,8 +33,15 @@ export function ActionButton({ gatheringId, isJoined, isFull }: { gatheringId: s
     onSuccess: async () => {
       setToast('참여가 취소되었습니다.');
 
-      await qc.invalidateQueries({ queryKey: ['gathering', gatheringId] });
-      await qc.invalidateQueries({ queryKey: ['myGatherings'] });
+      // 🔥 최신 데이터 직접 다시 요청
+      const updatedHostList = await fetchUserGatherings("host");
+      const updatedGuestList = await fetchUserGatherings("guest");
+      const updatedDetail = await getGatheringDetail(gatheringId);
+
+      // 🔥 React Query 캐시 즉시 업데이트 → UI 즉시 반영
+      qc.setQueryData(["myGatherings", "host"], updatedHostList);
+      qc.setQueryData(["myGatherings", "guest"], updatedGuestList);
+      qc.setQueryData(["gathering", gatheringId], updatedDetail);
     },
   });
 
