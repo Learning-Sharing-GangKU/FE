@@ -25,6 +25,7 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // ✅ API 호출
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function CategoryPage() {
         if (!res.ok) throw new Error(`모임 불러오기 실패: ${res.status}`);
         const data = await res.json();
         const list = data.data ?? [];
-        
+
         setGatherings(
           list.map((g: any) => ({
             id: g.id,
@@ -63,7 +64,7 @@ export default function CategoryPage() {
             capacity: g.capacity,
           }))
         );
-        
+
       } catch (err) {
         console.error('❌ 카테고리 모임 불러오기 실패:', err);
       } finally {
@@ -74,7 +75,7 @@ export default function CategoryPage() {
     fetchGatherings();
   }, [category, sort]);
 
- 
+
   return (
     <div className={styles.container}>
       {/* 상단 헤더 */}
@@ -87,22 +88,51 @@ export default function CategoryPage() {
         type="button"
         className={styles.categoryButton}
         onClick={() => setShowCategoryModal(true)}
-    >
+      >
         {selectedCategories.length > 0
-            ? `카테고리 선택 (${selectedCategories.length})`
-            : '카테고리 선택'}
+          ? `카테고리 선택 (${selectedCategories.length})`
+          : '카테고리 선택'}
       </button>
 
       {/* 정렬 버튼 */}
+      {/* 정렬 드롭다운 */}
       <div className={styles.sortWrapper}>
         <span>정렬:</span>
-        <button
-          onClick={() => setSort(sort === 'popular' ? 'latest' : 'popular')}
-          className={styles.sortButton}
-        >
-          {sort === 'popular' ? '인기순' : '최신순'} <ChevronDown size={16} />
-        </button>
+
+        <div className={styles.dropdown}>
+          <button
+            className={styles.dropdownToggle}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            {sort === 'popular' ? '인기순' : '최신순'}
+            <ChevronDown size={16} />
+          </button>
+
+          {dropdownOpen && (
+            <div className={styles.dropdownMenu}>
+              <div
+                className={styles.dropdownItem}
+                onClick={() => {
+                  setSort('popular');
+                  setDropdownOpen(false);
+                }}
+              >
+                인기순
+              </div>
+              <div
+                className={styles.dropdownItem}
+                onClick={() => {
+                  setSort('latest');
+                  setDropdownOpen(false);
+                }}
+              >
+                최신순
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
 
       {/* 모임 리스트 */}
       <div className={styles.listWrapper}>
@@ -133,18 +163,18 @@ export default function CategoryPage() {
       </div>
 
       {showCategoryModal && (
-  <CategorySelectModal
-    max={1}
-    selected={selectedCategories}
-    setSelected={setSelectedCategories}
-    onClose={() => {
-      setShowCategoryModal(false);
-      if (selectedCategories.length > 0) {
-        setCategory(selectedCategories[0]); // ✅ 첫 번째 선택 카테고리로 API 필터 적용
-      }
-    }}
-  />
-)}
+        <CategorySelectModal
+          max={1}
+          selected={selectedCategories}
+          setSelected={setSelectedCategories}
+          onClose={() => {
+            setShowCategoryModal(false);
+            if (selectedCategories.length > 0) {
+              setCategory(selectedCategories[0]); // ✅ 첫 번째 선택 카테고리로 API 필터 적용
+            }
+          }}
+        />
+      )}
 
 
       {/* 하단 네비게이션 */}

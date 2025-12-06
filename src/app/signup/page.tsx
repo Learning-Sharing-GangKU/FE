@@ -284,7 +284,7 @@ export default function SignupPage() {
         const body = {
             email: `${email}@konkuk.ac.kr`,
             password,
-            profileImage: profileImagePayload,
+            profileImageObjectKey: profileImagePayload,
             age: Number(age),
             gender,
             enrollNumber: Number(studentId),
