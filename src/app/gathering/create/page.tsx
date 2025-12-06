@@ -61,7 +61,8 @@ export default function CreateGatheringPage() {
   const [toast, setToast] = React.useState<string | null>(null);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken =
+    typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
 
   // -------------------------------

@@ -16,6 +16,7 @@ env:
   CODEDEPLOY_APP: ${{ secrets.CODEDEPLOY_APP }}
   CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
   SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
+  NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
 
 jobs:
@@ -50,7 +51,10 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" -f Dockerfile .
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
+            -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" \
+            -f Dockerfile .
 
       - name: Push image to ECR
         run: |
@@ -65,7 +69,8 @@ jobs:
           cp scripts/*.sh bundle/scripts/
           chmod +x bundle/scripts/*.sh
 
-          echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" > bundle/.env
+          echo "${{ secrets.PROD_ENV_FILE }}" > bundle/.env
+          echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" >> bundle/.env
           echo "SERVICE_PORT=${{ env.SERVICE_PORT }}" >> bundle/.env
           echo "AWS_REGION=${{ env.AWS_REGION }}" >> bundle/.env
 
