@@ -273,18 +273,13 @@ export default function SignupPage() {
         //         return;
         //     }
         // }
-
-        // 이미지 업로드 없이 테스트하려고 더미 값 설정
-        const profileImagePayload = {
-            bucket: 'test-bucket',
-            key: 'placeholder.png',
-            url: 'https://example.com/placeholder.png',
-        }
-
+        const profileImageInfoStr = sessionStorage.getItem("profileImageInfo");
+        const profileImageInfo = profileImageInfoStr ? JSON.parse(profileImageInfoStr) : null;
+        console.log(profileImageInfo);
         const body = {
             email: `${email}@konkuk.ac.kr`,
             password,
-            profileImageObjectKey: profileImagePayload,
+            profileImageObjectKey: profileImageInfo.objectKey,
             age: Number(age),
             gender,
             enrollNumber: Number(studentId),
