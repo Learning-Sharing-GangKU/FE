@@ -17,6 +17,12 @@ export default function CreateGatheringPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // datetime-local ("YYYY-MM-DDTHH:mm") → LocalDateTime ("YYYY-MM-DDTHH:mm:ss")
+  const toLocalDateTime = (v: string) => {
+    if (!v) return v;
+    return v.length === 16 ? `${v}:00` : v;
+  };
+
   // -------------------------------
   // ⭐ 로그인 관련 Hook (최상단 고정)
   // -------------------------------
@@ -63,6 +69,17 @@ export default function CreateGatheringPage() {
 
   const accessToken = localStorage.getItem("accessToken");
 
+  // -------------------------------
+  // 모임 소개 
+  // -------------------------------
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = descriptionRef.current;
+    if (!el) return;
+  
+    el.style.height = "auto";                // 높이 초기화
+    el.style.height = `${el.scrollHeight}px`; // 내용만큼 확장
+  }, [description]);
 
   // -------------------------------
   // ⭐ Presigned URL 이미지 업로드
@@ -155,10 +172,11 @@ export default function CreateGatheringPage() {
 
   const handleSubmitAiIntro = async (keywords: string) => {
     setShowAiModal(false);
+    setError(null);
 
     try {
       const token = getAccessToken();
-
+      if (!token) return router.push("/login");
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/intro`,
         {
@@ -171,9 +189,9 @@ export default function CreateGatheringPage() {
             title,
             category,
             capacity,
-            date: new Date(date).toISOString(),
+            date: toLocalDateTime(date),
             location,
-            keywords: keywords.split(",").map(k => k.trim()),
+            keywords: keywords.split(",").map(k => k.trim()).filter(Boolean), 
           }),
         }
       );
@@ -435,9 +453,11 @@ export default function CreateGatheringPage() {
         </div>
 
         <textarea
+          ref={descriptionRef}
           className={styles.textarea}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          style={{ overflow: "hidden", resize: "none" }}
         />
       </div>
 
@@ -490,3 +510,4 @@ export default function CreateGatheringPage() {
     </div>
   );
 }
+

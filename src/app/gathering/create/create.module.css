@@ -30,8 +30,8 @@
 }
 
 .textarea {
-  min-height: 100px;
-  resize: vertical;
+  overflow: hidden;
+  resize: none;
 }
 
 .verifyButton {

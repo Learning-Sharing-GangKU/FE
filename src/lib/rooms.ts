@@ -181,69 +181,84 @@ export async function getGatherings(): Promise<GatheringSummary[]> {
 }
 
 
-// 👉 최신 3개
-export async function getLatestGatherings() {
-  const query = new URLSearchParams();
-  query.append('page', '1');
-  query.append('sort', 'latest');
-  query.append('size', '3');
-  const token = getAccessToken();
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    }
-  );
-  if (!res.ok)
-    throw new Error("최신 모임 불러오기 실패");
-  return res.json();
-}
+// // 👉 최신 3개
+// export async function getLatestGatherings() {
+//   const query = new URLSearchParams();
+//   query.append('page', '1');
+//   query.append('sort', 'latest');
+//   query.append('size', '3');
+//   const token = getAccessToken();
+//   const res = await fetch(
+//     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
+//     {
+//       headers: {
+//         'Content-Type': 'application/json',
+//         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+//       },
+//       credentials: 'include',
+//     }
+//   );
+//   if (!res.ok)
+//     throw new Error("최신 모임 불러오기 실패");
+//   return res.json();
+// }
 
-// 👉 인기 3개
-export async function getPopularGatherings() {
-  const query = new URLSearchParams();
-  query.append('sort', 'popular');
-  query.append('size', '3');
-  const token = getAccessToken();
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    }
-  );
-  if (!res.ok)
-    throw new Error("인기 모임 불러오기 실패");
-  return res.json();
-}
+// // 👉 인기 3개
+// export async function getPopularGatherings() {
+//   const query = new URLSearchParams();
+//   query.append('sort', 'popular');
+//   query.append('size', '3');
+//   const token = getAccessToken();
+//   const res = await fetch(
+//     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
+//     {
+//       headers: {
+//         'Content-Type': 'application/json',
+//         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+//       },
+//       credentials: 'include',
+//     }
+//   );
+//   if (!res.ok)
+//     throw new Error("인기 모임 불러오기 실패");
+//   return res.json();
+// }
 
-// 👉 추천 3개
-export async function getRecommendedGatherings() {
-  // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=recommended&size=3`);
-  const query = new URLSearchParams();
-  query.append('sort', 'latest');
-  query.append('size', '3');
+// // 👉 추천 3개
+// export async function getRecommendedGatherings() {
+//   // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?sort=recommended&size=3`);
+//   const query = new URLSearchParams();
+//   query.append('sort', 'latest');
+//   query.append('size', '3');
+//   const token = getAccessToken();
+//   const res = await fetch(
+//     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
+//     {
+//       headers: {
+//         'Content-Type': 'application/json',
+//         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+//       },
+//       credentials: 'include',
+//     }
+//   );
+//   if (!res.ok)
+//     throw new Error("추천 모임 불러오기 실패");
+//   return res.json();
+// }
+
+export async function getHomeSections() {
   const token = getAccessToken();
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    }
-  );
-  if (!res.ok)
-    throw new Error("추천 모임 불러오기 실패");
-  return res.json();
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/home`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+  });
+
+  if (!res.ok) throw new Error("홈 데이터 불러오기 실패");
+  return res.json(); // { recommended: ..., latest: ..., popular: ... }
 }
 
 
