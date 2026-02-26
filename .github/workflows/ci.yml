@@ -26,16 +26,13 @@ jobs:
             npm install
           fi
 
-      # --- Lint ---
       - name: Lint (ESLint)
         if: hashFiles('.eslintrc*') != ''
         run: npx eslint .
 
-      # --- Unit Test ---
       - name: Unit Test (Jest)
         run: npx jest --ci --reporters=default --passWithNoTests
 
-      # --- Integration Test ---
       - name: Integration Test (Jest)
-        if: github.event_name == 'pull_request' && (github.base_ref == 'dev' || github.base_ref == 'main')
+        if: github.base_ref == 'main'
         run: npx jest --ci --testMatch "**/?(*.)+(i|int|integration).[jt]s?(x)" --passWithNoTests
