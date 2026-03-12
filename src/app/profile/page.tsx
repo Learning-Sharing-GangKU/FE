@@ -2,53 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from './profile.module.css';
-import Link from 'next/link';
-import { Home, List, Plus, Users, User } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginRequiredModal from '@/components/LoginRequiredModal';
 import { useRouter } from 'next/navigation';
-
-// 리뷰 타입
-interface ReviewItem {
-  id: string;
-  reviewerId: string;
-  reviewerProfileImageUrl: string | null;
-  reviewerNickname: string;
-  content: string;
-  rating: number;
-  createdAt: string;
-}
-
-interface ReviewsMeta {
-  size: number;
-  sortedBy: string;
-  nextCursor: string | null;
-  hasNext: boolean;
-}
-
-interface UserProfile {
-  id: string;
-  profileImageUrl: string | null;
-  nickname: string;
-  age: number;
-  gender: 'MALE' | 'FEMALE';
-  enrollNumber: number;
-  preferredCategories: string[];
-
-  rating: number;
-  reviewCount: number;
-
-  reviewsPublic: boolean; // 리뷰 공개 여부
-
-  reviews: ReviewItem[];
-  reviewsMeta: ReviewsMeta;
-}
+import { useProfile } from '@/hooks/useProfile';
 
 export default function ProfilePage({ params }: { params: { userId: string } }) {
   const router = useRouter();
   const { isLoggedIn, logout, myUserId } = useAuth();
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { profile, setProfile, error, loadMoreReviews } = useProfile(params.userId, isLoggedIn);
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [isReady, setIsReady] = useState(false);
 
@@ -57,132 +21,23 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     setTimeout(() => setToast({ visible: false, message: '' }), 2500);
   };
 
-  // 로그인 체크
   useEffect(() => {
     if (isLoggedIn !== null) setIsReady(true);
   }, [isLoggedIn]);
 
+  // 에러 발생 시 토스트 + 라우팅
+  useEffect(() => {
+    if (!error) return;
+    showToast(error);
+    if (error === '존재하지 않는 사용자입니다.') router.push('/home');
+    if (error === '로그인이 필요합니다.') router.push('/login');
+  }, [error]);
+
   const isMine =
     myUserId !== null && String(myUserId) === String(params.userId);
 
-  // 프로필 조회
-  useEffect(() => {
-    if (!isLoggedIn) return;
-
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${params.userId}`,
-          { credentials: 'include' }
-        );
-
-        if (res.status === 404) {
-          showToast('존재하지 않는 사용자입니다.');
-          router.push('/home');
-          return;
-        }
-
-        if (res.status === 401) {
-          router.push('/login');
-          return;
-        }
-
-        if (!res.ok) throw new Error('프로필 조회 실패');
-
-        const raw = await res.json();
-
-        const reviews =
-          raw.reviewsPreview?.data?.map((r: any) => ({
-            id: r.id,
-            reviewerId: r.reviewerId,
-            reviewerProfileImageUrl: r.reviewerProfileImageUrl ?? null,
-            reviewerNickname: r.reviewerNickname,
-            content: r.content,
-            rating: r.rating,
-            createdAt: r.createdAt,
-          })) ?? [];
-
-        const meta =
-          raw.reviewsPreview?.meta ?? {
-            size: 0,
-            sortedBy: '',
-            nextCursor: null,
-            hasNext: false,
-          };
-
-        setProfile({
-          id: raw.id,
-          profileImageUrl: raw.profileImageUrl ?? null,
-          nickname: raw.nickname,
-          age: raw.age,
-          gender: raw.gender,
-          enrollNumber: raw.enrollNumber,
-          preferredCategories: raw.preferredCategories ?? [],
-
-          rating: raw.rating ?? 0,
-          reviewCount: raw.reviewCount ?? 0,
-
-          reviewsPublic: raw.reviewsPublic ?? true,
-
-          reviews,
-          reviewsMeta: {
-            size: meta.size,
-            sortedBy: meta.sortedBy,
-            nextCursor: meta.nextCursor,
-            hasNext: meta.hasNext,
-          },
-        });
-      } catch (err: any) {
-        showToast(err.message);
-      }
-    };
-
-    fetchProfile();
-  }, [isLoggedIn, params.userId]);
-
-  // 리뷰 더보기
-  const loadMoreReviews = async () => {
-    if (!profile) return;
-    if (!profile.reviewsMeta.hasNext) return;
-
-    try {
-      const url =
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${profile.id}/reviews?cursor=${profile.reviewsMeta.nextCursor}`;
-
-      const res = await fetch(url, { credentials: 'include' });
-      if (!res.ok) throw new Error('리뷰 불러오기 실패');
-
-      const more = await res.json();
-
-      const newItems = more.data.map((r: any) => ({
-        id: r.id,
-        reviewerId: r.reviewerId,
-        reviewerProfileImageUrl: r.reviewerProfileImageUrl ?? null,
-        reviewerNickname: r.reviewerNickname,
-        content: r.content,
-        rating: r.rating,
-        createdAt: r.createdAt,
-      }));
-
-      setProfile({
-        ...profile,
-        reviews: [...profile.reviews, ...newItems],
-        reviewsMeta: {
-          size: more.meta.size,
-          sortedBy: more.meta.sortedBy,
-          nextCursor: more.meta.nextCursor,
-          hasNext: more.meta.hasNext,
-        },
-      });
-    } catch (err: any) {
-      showToast(err.message);
-    }
-  };
-
-  // 리뷰 공개/비공개 설정 PATCH
   const handleReviewVisibilityToggle = async () => {
-    if (!profile) return;
-    if (!isMine) {
+    if (!profile || !isMine) {
       showToast('권한이 없습니다.');
       return;
     }
@@ -209,18 +64,14 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     }
   };
 
-  // 프로필 편집 PATCH 후 이동
-  const handleProfileEdit = async () => {
+  const handleProfileEdit = () => {
     if (!isMine) {
       showToast('권한이 없습니다.');
       return;
     }
-
-    // PATCH 호출 (프로필 업데이트는 edit 페이지에서 수행하지만, 스펙상 PATCH 후 이동 가능)
     router.push(`/profile/${profile?.id}/edit`);
   };
 
-  // 렌더링
   if (!isReady) return null;
 
   if (isLoggedIn === false) {
@@ -235,19 +86,16 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
   return (
     <div className={styles.container}>
-      {/* 상단 로그아웃 */}
       {isMine && (
         <button className={styles.logoutButton} onClick={logout}>
           로그아웃
         </button>
       )}
 
-      {/* 제목 */}
       <h1 className={styles.pageTitle}>
         {isMine ? '내 프로필' : `${profile.nickname}님의 프로필`}
       </h1>
 
-      {/* ① 프로필 */}
       <div className={styles.profileSection}>
         <div className={styles.profileImage}>
           {profile.profileImageUrl && (
@@ -263,7 +111,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         </div>
       </div>
 
-      {/* ② 선호 카테고리 */}
       <div className={styles.categorySection}>
         <p className={styles.sectionTitle}>선호 카테고리</p>
 
@@ -275,7 +122,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
           ))}
         </div>
 
-        {/* 프로필 편집 버튼 */}
         {isMine && (
           <button className={styles.editButton} onClick={handleProfileEdit}>
             프로필 편집
@@ -283,7 +129,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         )}
       </div>
 
-      {/* ③ 별점 + 리뷰 공개/비공개 */}
       <div className={styles.reviewSection}>
         <div className={styles.reviewHeader}>
           <p className={styles.sectionTitle}>별점 및 리뷰</p>
@@ -308,7 +153,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
           </p>
         </div>
 
-        {/* 리뷰 목록 */}
         {profile.reviewsPublic && (
           <div className={styles.reviewList}>
             {profile.reviews.map((r) => (
@@ -331,7 +175,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
               </div>
             ))}
 
-            {/* 더보기 버튼 */}
             {profile.reviewsMeta.hasNext && (
               <button className={styles.moreButton} onClick={loadMoreReviews}>
                 리뷰 더보기 ▼
@@ -341,43 +184,13 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         )}
       </div>
 
-      {/* ④ 회원 탈퇴 */}
       {isMine && (
         <button className={styles.deleteButton} onClick={logout}>
           회원 탈퇴
         </button>
       )}
 
-      {/* 하단 네비 */}
-      <nav className={styles.bottomNav}>
-        <Link href="/home" className={styles.navItem}>
-          <Home size={20} />
-          <div>홈</div>
-        </Link>
-
-        <Link href="/category" className={styles.navItem}>
-          <List size={20} />
-          <div>카테고리</div>
-        </Link>
-
-        <Link href="/gathering/create" className={styles.navItem}>
-          <Plus size={20} />
-          <div>모임 생성</div>
-        </Link>
-
-        <Link href="/manage" className={styles.navItem}>
-          <Users size={20} />
-          <div>모임 관리</div>
-        </Link>
-
-        <Link
-          href={`/profile/${profile.id}`}
-          className={`${styles.navItem} ${styles.active}`}
-        >
-          <User size={20} />
-          <div>내 페이지</div>
-        </Link>
-      </nav>
+      <BottomNav active="/profile" />
 
       {toast.visible && (
         <div className={styles.toast}>{toast.message}</div>

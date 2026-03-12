@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           {},
           { withCredentials: true }
         );
-        console.log("login response:", res.data);
+
 
         if (res.data?.accessToken) {
           const newToken = res.data.accessToken;
@@ -142,7 +142,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     reissueIntervalRef.current = setInterval(() => {
       if (isTokenExpiredOrNearExpiry(1)) {
-        console.log('토큰 만료 임박, 자동 재발급 시도...');
         reissueToken();
       }
     }, 60 * 1000);

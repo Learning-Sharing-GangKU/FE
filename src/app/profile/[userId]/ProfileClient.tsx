@@ -2,64 +2,22 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from '../profile.module.css';
-import Link from 'next/link';
-import { Home, List, Plus, Users, User } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginRequiredModal from '@/components/LoginRequiredModal';
 import { useRouter } from 'next/navigation';
-
-// 리뷰 타입
-interface ReviewItem {
-  id: string;
-  reviewerId: string;
-  reviewerProfileImageUrl: string | null;
-  reviewerNickname: string;
-  content: string;
-  rating: number;
-  createdAt: string;
-}
-
-interface ReviewsMeta {
-  size: number;
-  sortedBy: string;
-  nextCursor: string | null;
-  hasNext: boolean;
-}
-
-interface UserProfile {
-  id: string;
-  profileImageUrl: string | null;
-  nickname: string;
-  age: number;
-  gender: 'MALE' | 'FEMALE';
-  enrollNumber: number;
-  preferredCategories: string[];
-
-  rating: number;
-  reviewCount: number;
-
-  reviewsPublic: boolean;
-
-  reviews: ReviewItem[];
-  reviewsMeta: ReviewsMeta;
-}
+import { useProfile } from '@/hooks/useProfile';
 
 export default function ProfileClient({ userId }: { userId: string }) {
-  console.log("🔥 ProfileClient TOP RUN", { userId });
   const router = useRouter();
   const { isLoggedIn, logout, myUserId } = useAuth();
-  console.log("🔥 Auth State:", { isLoggedIn, myUserId });
-  // URL로부터 전달받은 유저 ID
-  const targetUserId = userId;
 
-  // 내 프로필인지 판단
   const isMine =
-    myUserId !== null && String(myUserId) === String(targetUserId);
+    myUserId !== null && String(myUserId) === String(userId);
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { profile, setProfile, error, loadMoreReviews } = useProfile(userId, isLoggedIn);
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [isReady, setIsReady] = useState(false);
-
   const [profileImage, setProfileImage] = useState<File | null>(null);
 
   const showToast = (msg: string) => {
@@ -67,128 +25,17 @@ export default function ProfileClient({ userId }: { userId: string }) {
     setTimeout(() => setToast({ visible: false, message: '' }), 2500);
   };
 
-  // 로그인 체크 완료 시 렌더 시작
   useEffect(() => {
     if (isLoggedIn !== null) setIsReady(true);
   }, [isLoggedIn]);
 
-  // 프로필 조회
   useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!error) return;
+    showToast(error);
+    if (error === '존재하지 않는 사용자입니다.') router.push('/home');
+    if (error === '로그인이 필요합니다.') router.push('/login');
+  }, [error]);
 
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${targetUserId}`,
-          { credentials: 'include' }
-        );
-
-        if (res.status === 404) {
-          showToast('존재하지 않는 사용자입니다.');
-          router.push('/home');
-          return;
-        }
-
-        if (res.status === 401) {
-          router.push('/login');
-          return;
-        }
-
-        if (!res.ok) throw new Error('프로필 조회 실패');
-
-        const raw = await res.json();
-        console.log('🔥 RAW PROFILE DATA:', raw);
-        const reviews =
-          raw.reviewsPreview?.data?.map((r: any) => ({
-            id: r.id,
-            reviewerId: r.reviewerId,
-            reviewerProfileImageUrl: r.reviewerProfileImageUrl ?? null,
-            reviewerNickname: r.reviewerNickname,
-            content: r.content,
-            rating: r.rating,
-            createdAt: r.createdAt,
-          })) ?? [];
-
-        const meta =
-          raw.reviewsPreview?.meta ?? {
-            size: 0,
-            sortedBy: '',
-            nextCursor: null,
-            hasNext: false,
-          };
-
-        setProfile({
-          id: raw.id,
-          profileImageUrl: raw.profileImageUrl ?? null,
-          nickname: raw.nickname,
-          age: raw.age,
-          gender: raw.gender,
-          enrollNumber: raw.enrollNumber,
-          preferredCategories: 
-            raw.preferredCategories?.map((c: any) => c.name) ?? [],
-
-
-          rating: raw.rating ?? 0,
-          reviewCount: raw.reviewCount ?? 0,
-
-          reviewsPublic: raw.reviewsPublic ?? true,
-
-          reviews,
-          reviewsMeta: {
-            size: meta.size,
-            sortedBy: meta.sortedBy,
-            nextCursor: meta.nextCursor,
-            hasNext: meta.hasNext,
-          },
-        });
-      } catch (err: any) {
-        showToast(err.message);
-      }
-    };
-
-    fetchProfile();
-  }, [isLoggedIn, targetUserId]);
-
-  // 리뷰 더보기
-  const loadMoreReviews = async () => {
-    if (!profile || !profile.reviewsMeta.hasNext) return;
-
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${profile.id}/reviews?cursor=${profile.reviewsMeta.nextCursor}`,
-        { credentials: 'include' }
-      );
-
-      if (!res.ok) throw new Error('리뷰 불러오기 실패');
-
-      const more = await res.json();
-
-      const newItems = more.data.map((r: any) => ({
-        id: r.id,
-        reviewerId: r.reviewerId,
-        reviewerProfileImageUrl: r.reviewerProfileImageUrl ?? null,
-        reviewerNickname: r.reviewerNickname,
-        content: r.content,
-        rating: r.rating,
-        createdAt: r.createdAt,
-      }));
-
-      setProfile({
-        ...profile,
-        reviews: [...profile.reviews, ...newItems],
-        reviewsMeta: {
-          size: more.meta.size,
-          sortedBy: more.meta.sortedBy,
-          nextCursor: more.meta.nextCursor,
-          hasNext: more.meta.hasNext,
-        },
-      });
-    } catch (err: any) {
-      showToast(err.message);
-    }
-  };
-
-  // 리뷰 공개/비공개 설정 PATCH
   const handleReviewVisibilityToggle = async () => {
     if (!profile || !isMine) {
       showToast('권한이 없습니다.');
@@ -217,7 +64,6 @@ export default function ProfileClient({ userId }: { userId: string }) {
     }
   };
 
-  // 프로필 편집
   const handleProfileEdit = () => {
     if (!isMine) {
       showToast('권한이 없습니다.');
@@ -260,7 +106,6 @@ export default function ProfileClient({ userId }: { userId: string }) {
                 }
                 alt="profile"
             />
-
         </div>
 
         <div>
@@ -350,35 +195,7 @@ export default function ProfileClient({ userId }: { userId: string }) {
         </button>
       )}
 
-      <nav className={styles.bottomNav}>
-        <Link href="/home" className={styles.navItem}>
-          <Home size={20} />
-          <div>홈</div>
-        </Link>
-
-        <Link href="/category" className={styles.navItem}>
-          <List size={20} />
-          <div>카테고리</div>
-        </Link>
-
-        <Link href="/gathering/create" className={styles.navItem}>
-          <Plus size={20} />
-          <div>모임 생성</div>
-        </Link>
-
-        <Link href="/manage" className={styles.navItem}>
-          <Users size={20} />
-          <div>모임 관리</div>
-        </Link>
-
-        <Link
-          href={`/profile/${profile.id}`}
-          className={`${styles.navItem} ${styles.active}`}
-        >
-          <User size={20} />
-          <div>내 페이지</div>
-        </Link>
-      </nav>
+      <BottomNav active="/profile" />
 
       {toast.visible && (
         <div className={styles.toast}>{toast.message}</div>

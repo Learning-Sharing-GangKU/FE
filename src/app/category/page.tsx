@@ -4,19 +4,10 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getAccessToken } from '@/lib/auth';
 import styles from './category.module.css';
-import { Home, List, Plus, Users, User, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal'
-
-// ✅ 인터페이스 정의
-interface GatheringItem {
-  id: string;
-  title: string;
-  category: string;
-  imageUrl?: string | null;
-  hostName: string;
-  participantCount: number;
-  capacity: number;
-}
+import type { GatheringItem } from '@/lib/types';
 
 export default function CategoryPage() {
   const [sort, setSort] = useState<'popular' | 'latest'>('popular');
@@ -177,29 +168,7 @@ export default function CategoryPage() {
       )}
 
 
-      {/* 하단 네비게이션 */}
-      <nav className={styles.bottomNav}>
-        <Link href="/home" className={styles.navItem}>
-          <Home size={20} />
-          <div>홈</div>
-        </Link>
-        <Link href="/category" className={`${styles.navItem} ${styles.active}`}>
-          <List size={20} />
-          <div>카테고리</div>
-        </Link>
-        <Link href="/gathering/create" className={styles.navItem}>
-          <Plus size={20} />
-          <div>모임 생성</div>
-        </Link>
-        <Link href="/manage" className={styles.navItem}>
-          <Users size={20} />
-          <div>모임 관리</div>
-        </Link>
-        <Link href="/profile" className={styles.navItem}>
-          <User size={20} />
-          <div>내 페이지</div>
-        </Link>
-      </nav>
+      <BottomNav active="/category" />
     </div>
   );
 }

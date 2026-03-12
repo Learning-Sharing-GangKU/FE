@@ -3,58 +3,18 @@
 import React from 'react';
 import Link from 'next/link';
 import styles from './manage.module.css';
-import { getAccessToken } from '@/lib/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { fetchUserGatherings } from '@/lib/rooms';
 import LoginRequiredModal from '@/components/LoginRequiredModal';
-import { Home, List, Plus, Users, User } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
 import { useQuery } from '@tanstack/react-query';
-
-interface GatheringItem {
-  id: string;
-  title: string;
-  category: string;
-  imageUrl?: string | null;
-  hostName: string;
-  participantCount: number;
-  capacity: number;
-}
+import type { GatheringItem } from '@/lib/types';
 
 export default function ManagePage() {
   const { isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = React.useState<'host' | 'guest'>('host');
 
-  /** 🔥 React Query fetcher */
-  const fetchUserGatherings = async (role: 'host' | 'guest'): Promise<GatheringItem[]> => {
-    const token = getAccessToken();
-    const userId = localStorage.getItem('userId');
-
-    if (!token || !userId) return [];
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/gatherings?role=${role}&page=1&size=10&sort=createdAt,desc`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        credentials: 'include',
-      }
-    );
-
-    if (!res.ok) throw new Error('모임 불러오기 실패');
-    const data = await res.json();
-    const list = data.data ?? [];
-    return list.map((g: any) => ({
-      id: g.id,
-      title: g.title,
-      category: g.category,
-      imageUrl: g.gatheringImageUrl ?? null, // 매핑 중요!!
-      hostName: g.hostName,
-      participantCount: g.participantCount,
-      capacity: g.capacity
-    }));
-  };
-
-  /** 🔥 React Query */
+  /** React Query */
   const { data: gatherings = [], isLoading } = useQuery({
     queryKey: ['myGatherings', activeTab],
     queryFn: () => fetchUserGatherings(activeTab),
@@ -133,14 +93,7 @@ export default function ManagePage() {
         </div>
       )}
 
-      {/* 바텀 네비 */}
-      <nav className={styles.bottomNav}>
-        <Link href="/home" className={styles.navItem}><Home size={20} /><div>홈</div></Link>
-        <Link href="/category" className={styles.navItem}><List size={20} /><div>카테고리</div></Link>
-        <Link href="/gathering/create" className={styles.navItem}><Plus size={20} /><div>모임 생성</div></Link>
-        <Link href="/manage" className={`${styles.navItem} ${styles.active}`}><Users size={20} /><div>모임 관리</div></Link>
-        <Link href="/profile" className={styles.navItem}><User size={20} /><div>내 페이지</div></Link>
-      </nav>
+      <BottomNav active="/manage" />
     </div>
   );
 }

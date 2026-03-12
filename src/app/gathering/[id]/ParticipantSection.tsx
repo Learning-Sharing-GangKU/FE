@@ -14,7 +14,6 @@ export function ParticipantSection({
   const pages = Math.max(1, Math.ceil(participants.length / pageSize));
   const start = page * pageSize;
   const slice = participants.slice(start, start + pageSize);
-  console.log("participants:", participants);
   return (
     <section className={styles.participantSection}>
       <div className={styles.participantHeader}>참여 인원 ({participants.length}/{capacity})</div>

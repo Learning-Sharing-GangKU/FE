@@ -37,7 +37,6 @@ export default function RoomDetailPage({ params }: { params: { id: string } }) {
   }, []);
 
   /** 상세 조회 */
-  console.log("gatheringID: ", gatheringId);
   const { data, isLoading, error } = useQuery({
     queryKey: ['gathering', gatheringId],
     queryFn: () => getGatheringDetail(gatheringId),
@@ -68,8 +67,6 @@ export default function RoomDetailPage({ params }: { params: { id: string } }) {
     myUserId !== null &&
     data.participants.some(p => String(p.userId) === String(myUserId));
 
-  console.log("data: ", data);
-  console.log("userID: ", myUserId);
   const isFull = data.participants.length >= data.capacity;
 
   return (

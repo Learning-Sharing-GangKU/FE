@@ -15,8 +15,6 @@ import { useRouter } from 'next/navigation'
  * 4. 사용자 정보 입력 및 검증
  * 5. 회원가입 API 호출
  */
-console.log("📌 함수 호출됨") // 최상단에 넣기
-
 export default function SignupPage() {
     // ===== 이메일 관련 상태 =====
     const [email, setEmail] = useState('') // 사용자 입력 이메일 (도메인 제외)
@@ -275,7 +273,6 @@ export default function SignupPage() {
         // }
         const profileImageInfoStr = sessionStorage.getItem("profileImageInfo");
         const profileImageInfo = profileImageInfoStr ? JSON.parse(profileImageInfoStr) : null;
-        console.log(profileImageInfo);
         const body = {
             email: `${email}@konkuk.ac.kr`,
             password,
@@ -286,8 +283,6 @@ export default function SignupPage() {
             nickname,
             preferredCategories,
         }
-        console.log("보내는 바디 데이터:", body)
-        console.log("JSON.stringify(body):", JSON.stringify(body))
         try {
             // const res = await fetch("/api/v1/users", {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users`, {
@@ -301,8 +296,6 @@ export default function SignupPage() {
             })
 
             if (!res.ok) {
-                const text = await res.text();
-                console.error('서버 응답:', text);
                 throw new Error('회원가입 실패');
             }
 
