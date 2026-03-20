@@ -1,174 +1,147 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { getAccessToken } from '@/lib/auth';
+import { Users, MapPin, BookOpen, ChevronDown } from 'lucide-react';
 import styles from './category.module.css';
-import { ChevronDown } from 'lucide-react';
+import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
-import CategorySelectModal from '@/components/CategorySelectModal'
-import type { GatheringItem } from '@/lib/types';
+import CategorySelectModal from '@/components/CategorySelectModal';
+
+interface GatheringItem {
+  id: number;
+  title: string;
+  description?: string;
+  category?: string;
+  imageUrl: string | null;
+  hostName?: string;
+  participantCount?: number;
+  capacity?: number;
+  location?: string;
+}
+
+const SORT_OPTIONS = [
+  { value: 'popular', label: '인기순' },
+  { value: 'latest',  label: '최신순' },
+];
 
 export default function CategoryPage() {
+  // UI 상태만 유지
   const [sort, setSort] = useState<'popular' | 'latest'>('popular');
-  const [category, setCategory] = useState<string | null>(null);
-  const [gatherings, setGatherings] = useState<GatheringItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // ✅ API 호출
-  useEffect(() => {
-    const fetchGatherings = async () => {
-      try {
-        setLoading(true);
-        const token = getAccessToken();
-        const query = new URLSearchParams();
-        if (category) query.append('category', category);
-        query.append('sort', sort);
-        query.append('size', '10');
+  // TODO: src/hooks에서 데이터 및 필터 핸들러 주입 예정
+  const gatherings: GatheringItem[] = [];
 
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings?${query.toString()}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            credentials: 'include',
-          }
-        );
-
-        if (!res.ok) throw new Error(`모임 불러오기 실패: ${res.status}`);
-        const data = await res.json();
-        const list = data.data ?? [];
-
-        setGatherings(
-          list.map((g: any) => ({
-            id: g.id,
-            title: g.title,
-            category: g.category,
-            imageUrl: g.gatheringImageUrl ?? null,
-            hostName: g.hostName,
-            participantCount: g.participantCount,
-            capacity: g.capacity,
-          }))
-        );
-
-      } catch (err) {
-        console.error('❌ 카테고리 모임 불러오기 실패:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGatherings();
-  }, [category, sort]);
-
+  const currentSortLabel = SORT_OPTIONS.find((o) => o.value === sort)?.label ?? '인기순';
 
   return (
     <div className={styles.container}>
-      {/* 상단 헤더 */}
-      <header className={styles.header}>
-        <h1 className={styles.pageTitle}>카테고리</h1>
-      </header>
+      <TopNav />
 
-      {/* 카테고리 선택 버튼 */}
-      <button
-        type="button"
-        className={styles.categoryButton}
-        onClick={() => setShowCategoryModal(true)}
-      >
-        {selectedCategories.length > 0
-          ? `카테고리 선택 (${selectedCategories.length})`
-          : '카테고리 선택'}
-      </button>
+      <main className={styles.main}>
+        <h1 className={styles.pageTitle}>모임 둘러보기</h1>
 
-      {/* 정렬 버튼 */}
-      {/* 정렬 드롭다운 */}
-      <div className={styles.sortWrapper}>
-        <span>정렬:</span>
-
-        <div className={styles.dropdown}>
+        {/* 필터 바 */}
+        <div className={styles.filterBar}>
           <button
-            className={styles.dropdownToggle}
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            type="button"
+            className={styles.categoryButton}
+            onClick={() => setShowCategoryModal(true)}
           >
-            {sort === 'popular' ? '인기순' : '최신순'}
-            <ChevronDown size={16} />
+            {selectedCategories.length > 0
+              ? `카테고리 (${selectedCategories.length})`
+              : '카테고리'}
           </button>
 
-          {dropdownOpen && (
-            <div className={styles.dropdownMenu}>
-              <div
-                className={styles.dropdownItem}
-                onClick={() => {
-                  setSort('popular');
-                  setDropdownOpen(false);
-                }}
+          <div className={styles.sortWrapper}>
+            <span className={styles.sortLabel}>정렬:</span>
+            <div className={styles.dropdown}>
+              <button
+                className={styles.dropdownToggle}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                인기순
-              </div>
-              <div
-                className={styles.dropdownItem}
-                onClick={() => {
-                  setSort('latest');
-                  setDropdownOpen(false);
-                }}
-              >
-                최신순
-              </div>
+                {currentSortLabel}
+                <ChevronDown size={16} />
+              </button>
+              {dropdownOpen && (
+                <div className={styles.dropdownMenu}>
+                  {SORT_OPTIONS.map((option) => (
+                    <div
+                      key={option.value}
+                      className={`${styles.dropdownItem} ${sort === option.value ? styles.dropdownItemActive : ''}`}
+                      onClick={() => {
+                        setSort(option.value as 'popular' | 'latest');
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      {option.label}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          </div>
+        </div>
+
+        {/* 모임 리스트 */}
+        <div className={styles.listWrapper}>
+          {gatherings.length === 0 ? (
+            <div className={styles.empty}>모임이 없습니다.</div>
+          ) : (
+            gatherings.map((g) => (
+              <Link href={`/gathering/gath_${g.id}`} key={g.id} className={styles.card}>
+                <div className={styles.imageBox}>
+                  <img
+                    src={g.imageUrl ?? '/images/logo.png'}
+                    alt={g.title}
+                    className={styles.image}
+                  />
+                </div>
+                <div className={styles.infoBox}>
+                  <h3 className={styles.title}>{g.title}</h3>
+                  {g.description && (
+                    <p className={styles.description}>{g.description}</p>
+                  )}
+                  <div className={styles.metaRow}>
+                    {g.participantCount != null && g.capacity != null && (
+                      <div className={styles.metaItem}>
+                        <Users size={14} />
+                        <span>{g.participantCount}/{g.capacity}명</span>
+                      </div>
+                    )}
+                    {g.location && (
+                      <div className={styles.metaItem}>
+                        <MapPin size={14} />
+                        <span>{g.location}</span>
+                      </div>
+                    )}
+                    {g.category && (
+                      <div className={styles.metaItem}>
+                        <BookOpen size={14} />
+                        <span>{g.category}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))
           )}
         </div>
-      </div>
+      </main>
 
-
-      {/* 모임 리스트 */}
-      <div className={styles.listWrapper}>
-        {loading ? (
-          <div className={styles.loading}>불러오는 중...</div>
-        ) : gatherings.length === 0 ? (
-          <div className={styles.empty}>모임이 없습니다.</div>
-        ) : (
-          gatherings.map((g) => (
-            <Link href={`/gathering/gath_${g.id}`} key={g.id} className={styles.card}>
-              <div className={styles.imageBox}>
-                <img
-                  src={g.imageUrl || '/images/placeholder.png'}
-                  alt={g.title}
-                  className={styles.image}
-                />
-              </div>
-              <div className={styles.infoBox}>
-                <p className={styles.categoryTag}>#{g.category}</p>
-                <p className={styles.title}>{g.title}</p>
-                <p className={styles.meta}>
-                  {g.hostName} · {g.participantCount}/{g.capacity}
-                </p>
-              </div>
-            </Link>
-          ))
-        )}
-      </div>
+      <BottomNav active="/category" />
 
       {showCategoryModal && (
         <CategorySelectModal
           max={1}
           selected={selectedCategories}
           setSelected={setSelectedCategories}
-          onClose={() => {
-            setShowCategoryModal(false);
-            if (selectedCategories.length > 0) {
-              setCategory(selectedCategories[0]); // ✅ 첫 번째 선택 카테고리로 API 필터 적용
-            }
-          }}
+          onClose={() => setShowCategoryModal(false)}
         />
       )}
-
-
-      <BottomNav active="/category" />
     </div>
   );
 }

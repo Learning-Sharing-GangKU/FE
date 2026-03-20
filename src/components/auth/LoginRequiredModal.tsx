@@ -2,11 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import styles from './loginModal.module.css';
-
-// interface LoginRequiredModalProps {
-//   onClose: () => void;
-// }
+import styles from './LoginRequiredModal.module.css';
 
 export default function LoginRequiredModal() {
   return (

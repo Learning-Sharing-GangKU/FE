@@ -1,164 +1,226 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getGatheringDetail } from '@/lib/rooms';
+import { useState } from 'react';
 import {
-  HeaderDetail,
-  RoomImage,
-  CategoryTag,
-  RoomTitle,
-  RoomDescription,
-  RoomMeta,
-  ParticipantSection,
-  ChatLink,
-  ActionButton,
-} from './index';
+  ArrowLeft,
+  MoreVertical,
+  User,
+  Calendar,
+  MapPin,
+  Tag,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  Trash2,
+} from 'lucide-react';
 import styles from './roomDetail.module.css';
-import { useRouter } from 'next/navigation';
-import { MoreHorizontal } from 'lucide-react';
-import DeleteGatheringModal from '@/components/DeleteGatheringModal';
-import { useParams } from "next/navigation";
+import BottomNav from '@/components/BottomNav';
+import Link from 'next/link';
 
-export default function RoomDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
+interface Participant {
+  userId: number;
+  nickname: string;
+  profileImageUrl?: string | null;
+}
 
-  /** "gath_1" 형태 그대로 FE에서 넘겨옴 */
-  const { id } = useParams();
-  const gatheringId = id as string;  // "gath_1"
+interface Gathering {
+  title: string;
+  description: string;
+  imageUrl: string | null;
+  category: string;
+  location: string;
+  date: string;
+  host: { nickname: string };
+  participants: Participant[];
+  capacity: number;
+  openChatUrl?: string | null;
+}
 
-  /** localStorage → SSR crash 방지 */
-  const [myUserId, setMyUserId] = useState<number | null>(null);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('userId');
-      if (stored) setMyUserId(Number(stored));
-    }
-  }, []);
+const ITEMS_PER_PAGE = 5;
 
-  /** 상세 조회 */
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['gathering', gatheringId],
-    queryFn: () => getGatheringDetail(gatheringId),
-  });
-
-  /** ⋯ 메뉴 */
+export default function GatheringDetailPage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  // TODO: src/hooks에서 데이터 및 액션 핸들러 주입 예정
+  const gathering: Gathering | null = null;
 
-  /** 로딩/에러 */
-  if (isLoading) return <div className={styles.pageContainer}>로딩 중...</div>;
-  if (error || !data) return <div className={styles.pageContainer}>불러오기 실패</div>;
-
-  const isHost = myUserId !== null && data.host.id === myUserId;
-
-  const isJoined =
-    myUserId !== null &&
-    data.participants.some(p => String(p.userId) === String(myUserId));
-
-  const isFull = data.participants.length >= data.capacity;
-
-  return (
-    <div className={styles.pageContainer}>
-
-      {/* =========================
-        헤더 + 더보기 버튼
-    ========================= */}
-      <div className={styles.headerContainer}>
-        <HeaderDetail title="모임 상세" />
-
-        {/* 더보기 버튼 - 호스트만 */}
-        {isHost && (
-          <div
-            className={styles.moreButton}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <MoreHorizontal size={26} />
-          </div>
-        )}
-
-        {/* ⋯ 메뉴 */}
-        {menuOpen && (
-          <div className={styles.menuPopup} ref={menuRef}>
-            <button
-              className={styles.menuItemDelete}
-              onClick={() => setShowDeleteModal(true)}
-            >
-              모임 삭제
-            </button>
-          </div>
-        )}
+  if (!gathering) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.empty}>모임 정보를 불러오는 중...</div>
       </div>
+    );
+  }
 
-      {/* 삭제 모달 */}
-      {showDeleteModal && (
-        <DeleteGatheringModal
-          gatheringId={gatheringId}
-          onClose={() => setShowDeleteModal(false)}
-        />
-      )}
-
-      {/* =========================
-        상세 내용
-    ========================= */}
-      {/* <RoomImage src={data.imageUrl} alt="모임 이미지" /> */}
-      <RoomImage src={data.imageUrl} alt="모임 이미지" />
-      <div className={styles.divider} />
-
-      <CategoryTag label={data.category} />
-      <RoomTitle title={data.title} />
-      <RoomDescription description={data.description} />
-
-      <RoomMeta
-        host={data.host.nickname}
-        date={data.date}
-        place={data.location}
-      />
-
-      <ParticipantSection
-        participants={data.participants}
-        capacity={data.capacity}
-      />
-
-      {/* =========================
-        오픈채팅방 링크 조건부 표시
-    ========================= */}
-      {isHost || isJoined ? (
-        <ChatLink url={data.openChatUrl} visible={true} />
-      ) : null}
-
-      {/* =========================
-        하단 버튼
-    ========================= */}
-      {isHost ? (
-        /* 호스트 */
-        <button
-          className={styles.hostEditButton}
-          onClick={() => router.push(`/gathering/${gatheringId}/edit`)}
-        >
-          모임 수정
-        </button>
-      ) : (
-        /* 비호스트 */
-        <ActionButton
-          gatheringId={gatheringId}
-          isJoined={isJoined}
-          isFull={isFull}
-        />
-      )}
-    </div>
+  const totalPages = Math.ceil(gathering.participants.length / ITEMS_PER_PAGE);
+  const pageParticipants = gathering.participants.slice(
+    currentPage * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE + ITEMS_PER_PAGE
   );
 
+  return (
+    <div className={styles.container}>
+      {/* 헤더 */}
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          <div className={styles.headerLeft}>
+            <Link href="/home" className={styles.backButton}>
+              <ArrowLeft size={24} />
+            </Link>
+            <h1 className={styles.headerTitle}>GangKU 🎓</h1>
+          </div>
 
+          <div className={styles.menuWrapper}>
+            <button
+              className={styles.moreButton}
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <MoreVertical size={24} />
+            </button>
+
+            {menuOpen && (
+              <>
+                <div className={styles.menuBackdrop} onClick={() => setMenuOpen(false)} />
+                <div className={styles.menuPopup}>
+                  <button className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                    <Edit size={16} />
+                    모임 수정
+                  </button>
+                  <button className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={() => setMenuOpen(false)}>
+                    <Trash2 size={16} />
+                    모임 삭제
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className={styles.main}>
+        {/* 메인 카드 */}
+        <div className={styles.card}>
+          {/* 이미지 */}
+          <div className={styles.imageWrapper}>
+            <img
+              src={gathering.imageUrl ?? '/images/logo.png'}
+              alt={gathering.title}
+              className={styles.image}
+            />
+          </div>
+
+          {/* 콘텐츠 */}
+          <div className={styles.cardContent}>
+            <h2 className={styles.title}>{gathering.title}</h2>
+            <p className={styles.description}>{gathering.description}</p>
+
+            <div className={styles.metaList}>
+              <div className={styles.metaItem}>
+                <User size={16} className={styles.metaIcon} />
+                <span>{gathering.participants.length}명 참여중</span>
+              </div>
+              <div className={styles.metaItem}>
+                <MapPin size={16} className={styles.metaIcon} />
+                <span>{gathering.location}</span>
+              </div>
+              <div className={styles.metaItem}>
+                <Tag size={16} className={styles.metaIcon} />
+                <span>{gathering.category}</span>
+              </div>
+            </div>
+
+            <div className={styles.divider} />
+
+            <div className={styles.metaItem}>
+              <Calendar size={16} className={styles.metaIcon} />
+              <span>{gathering.date}</span>
+              <span className={styles.dot}>·</span>
+              <span>호스트: {gathering.host.nickname}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 참여 인원 카드 */}
+        <div className={styles.card}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>
+              참여 인원
+              <span className={styles.sectionCount}>
+                ({gathering.participants.length}/{gathering.capacity})
+              </span>
+            </h3>
+            {/* 페이지 인디케이터 */}
+            <div className={styles.pageIndicators}>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`${styles.indicator} ${i === currentPage ? styles.indicatorActive : ''}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.participantRow}>
+            <button
+              className={styles.navButton}
+              onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+              disabled={currentPage === 0}
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            <div className={styles.participantGrid}>
+              {pageParticipants.map((p) => (
+                <div key={p.userId} className={styles.participantItem}>
+                  <img
+                    src={p.profileImageUrl ?? '/images/logo.png'}
+                    alt={p.nickname}
+                    className={styles.participantAvatar}
+                  />
+                  <span className={styles.participantName}>{p.nickname}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              className={styles.navButton}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage >= totalPages - 1}
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* 채팅방 링크 카드 */}
+        {gathering.openChatUrl && (
+          <div className={styles.card}>
+            <h3 className={styles.sectionTitle}>모임 대화방 링크</h3>
+            <div className={styles.chatRow}>
+              <input
+                type="text"
+                value={gathering.openChatUrl}
+                readOnly
+                className={styles.chatInput}
+              />
+              <button
+                className={styles.copyButton}
+                onClick={() => navigator.clipboard.writeText(gathering.openChatUrl ?? '')}
+              >
+                복사
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 참여 버튼 */}
+        <button className={styles.joinButton} onClick={() => {}}>
+          모임 참여하기
+        </button>
+      </main>
+
+      <BottomNav />
+    </div>
+  );
 }

@@ -1,0 +1,16 @@
+.topNav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}

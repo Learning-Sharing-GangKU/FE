@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile } from '@/types/user';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -33,7 +33,6 @@ function mapMeta(raw: any) {
 }
 
 function mapProfile(raw: any): UserProfile {
-  // preferredCategories: 배열이 객체 배열이면 name 추출, 문자열 배열이면 그대로
   const categories = raw.preferredCategories ?? [];
   const preferredCategories =
     categories.length > 0 && typeof categories[0] === 'object'
@@ -75,10 +74,9 @@ export function useProfile(
 
     (async () => {
       try {
-        const res = await fetch(
-          `${API_BASE}/api/v1/users/${userId}`,
-          { credentials: 'include' }
-        );
+        const res = await fetch(`${API_BASE}/api/v1/users/${userId}`, {
+          credentials: 'include',
+        });
 
         if (res.status === 404) {
           setError('존재하지 않는 사용자입니다.');
@@ -109,7 +107,6 @@ export function useProfile(
       if (!res.ok) throw new Error('리뷰 불러오기 실패');
 
       const more = await res.json();
-
       const newItems = more.data.map((r: any) => ({
         id: r.id,
         reviewerId: r.reviewerId,

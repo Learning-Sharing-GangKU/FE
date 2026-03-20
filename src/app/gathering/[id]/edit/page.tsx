@@ -6,8 +6,8 @@ import { useRouter, useParams } from "next/navigation";
 import styles from "./edit.module.css";
 import { getAccessToken } from "@/lib/auth";
 import CategorySelectModal from "@/components/CategorySelectModal";
-import AiIntroModal from '@/components/AiIntroModal';
-import GatheringFailedModal from '@/components/GatheringFailedModal';
+import AiIntroModal from '@/components/gathering/AiIntroModal';
+import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 
 
 export default function GatheringEditPage() {

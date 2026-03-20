@@ -1,7 +1,7 @@
 /* ===== 전체 배경 (dimmed) ===== */
 .backdrop {
   position: fixed;
-  inset: 0; /* top, right, bottom, left 0 */
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,7 +40,6 @@
   justify-content: center;
 }
 
-/* 취소 버튼 (회색) */
 .cancelBtn {
   flex: 1;
   padding: 10px 0;
@@ -57,13 +56,12 @@
   background-color: #e9e9e9;
 }
 
-/* 삭제 버튼 (빨강) */
 .deleteBtn {
   flex: 1;
   padding: 10px 0;
   border-radius: 6px;
   border: none;
-  background-color: #ef4444; /* 로그인 모달 계열에 맞춘 강한 색 */
+  background-color: #ef4444;
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;

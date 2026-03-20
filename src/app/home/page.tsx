@@ -1,183 +1,148 @@
 "use client";
 
-import { useAuth } from '@/contexts/AuthContext'
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import type React from "react";
 import styles from "./home.module.css";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { useSearchParams, useRouter } from "next/navigation";
 import {
-  getLatestGatherings,
-  getPopularGatherings,
-  getRecommendedGatherings
-} from "@/lib/rooms";
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  MapPin,
+  BookOpen,
+  MessageSquare,
+  Dumbbell,
+  Palette,
+  Trees,
+  Music,
+} from "lucide-react";
+import BottomNav from "@/components/BottomNav";
+import TopNav from "@/components/TopNav";
+import Link from "next/link";
+
+interface Room {
+  id: number;
+  title: string;
+  description?: string;
+  imageUrl: string | null;
+  participantCount?: number;
+  location?: string;
+  category?: string;
+}
+
+const categoryIcons: Record<string, React.ElementType> = {
+  "스터디": BookOpen,
+  "토론": MessageSquare,
+  "운동": Dumbbell,
+  "독서": BookOpen,
+  "네트워킹": Users,
+  "예술": Palette,
+  "야외활동": Trees,
+  "음악": Music,
+};
+
+function MeetingCard({ room }: { room: Room }) {
+  const Icon = categoryIcons[room.category ?? ""] ?? Users;
+
+  return (
+    <Link href={`/gathering/gath_${room.id}`} className={styles.roomCard}>
+      <div className={styles.roomCardImageWrapper}>
+        <img
+          src={room.imageUrl ?? "/images/logo.png"}
+          alt={room.title}
+          className={styles.roomCardImg}
+        />
+      </div>
+      <div className={styles.roomCardContent}>
+        <h3 className={styles.roomCardTitle}>{room.title}</h3>
+        {room.description && (
+          <p className={styles.roomCardDescription}>{room.description}</p>
+        )}
+        <div className={styles.roomCardInfo}>
+          {room.participantCount != null && (
+            <div className={styles.roomCardInfoRow}>
+              <Users size={14} />
+              <span>{room.participantCount}명 참여중</span>
+            </div>
+          )}
+          {room.location && (
+            <div className={styles.roomCardInfoRow}>
+              <MapPin size={14} />
+              <span>{room.location}</span>
+            </div>
+          )}
+          {room.category && (
+            <div className={styles.roomCardInfoRow}>
+              <Icon size={14} />
+              <span>{room.category}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 function Section({
   title,
   rooms,
-  carouselRef,
   onLeft,
-  onRight
+  onRight,
 }: {
   title: string;
-  rooms: { id: number; title: string; imageUrl: string | null }[];
-  carouselRef: React.RefObject<HTMLDivElement | null>;
+  rooms: Room[];
   onLeft: () => void;
   onRight: () => void;
 }) {
   return (
-    <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>{title}</h2>
-
+    <section className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>{title}</h2>
+      </div>
       <div className={styles.carouselWrapper}>
         <button onClick={onLeft} className={styles.arrowButton}>
-          <ArrowLeft size={20} />
+          <ChevronLeft size={20} />
         </button>
-
-        <div className={styles.carousel} ref={carouselRef}>
+        <div className={styles.carousel}>
           {rooms.map((room) => (
-            <Link key={room.id} href={`/gathering/gath_${room.id}`} className={styles.roomCard}>
-              <div className={styles.roomCardBox}>
-                <div className={styles.roomCardImage}>
-                  <img
-                    src={room.imageUrl || "/images/logo.png"}
-                    alt={room.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </div>
-              </div>
-              <div className={styles.roomCardTitle}>{room.title}</div>
-            </Link>
+            <MeetingCard key={room.id} room={room} />
           ))}
         </div>
-
         <button onClick={onRight} className={styles.arrowButton}>
-          <ArrowRight size={20} />
+          <ChevronRight size={20} />
         </button>
       </div>
-    </div>
+    </section>
   );
 }
 
-const mapToRooms = (data: any) =>
-  data?.data?.map((g: any) => ({
-    id: g.id,
-    title: g.title,
-    imageUrl: g.gatheringImageUrl ?? null,
-  })) ?? [];
-
-const HomePageContent = () => {
-  const refRecommended = useRef<HTMLDivElement | null>(null);
-  const refLatest = useRef<HTMLDivElement | null>(null);
-  const refPopular = useRef<HTMLDivElement | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  const { isLoggedIn, logout } = useAuth()
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  const recommendedQuery = useQuery({
-    queryKey: ["home", "recommended"],
-    queryFn: getRecommendedGatherings,
-  });
-
-  const latestQuery = useQuery({
-    queryKey: ["home", "latest"],
-    queryFn: getLatestGatherings,
-  });
-
-  const popularQuery = useQuery({
-    queryKey: ["home", "popular"],
-    queryFn: getPopularGatherings,
-  });
-
-  const scrollLeft = (ref: React.RefObject<HTMLDivElement | null>) => {
-    if (ref.current) {
-      const el = ref.current;
-      const firstCard = el.querySelector(`.${styles.roomCard}`) as HTMLElement | null;
-      const gap = parseFloat(getComputedStyle(el).gap || '12');
-      const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : el.clientWidth;
-      const step = cardWidth * 3 + gap * 2;
-      el.scrollBy({ left: -step, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = (ref: React.RefObject<HTMLDivElement | null>) => {
-    if (ref.current) {
-      const el = ref.current;
-      const firstCard = el.querySelector(`.${styles.roomCard}`) as HTMLElement | null;
-      const gap = parseFloat(getComputedStyle(el).gap || '12');
-      const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : el.clientWidth;
-      const step = cardWidth * 3 + gap * 2;
-      el.scrollBy({ left: step, behavior: 'smooth' });
-    }
-  };
-
-  useEffect(() => {
-    if (searchParams.get('created') === '1') {
-      setToast('모임 생성이 완료되었습니다.');
-      const sp = new URLSearchParams(Array.from(searchParams.entries()));
-      sp.delete('created');
-      router.replace(`/home${sp.toString() ? `?${sp.toString()}` : ''}`);
-      const t = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(t);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+export default function HomePage() {
+  // TODO: src/hooks에서 데이터 및 스크롤 핸들러 주입 예정
+  const recommendedRooms: Room[] = [];
+  const latestRooms: Room[] = [];
+  const popularRooms: Room[] = [];
 
   const sections = [
-    { title: '추천 모임', query: recommendedQuery, ref: refRecommended },
-    { title: '최신 모임', query: latestQuery,      ref: refLatest },
-    { title: '인기 모임', query: popularQuery,      ref: refPopular },
-  ] as const;
+    { title: "추천 모임", rooms: recommendedRooms },
+    { title: "최신 모임", rooms: latestRooms },
+    { title: "인기 모임", rooms: popularRooms },
+  ];
 
   return (
     <div className={styles.container}>
-      <div className={styles.topBar}>
-        <h1 className={styles.pageTitle}>GangKU 홈</h1>
+      <TopNav />
 
-        {isLoggedIn === true ? (
-          <button onClick={logout} className={styles.loginButton}>
-            로그아웃
-          </button>
-        ) : isLoggedIn === false ? (
-          <Link href="/login" className={styles.loginButton}>
-            로그인
-          </Link>
-        ) : null}
-      </div>
-
-      <div className={styles.main}>
-        {toast && (
-          <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', background: '#111', color: '#fff', padding: '8px 12px', borderRadius: 8, zIndex: 1000 }}>
-            {toast}
-          </div>
-        )}
-
-        {sections.map(({ title, query, ref }) =>
-          query.isSuccess ? (
-            <Section
-              key={title}
-              title={title}
-              rooms={mapToRooms(query.data)}
-              carouselRef={ref}
-              onLeft={() => scrollLeft(ref)}
-              onRight={() => scrollRight(ref)}
-            />
-          ) : null
-        )}
-      </div>
+      <main className={styles.main}>
+        {sections.map(({ title, rooms }) => (
+          <Section
+            key={title}
+            title={title}
+            rooms={rooms}
+            onLeft={() => {}}
+            onRight={() => {}}
+          />
+        ))}
+      </main>
 
       <BottomNav active="/home" />
     </div>
   );
-};
-
-const HomePage = () => (
-  <Suspense fallback={<div />}>
-    <HomePageContent />
-  </Suspense>
-);
-
-export default HomePage;
+}

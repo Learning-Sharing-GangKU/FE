@@ -1,246 +1,294 @@
 .container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  padding-bottom: 80px;
-  font-family: 'Pretendard', sans-serif;
+  min-height: 100vh;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
 }
 
-.title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.label {
-  font-weight: 500;
-  margin: 10px 0 5px;
-}
-
-.input,
-.textarea {
+.main {
+  flex: 1;
   width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  box-sizing: border-box;
+  max-width: 672px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
 }
 
-.textarea {
-  min-height: 100px;
-  resize: vertical;
+/* 타이틀 */
+.title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 32px;
 }
 
-.verifyButton {
-  padding: 10px 14px;
-  font-size: 14px;
-  background-color: #1976D2;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
+/* 폼 */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.categorySection {
-  margin-bottom: 10px;
+/* 필드 그룹 */
+.fieldGroup {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111;
+}
+
+/* 입력 필드 */
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #111;
+  box-sizing: border-box;
+  outline: none;
+  background: white;
+}
+
+.input:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+/* 이미지 섹션 */
+.imageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.imagePreview {
+  position: relative;
   width: 100%;
 }
 
+.previewImg {
+  width: 100%;
+  height: 224px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  display: block;
+}
+
+.removeImageButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  color: #374151;
+  transition: background 0.15s;
+}
+
+.removeImageButton:hover {
+  background: #f3f4f6;
+}
+
+.uploadButton {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.uploadButton:hover {
+  background: #f9fafb;
+}
+
+/* 카테고리 버튼 */
+.categoryButton {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  background: #111827;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.categoryButton:hover {
+  background: #374151;
+}
+
+/* 선택된 카테고리 태그 */
 .selectedTags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  min-height: 32px;
 }
 
 .tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: #eff6ff;
+  color: #2563eb;
   padding: 6px 12px;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  border: 1px solid #bbdefb;
-  transition: all 0.2s ease;
-}
-
-.tag:hover {
-  background-color: #bbdefb;
-  border-color: #90caf9;
+  border: 1px solid #bfdbfe;
 }
 
 .tagRemove {
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: bold;
-  color: #1976d2;
-  opacity: 0.7;
+  color: #2563eb;
   background: none;
   border: none;
+  padding: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
 }
 
 .tagRemove:hover {
   opacity: 1;
-  color: #d32f2f;
+  color: #dc2626;
 }
 
-.submitButton {
-  width: 100%;
-  padding: 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.submitButton:hover {
-  background-color: #0056b3;
-}
-
-.submitButton:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.error {
-  color: red;
-  font-size: 0.9rem;
-  margin: 10px 0;
-}
-
-.imageUploadSection {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.imageUploadButton {
-  padding: 10px 14px;
-  font-size: 14px;
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  cursor: pointer;
-  width: fit-content;
-}
-
-.imageUploadButton:hover:not(:disabled) {
-  background-color: #e5e7eb;
-}
-
-.imageUploadButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.imagePreview {
+/* 날짜 입력 */
+.dateRow {
   position: relative;
-  width: 100%;
-  max-width: 300px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
 }
 
-.imagePreview img {
-  width: 100%;
-  height: auto;
-  display: block;
+.dateRow .input {
+  padding-right: 44px;
 }
 
-.removeImageButton {
+.calendarIcon {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #374151;
 }
 
-.removeImageButton:hover {
-  background: rgba(0, 0, 0, 0.8);
+/* 힌트 텍스트 */
+.hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
 }
 
-.descriptionSection {
-  margin-bottom: 10px;
-}
-
+/* 모임 설명 헤더 */
 .descriptionHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.aiGenerateButton {
-  padding: 6px 12px;
-  font-size: 12px;
-  background-color: #6366f1;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+.aiRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aiHint {
+  font-size: 0.75rem;
+  color: #9ca3af;
   white-space: nowrap;
 }
 
-.aiGenerateButton:hover:not(:disabled) {
-  background-color: #4f46e5;
+.aiButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #111827;
+  background: white;
+  color: #111827;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
 }
 
-.aiGenerateButton:disabled {
+.aiButton:hover {
+  background: #f9fafb;
+}
+
+/* 텍스트에리어 */
+.textarea {
+  width: 100%;
+  min-height: 128px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #111;
+  resize: vertical;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+}
+
+.textarea:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
+}
+
+.textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* 제출 버튼 */
+.submitButton {
+  width: 100%;
+  height: 48px;
+  background-color: #111827;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.submitButton:hover {
+  background-color: #374151;
+}
+
+.submitButton:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.bottomNav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  border-top: 1px solid #e5e5e5;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-  z-index: 1000;
-  width: 100%;
-}
-
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 0.75rem;
-  color: #333;
-  text-decoration: none;
 }

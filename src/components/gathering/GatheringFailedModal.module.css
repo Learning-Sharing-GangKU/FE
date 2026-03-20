@@ -1,4 +1,4 @@
-/* ===== 모달 오버레이 스타일 ===== */
+/* ===== 모달 오버레이 ===== */
 .overlay {
   position: fixed;
   top: 0;
@@ -12,7 +12,7 @@
   z-index: 9999;
 }
 
-/* ===== 모달 컨테이너 스타일 ===== */
+/* ===== 모달 컨테이너 ===== */
 .modal {
   background: #fff;
   padding: 24px;
@@ -22,47 +22,37 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* ===== 모달 제목 스타일 ===== */
+/* ===== 제목 ===== */
 .title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 12px;
   text-align: center;
+  margin-bottom: 12px;
 }
 
-/* ===== 메시지 스타일 ===== */
-.message {
+/* ===== 메시지 ===== */
+.subtitle {
   font-size: 14px;
   color: #666;
   text-align: center;
-  margin-bottom: 24px;
   line-height: 1.5;
+  margin-bottom: 24px;
 }
 
-/* ===== 버튼 컨테이너 스타일 ===== */
-.buttonContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* ===== 로그인 버튼 스타일 ===== */
-.loginButton {
+/* ===== 확인 버튼 ===== */
+.button {
+  width: 100%;
   background-color: #2196f3;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 12px 0;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
   transition: background-color 0.2s ease;
-  text-align: center;
-  text-decoration: none;
-  display: block;
 }
 
-.loginButton:hover {
+.button:hover {
   background-color: #1976d2;
 }
-
