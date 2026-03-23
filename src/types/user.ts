@@ -27,6 +27,30 @@ export interface UpdateProfilePayload {
   profileImageObjectKey?: string;
 }
 
+/** 리뷰 작성 요청 */
+export interface CreateReviewRequest {
+  rating: number;
+  comment: string;
+}
+
+/** 리뷰 작성 응답 */
+export interface CreateReviewResponse {
+  reviewId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+/** 유저 요약 (리뷰 대상 등) */
+export interface UserSummary {
+  nickname: string;
+  age: number;
+  enrollNumber: number;
+  gender: string;
+  profileImageUrl?: string | null;
+  preferredCategories: string[];
+}
+
 /** 유저 프로필 */
 export interface UserProfile {
   id: string;

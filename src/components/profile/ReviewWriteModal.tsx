@@ -3,18 +3,10 @@
 import { useState } from 'react';
 import { X, Star, User } from 'lucide-react';
 import styles from './ReviewWriteModal.module.css';
-
-interface TargetUser {
-  nickname: string;
-  age: number;
-  enrollNumber: number;
-  gender: string;
-  profileImageUrl?: string | null;
-  preferredCategories: string[];
-}
+import type { UserSummary } from '@/types/user';
 
 interface ReviewWriteModalProps {
-  targetUser: TargetUser;
+  targetUser: UserSummary;
   onClose: () => void;
   onSubmit: (rating: number, content: string) => void;
 }

@@ -6,17 +6,7 @@ import { Users, MapPin, BookOpen, Sparkles, Search } from 'lucide-react';
 import styles from './manage.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
-
-interface GatheringItem {
-  id: string;
-  category: string;
-  title: string;
-  imageUrl?: string | null;
-  participantCount: number;
-  capacity: number;
-  description?: string;
-  location?: string;
-}
+import type { GatheringItem } from '@/types/gathering';
 
 export default function ManagePage() {
   const [activeTab, setActiveTab] = useState<'created' | 'joined'>('created');
