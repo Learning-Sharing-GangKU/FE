@@ -1,17 +1,21 @@
+import type { PaginationMeta } from './common';
+
 /** 모임 목록 아이템 */
 export interface GatheringItem {
   id: string;
   title: string;
+  description?: string;
   category: string;
   imageUrl?: string | null;
-  hostName: string;
-  participantCount: number;
-  capacity: number;
+  hostName?: string;
+  participantCount?: number;
+  capacity?: number;
+  location?: string;
 }
 
 /** 모임 목록 조회용 간단 타입 */
 export interface GatheringSummary {
-  id: number;
+  id: string;
   title: string;
   imageUrl?: string | null;
   category?: string;
@@ -19,7 +23,7 @@ export interface GatheringSummary {
 
 /** 모임 참여자 */
 export interface GatheringParticipant {
-  userId: number;
+  userId: string;
   nickname: string;
   profileImageUrl?: string | null;
   role?: string;
@@ -28,7 +32,7 @@ export interface GatheringParticipant {
 
 /** 모임 상세 응답 */
 export interface GatheringDetailResponse {
-  id: number;
+  id: string;
   title: string;
   description: string;
   category: string;
@@ -36,15 +40,12 @@ export interface GatheringDetailResponse {
   capacity: number;
   date: string;
   location: string;
-  host: { id: number; nickname: string };
+  status: string;
+  host: { id: string; nickname: string };
   participants: GatheringParticipant[];
-  participantsMeta?: {
-    page?: number;
-    size?: number;
-    totalElements?: number;
-    sortedBy?: string;
-    nextCursor?: string | null;
-  };
+  participantsMeta?: PaginationMeta;
   openChatUrl?: string | null;
   isJoined: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

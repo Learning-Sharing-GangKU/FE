@@ -16,36 +16,20 @@ import {
 import styles from './roomDetail.module.css';
 import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
-
-interface Participant {
-  userId: number;
-  nickname: string;
-  profileImageUrl?: string | null;
-}
-
-interface Gathering {
-  title: string;
-  description: string;
-  imageUrl: string | null;
-  category: string;
-  location: string;
-  date: string;
-  host: { nickname: string };
-  participants: Participant[];
-  capacity: number;
-  openChatUrl?: string | null;
-}
+import { useParams } from 'next/navigation';
+import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
 
 const ITEMS_PER_PAGE = 5;
 
 export default function GatheringDetailPage() {
+  const params = useParams();
+  const gatheringId = params.id as string;
+  const { data: gathering, isLoading } = useGatheringDetail(gatheringId);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
-  // TODO: src/hooks에서 데이터 및 액션 핸들러 주입 예정
-  const gathering: Gathering | null = null;
-
-  if (!gathering) {
+  if (isLoading || !gathering) {
     return (
       <div className={styles.container}>
         <div className={styles.empty}>모임 정보를 불러오는 중...</div>

@@ -47,7 +47,7 @@ function mapProfile(raw: any): UserProfile {
     gender: raw.gender,
     enrollNumber: raw.enrollNumber,
     preferredCategories,
-    rating: raw.rating ?? 0,
+    rating: raw.reviewsRating ?? 0,
     reviewCount: raw.reviewCount ?? 0,
     reviewsPublic: raw.reviewsPublic ?? true,
     reviews: mapReviews(raw),

@@ -17,16 +17,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import TopNav from "@/components/TopNav";
 import Link from "next/link";
-
-interface Room {
-  id: number;
-  title: string;
-  description?: string;
-  imageUrl: string | null;
-  participantCount?: number;
-  location?: string;
-  category?: string;
-}
+import type { GatheringItem } from "@/types/gathering";
 
 const categoryIcons: Record<string, React.ElementType> = {
   "스터디": BookOpen,
@@ -39,7 +30,7 @@ const categoryIcons: Record<string, React.ElementType> = {
   "음악": Music,
 };
 
-function MeetingCard({ room }: { room: Room }) {
+function MeetingCard({ room }: { room: GatheringItem }) {
   const Icon = categoryIcons[room.category ?? ""] ?? Users;
 
   return (
@@ -88,7 +79,7 @@ function Section({
   onRight,
 }: {
   title: string;
-  rooms: Room[];
+  rooms: GatheringItem[];
   onLeft: () => void;
   onRight: () => void;
 }) {
@@ -116,14 +107,14 @@ function Section({
 
 export default function HomePage() {
   // TODO: src/hooks에서 데이터 및 스크롤 핸들러 주입 예정
-  const recommendedRooms: Room[] = [];
-  const latestRooms: Room[] = [];
-  const popularRooms: Room[] = [];
+  const recommendedGatheringItems: GatheringItem[] = [];
+  const latestGatheringItems: GatheringItem[] = [];
+  const popularGatheringItems: GatheringItem[] = [];
 
   const sections = [
-    { title: "추천 모임", rooms: recommendedRooms },
-    { title: "최신 모임", rooms: latestRooms },
-    { title: "인기 모임", rooms: popularRooms },
+    { title: "추천 모임", rooms: recommendedGatheringItems },
+    { title: "최신 모임", rooms: latestGatheringItems },
+    { title: "인기 모임", rooms: popularGatheringItems },
   ];
 
   return (

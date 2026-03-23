@@ -7,18 +7,7 @@ import styles from './category.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
-
-interface GatheringItem {
-  id: number;
-  title: string;
-  description?: string;
-  category?: string;
-  imageUrl: string | null;
-  hostName?: string;
-  participantCount?: number;
-  capacity?: number;
-  location?: string;
-}
+import type { GatheringItem } from '@/types/gathering';
 
 const SORT_OPTIONS = [
   { value: 'popular', label: '인기순' },
@@ -106,12 +95,10 @@ export default function CategoryPage() {
                     <p className={styles.description}>{g.description}</p>
                   )}
                   <div className={styles.metaRow}>
-                    {g.participantCount != null && g.capacity != null && (
-                      <div className={styles.metaItem}>
-                        <Users size={14} />
-                        <span>{g.participantCount}/{g.capacity}명</span>
-                      </div>
-                    )}
+                    <div className={styles.metaItem}>
+                      <Users size={14} />
+                      <span>{g.participantCount}/{g.capacity}명</span>
+                    </div>
                     {g.location && (
                       <div className={styles.metaItem}>
                         <MapPin size={14} />

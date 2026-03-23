@@ -1,21 +1,18 @@
 import { apiFetch } from '@/api/client';
 import type {
   GatheringItem,
-  GatheringSummary,
   GatheringDetailResponse,
 } from '@/types/gathering';
+import type { PaginationMeta } from '@/types/common';
 
 export async function getGatheringDetail(gatheringId: string): Promise<GatheringDetailResponse> {
-  const raw = await apiFetch(`/api/v1/gatherings/${gatheringId}`, {
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-  });
+  const raw = await apiFetch(`/api/v1/gatherings/${gatheringId}`);
 
   const preview = raw?.participantsPreview;
   const rawParticipants = Array.isArray(preview?.data) ? preview.data : [];
 
   const participants = rawParticipants.map((p: any) => ({
-    userId: p.userId ?? p.id ?? 0,
+    userId: String(p.userId ?? ''),
     nickname: p.nickname ?? '',
     profileImageUrl: p.profileImageUrl ?? null,
     role: p.role ?? null,
@@ -23,70 +20,121 @@ export async function getGatheringDetail(gatheringId: string): Promise<Gathering
   }));
 
   const participantsMeta = preview?.meta ?? {
-    page: 0,
+    page: 1,
     size: participants.length,
     totalElements: participants.length,
-    sortedBy: 'joinedAt',
-    nextCursor: null,
+    totalPages: 1,
+    sortedBy: 'joinedAt,asc',
+    hasPrev: false,
+    hasNext: false,
   };
-
-  const host =
-    raw?.host ??
-    (raw?.hostId || raw?.hostNickname
-      ? { id: raw.hostId ?? 0, nickname: raw.hostNickname ?? '' }
-      : { id: 0, nickname: '' });
 
   return {
-    id: raw?.id ?? raw?.gatheringId ?? Number(gatheringId),
-    title: raw?.title ?? raw?.name ?? '',
+    id: String(raw?.id ?? gatheringId),
+    title: raw?.title ?? '',
     description: raw?.description ?? '',
-    category: raw?.category ?? raw?.categoryName ?? '',
-    imageUrl:
-      raw?.gatheringImageUrl ??
-      raw?.fileUrl ??
-      raw?.thumbnailUrl ??
-      raw?.mainImageUrl ??
-      raw?.image ??
-      null,
-    capacity: Number(raw?.capacity ?? raw?.maxParticipants ?? 0),
-    date: raw?.date ?? raw?.scheduledAt ?? '',
-    location: raw?.location ?? raw?.place ?? '',
-    host,
+    category: raw?.category ?? '',
+    imageUrl: raw?.gatheringImageUrl ?? null,
+    capacity: Number(raw?.capacity ?? 0),
+    date: raw?.date ?? '',
+    location: raw?.location ?? '',
+    status: raw?.status ?? '',
+    host: {
+      id: String(raw?.host?.id ?? ''),
+      nickname: raw?.host?.nickname ?? '',
+    },
     participants,
     participantsMeta,
-    openChatUrl: raw?.openChatUrl ?? raw?.chatUrl ?? null,
-    isJoined: Boolean(raw?.isJoined ?? raw?.joined ?? false),
+    openChatUrl: raw?.openChatUrl ?? null,
+    isJoined: Boolean(raw?.isJoined ?? false),
+    createdAt: raw?.createdAt ?? undefined,
+    updatedAt: raw?.updatedAt ?? undefined,
   };
 }
 
-export async function getGatherings(): Promise<GatheringSummary[]> {
-  const raw = await apiFetch(`/api/v1/gatherings`);
-  const list: any[] =
-    Array.isArray(raw)
-      ? raw
-      : raw?.content ?? raw?.items ?? raw?.data ?? raw?.records ?? raw?.results ?? [];
+export async function getGatherings(params?: {
+  category?: string;
+  page?: number;
+  size?: number;
+  sort?: 'latest' | 'popular' | 'recommended';
+}): Promise<{ data: GatheringItem[]; meta: PaginationMeta }> {
+  const query = new URLSearchParams();
+  if (params?.category) query.set('category', params.category);
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.size) query.set('size', String(params.size));
+  if (params?.sort) query.set('sort', params.sort);
 
-  return list.map((g: any) => ({
-    id: g.id ?? g.gatheringId ?? g.roomId,
-    title: g.title ?? g.name ?? '',
-    imageUrl: g.imageUrl ?? g.thumbnailUrl ?? g.mainImageUrl ?? g.image ?? null,
-    category: g.category ?? g.categoryName ?? undefined,
-  })) as GatheringSummary[];
+  const raw = await apiFetch(`/api/v1/gatherings?${query.toString()}`);
+  const list = raw?.data ?? [];
+
+  const data = list.map((g: any) => ({
+    id: g.id,
+    title: g.title,
+    description: g.description ?? undefined,
+    category: g.category,
+    imageUrl: g.gatheringImageUrl ?? null,
+    hostName: g.hostName,
+    participantCount: g.participantCount,
+    capacity: g.capacity,
+    location: g.location ?? undefined,
+  }));
+
+  const meta = raw?.meta ?? {
+    page: 1,
+    size: 0,
+    totalElements: 0,
+    totalPages: 0,
+    sortedBy: '',
+    hasPrev: false,
+    hasNext: false,
+  };
+
+  return { data, meta };
 }
 
-function fetchGatheringList(params: Record<string, string>) {
-  const query = new URLSearchParams(params).toString();
-  return apiFetch(`/api/v1/gatherings?${query}`);
+/** 홈 API 응답 타입 */
+export interface HomeResponse {
+  recommended: { data: GatheringItem[]; meta: PaginationMeta };
+  latest: { data: GatheringItem[]; meta: PaginationMeta };
+  popular: { data: GatheringItem[]; meta: PaginationMeta };
 }
 
-export const getLatestGatherings = () =>
-  fetchGatheringList({ page: '1', sort: 'latest', size: '3' });
+function mapHomeItems(items: any[]): GatheringItem[] {
+  return items.map((g: any) => ({
+    id: g.id,
+    title: g.title,
+    description: g.description ?? undefined,
+    category: g.category,
+    imageUrl: g.gatheringImageUrl ?? null,
+    participantCount: g.participantCount,
+    location: g.location ?? undefined,
+  }));
+}
 
-export const getPopularGatherings = () =>
-  fetchGatheringList({ sort: 'popular', size: '3' });
+/** GET /api/v1/home — 홈 화면 데이터 */
+export async function getHome(): Promise<HomeResponse> {
+  const raw = await apiFetch('/api/v1/home');
 
-export const getRecommendedGatherings = () =>
-  fetchGatheringList({ sort: 'latest', size: '3' });
+  const defaultMeta: PaginationMeta = {
+    page: 1, size: 0, totalElements: 0, totalPages: 0,
+    sortedBy: '', hasPrev: false, hasNext: false,
+  };
+
+  return {
+    recommended: {
+      data: mapHomeItems(raw?.recommended?.data ?? []),
+      meta: raw?.recommended?.meta ?? defaultMeta,
+    },
+    latest: {
+      data: mapHomeItems(raw?.latest?.data ?? []),
+      meta: raw?.latest?.meta ?? defaultMeta,
+    },
+    popular: {
+      data: mapHomeItems(raw?.popular?.data ?? []),
+      meta: raw?.popular?.meta ?? defaultMeta,
+    },
+  };
+}
 
 export async function joinGathering(gatheringId: string): Promise<void> {
   await apiFetch(`/api/v1/gatherings/${gatheringId}/participants`, { method: 'POST' });
