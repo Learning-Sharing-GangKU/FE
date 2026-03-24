@@ -59,12 +59,17 @@ export async function updateUserProfile(
   });
 }
 
-/** GET /api/v1/users/{userId}/reviews?cursor=xxx — 리뷰 더보기 */
+/** GET /api/v1/users/{userId}/reviews — 리뷰 더보기 */
 export async function getUserReviews(
   userId: string,
-  cursor: string
+  params?: { size?: number; cursor?: string; sort?: string }
 ): Promise<{ reviews: ReviewItem[]; meta: ReviewsMeta }> {
-  const raw = await apiFetch(`/api/v1/users/${userId}/reviews?cursor=${cursor}`);
+  const query = new URLSearchParams();
+  if (params?.size) query.set('size', String(params.size));
+  if (params?.cursor) query.set('cursor', params.cursor);
+  if (params?.sort) query.set('sort', params.sort);
+
+  const raw = await apiFetch(`/api/v1/users/${userId}/reviews?${query.toString()}`);
 
   const reviews = (raw?.data ?? []).map((r: any) => ({
     id: r.id,
