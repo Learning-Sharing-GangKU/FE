@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Star, User } from 'lucide-react';
 import styles from './ReviewWriteModal.module.css';
 import type { UserSummary } from '@/types/user';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface ReviewWriteModalProps {
   targetUser: UserSummary;
@@ -135,23 +136,14 @@ export default function ReviewWriteModal({ targetUser, onClose, onSubmit }: Revi
         </div>
       </div>
 
-      {/* 확인 모달 */}
-      {showConfirm && (
-        <div className={styles.confirmOverlay}>
-          <div className={styles.confirmModal}>
-            <p className={styles.confirmText}>모임에 대한 리뷰를 작성합니다.</p>
-            <div className={styles.confirmButtons}>
-              <button className={styles.confirmSubmitBtn} onClick={handleConfirm}>
-                리뷰 작성
-              </button>
-              <button className={styles.confirmCancelBtn} onClick={() => setShowConfirm(false)}>
-                취소
-              </button>
-            </div>
-            <p className={styles.confirmDisclaimer}>리뷰를 작성하면 수정할 수 없습니다.</p>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleConfirm}
+        title="모임에 대한 리뷰를 작성합니다."
+        confirmText="리뷰 작성"
+        description="리뷰를 작성하면 수정할 수 없습니다."
+      />
     </>
   );
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Users, MapPin, BookOpen, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import styles from './category.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
+import ListGatheringCard from '@/components/gathering/ListGatheringCard';
 import type { GatheringItem } from '@/types/gathering';
 
 const SORT_OPTIONS = [
@@ -81,51 +81,19 @@ export default function CategoryPage() {
             <div className={styles.empty}>모임이 없습니다.</div>
           ) : (
             gatherings.map((g) => (
-              <Link href={`/gathering/gath_${g.id}`} key={g.id} className={styles.card}>
-                <div className={styles.imageBox}>
-                  <img
-                    src={g.imageUrl ?? '/images/logo.png'}
-                    alt={g.title}
-                    className={styles.image}
-                  />
-                </div>
-                <div className={styles.infoBox}>
-                  <h3 className={styles.title}>{g.title}</h3>
-                  {g.description && (
-                    <p className={styles.description}>{g.description}</p>
-                  )}
-                  <div className={styles.metaRow}>
-                    <div className={styles.metaItem}>
-                      <Users size={14} />
-                      <span>{g.participantCount}/{g.capacity}명</span>
-                    </div>
-                    {g.location && (
-                      <div className={styles.metaItem}>
-                        <MapPin size={14} />
-                        <span>{g.location}</span>
-                      </div>
-                    )}
-                    {g.category && (
-                      <div className={styles.metaItem}>
-                        <BookOpen size={14} />
-                        <span>{g.category}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Link>
+              <ListGatheringCard key={g.id} gathering={g} />
             ))
           )}
         </div>
       </main>
 
-      <BottomNav active="/category" />
+      <BottomNav />
 
       {showCategoryModal && (
         <CategorySelectModal
-          max={1}
-          selected={selectedCategories}
-          setSelected={setSelectedCategories}
+          mode="group"
+          initialSelected={selectedCategories}
+          onConfirm={(cats) => setSelectedCategories(cats)}
           onClose={() => setShowCategoryModal(false)}
         />
       )}

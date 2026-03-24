@@ -6,6 +6,7 @@ import styles from './signup.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function SignupPage() {
   // UI 상태만 유지
@@ -14,6 +15,7 @@ export default function SignupPage() {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showSignupConfirm, setShowSignupConfirm] = useState(false);
 
   const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,7 +35,7 @@ export default function SignupPage() {
       <main className={styles.main}>
         <h2 className={styles.title}>회원가입</h2>
 
-        <form className={styles.form} onSubmit={() => {}}>
+        <form className={styles.form} onSubmit={(e) => { e.preventDefault(); setShowSignupConfirm(true); }}>
           {/* 이메일 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>이메일</label>
@@ -207,12 +209,20 @@ export default function SignupPage() {
 
       {showCategoryModal && (
         <CategorySelectModal
-          selected={selectedCategories}
-          setSelected={setSelectedCategories}
+          mode="preference"
+          initialSelected={selectedCategories}
+          onConfirm={(cats) => setSelectedCategories(cats)}
           onClose={() => setShowCategoryModal(false)}
-          max={3}
         />
       )}
+
+      <ConfirmModal
+        isOpen={showSignupConfirm}
+        onClose={() => setShowSignupConfirm(false)}
+        onConfirm={() => { setShowSignupConfirm(false); }}
+        title="회원 가입을 완료하시겠습니까?"
+        confirmText="가입하기"
+      />
     </div>
   );
 }

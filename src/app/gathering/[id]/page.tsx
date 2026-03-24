@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import styles from './roomDetail.module.css';
 import BottomNav from '@/components/BottomNav';
+import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
@@ -28,6 +29,9 @@ export default function GatheringDetailPage() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showCancelJoinModal, setShowCancelJoinModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   if (isLoading || !gathering) {
     return (
@@ -71,7 +75,7 @@ export default function GatheringDetailPage() {
                     <Edit size={16} />
                     모임 수정
                   </button>
-                  <button className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={() => setMenuOpen(false)}>
+                  <button className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={() => { setMenuOpen(false); setShowDeleteModal(true); }}>
                     <Trash2 size={16} />
                     모임 삭제
                   </button>
@@ -198,13 +202,44 @@ export default function GatheringDetailPage() {
           </div>
         )}
 
-        {/* 참여 버튼 */}
-        <button className={styles.joinButton} onClick={() => {}}>
-          모임 참여하기
-        </button>
+        {/* 참여 / 참여 취소 버튼 */}
+        {gathering.isJoined ? (
+          <button className={styles.joinButton} onClick={() => setShowCancelJoinModal(true)}>
+            참여 취소하기
+          </button>
+        ) : (
+          <button className={styles.joinButton} onClick={() => setShowJoinModal(true)}>
+            모임 참여하기
+          </button>
+        )}
       </main>
 
       <BottomNav />
+
+      <ConfirmModal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        onConfirm={() => { setShowJoinModal(false); }}
+        title="모임에 참여하시겠습니까?"
+        confirmText="참여하기"
+        description="모임 참여 후 활동을 시작할 수 있습니다."
+      />
+      <ConfirmModal
+        isOpen={showCancelJoinModal}
+        onClose={() => setShowCancelJoinModal(false)}
+        onConfirm={() => { setShowCancelJoinModal(false); }}
+        title="모임 참여를 취소하시겠습니까?"
+        confirmText="취소하기"
+        description="참여 취소 시 다시 신청해야 합니다."
+      />
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => { setShowDeleteModal(false); }}
+        title="모임을 삭제하시겠습니까?"
+        confirmText="삭제하기"
+        description="삭제된 모임은 복구할 수 없습니다."
+      />
     </div>
   );
 }
