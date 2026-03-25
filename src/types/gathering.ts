@@ -13,13 +13,6 @@ export interface GatheringItem {
   location?: string;
 }
 
-/** 모임 목록 조회용 간단 타입 */
-export interface GatheringSummary {
-  id: string;
-  title: string;
-  imageUrl?: string | null;
-  category?: string;
-}
 
 /** 모임 참여자 */
 export interface GatheringParticipant {
@@ -28,6 +21,58 @@ export interface GatheringParticipant {
   profileImageUrl?: string | null;
   role?: string;
   joinedAt?: string;
+}
+
+/** 모임 생성 요청 */
+export interface CreateGatheringRequest {
+  title: string;
+  gatheringImageObjectKey?: string;
+  category: string;
+  capacity: number;
+  date: string;
+  location: string;
+  openChatUrl: string;
+  description: string;
+}
+
+/** 모임 생성 응답 */
+export interface CreateGatheringResponse {
+  id: string;
+  title: string;
+  gatheringImageUrl: string | null;
+  category: string;
+  capacity: number;
+  date: string;
+  location: string;
+  openChatUrl: string;
+  description: string;
+  status: string;
+  hostId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** 모임 수정 요청 (부분 수정) */
+export interface UpdateGatheringRequest {
+  title?: string;
+  gatheringImageObjectKey?: string;
+  category?: string;
+  capacity?: number;
+  date?: string;
+  location?: string;
+  openChatUrl?: string;
+  description?: string;
+}
+
+/** 모임 참여 응답 */
+export interface JoinGatheringResponse {
+  participantId: string;
+  gatheringId: string;
+  userId: string;
+  role: string;
+  participantCount: number;
+  capacity: number;
+  joinedAt: string;
 }
 
 /** 모임 상세 응답 */
@@ -45,7 +90,8 @@ export interface GatheringDetailResponse {
   participants: GatheringParticipant[];
   participantsMeta?: PaginationMeta;
   openChatUrl?: string | null;
-  isJoined: boolean;
+  participantCount: number;
+  joined: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -2,6 +2,11 @@ import { apiFetch } from '@/api/client';
 import type {
   GatheringItem,
   GatheringDetailResponse,
+  GatheringParticipant,
+  CreateGatheringRequest,
+  CreateGatheringResponse,
+  UpdateGatheringRequest,
+  JoinGatheringResponse,
 } from '@/types/gathering';
 import type { PaginationMeta } from '@/types/common';
 
@@ -46,7 +51,8 @@ export async function getGatheringDetail(gatheringId: string): Promise<Gathering
     participants,
     participantsMeta,
     openChatUrl: raw?.openChatUrl ?? null,
-    isJoined: Boolean(raw?.isJoined ?? false),
+    participantCount: Number(raw?.participantCount ?? 0),
+    joined: Boolean(raw?.joined ?? false),
     createdAt: raw?.createdAt ?? undefined,
     updatedAt: raw?.updatedAt ?? undefined,
   };
@@ -136,24 +142,28 @@ export async function getHome(): Promise<HomeResponse> {
   };
 }
 
-export async function joinGathering(gatheringId: string): Promise<void> {
-  await apiFetch(`/api/v1/gatherings/${gatheringId}/participants`, { method: 'POST' });
+export async function joinGathering(gatheringId: string): Promise<JoinGatheringResponse> {
+  return apiFetch(`/api/v1/gatherings/${gatheringId}/participants`, { method: 'POST' });
 }
 
 export async function exitGathering(gatheringId: string): Promise<void> {
   await apiFetch(`/api/v1/gatherings/${gatheringId}/participants`, { method: 'DELETE' });
 }
 
-export async function fetchUserGatherings(role: 'host' | 'guest'): Promise<GatheringItem[]> {
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-  if (!userId) return [];
+export async function fetchUserGatherings(
+  role: 'host' | 'guest',
+  params?: { page?: number; size?: number; sort?: string }
+): Promise<{ data: GatheringItem[]; meta: PaginationMeta }> {
+  const query = new URLSearchParams();
+  query.set('role', role);
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.size) query.set('size', String(params.size));
+  if (params?.sort) query.set('sort', params.sort);
 
-  const data = await apiFetch(
-    `/api/v1/users/gatherings?role=${role}&page=1&size=10&sort=createdAt,desc`
-  );
-  const list = data?.data ?? [];
+  const raw = await apiFetch(`/api/v1/users/gatherings?${query.toString()}`);
+  const list = raw?.data ?? [];
 
-  return list.map((g: any) => ({
+  const data = list.map((g: any) => ({
     id: g.id,
     title: g.title,
     category: g.category,
@@ -162,4 +172,91 @@ export async function fetchUserGatherings(role: 'host' | 'guest'): Promise<Gathe
     participantCount: g.participantCount,
     capacity: g.capacity,
   }));
+
+  const meta = raw?.meta ?? {
+    page: 1, size: 0, sortedBy: '', hasPrev: false, hasNext: false,
+  };
+
+  return { data, meta };
+}
+
+/** GET /api/v1/categories — 카테고리 조회 */
+export async function getCategories(): Promise<{ categories: string[] }> {
+  return apiFetch('/api/v1/categories');
+}
+
+/** POST /api/v1/gatherings/intro — AI 모임 정보 생성 */
+export async function generateGatheringIntro(data: {
+  title: string;
+  category: string;
+  capacity: number;
+  date: string;
+  location: string;
+  keywords: string[];
+}): Promise<{ intro: string; aiVersion: string }> {
+  return apiFetch('/api/v1/gatherings/intro', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/** POST /api/v1/gatherings — 모임 생성 */
+export async function createGathering(
+  data: CreateGatheringRequest
+): Promise<CreateGatheringResponse> {
+  return apiFetch('/api/v1/gatherings', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/** PATCH /api/v1/gatherings/{gatheringId} — 모임 수정 */
+export async function updateGathering(
+  gatheringId: string,
+  data: UpdateGatheringRequest
+): Promise<CreateGatheringResponse> {
+  return apiFetch(`/api/v1/gatherings/${gatheringId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+/** DELETE /api/v1/gatherings/{gatheringId} — 모임 삭제 */
+export async function deleteGathering(gatheringId: string): Promise<void> {
+  await apiFetch(`/api/v1/gatherings/${gatheringId}`, { method: 'DELETE' });
+}
+
+/** PATCH /api/v1/gatherings/{gatheringId}/finish — 모임 종료 */
+export async function finishGathering(gatheringId: string): Promise<void> {
+  await apiFetch(`/api/v1/gatherings/${gatheringId}/finish`, { method: 'PATCH' });
+}
+
+/** GET /api/v1/gatherings/{gatheringId}/participants — 참여자 리스트 더보기 */
+export async function getParticipants(
+  gatheringId: string,
+  params?: { page?: number; size?: number; sort?: string }
+): Promise<{ data: GatheringParticipant[]; meta: PaginationMeta }> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.size) query.set('size', String(params.size));
+  if (params?.sort) query.set('sort', params.sort);
+
+  const raw = await apiFetch(
+    `/api/v1/gatherings/${gatheringId}/participants?${query.toString()}`
+  );
+
+  const data = (raw?.data ?? []).map((p: any) => ({
+    userId: String(p.userId ?? ''),
+    nickname: p.nickname ?? '',
+    profileImageUrl: p.profileImageUrl ?? null,
+    role: p.role ?? null,
+    joinedAt: p.joinedAt ?? null,
+  }));
+
+  const meta = raw?.meta ?? {
+    page: 1, size: 0, totalElements: 0, totalPages: 0,
+    sortedBy: 'joinedAt,asc', hasPrev: false, hasNext: false,
+  };
+
+  return { data, meta };
 }
