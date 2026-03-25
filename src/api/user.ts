@@ -1,5 +1,5 @@
 import { apiFetch } from '@/api/client';
-import type { UserProfile, ReviewItem, ReviewsMeta, UpdateProfilePayload } from '@/types/user';
+import type { UserProfile, ReviewItem, ReviewsMeta, UpdateProfilePayload, CreateReviewRequest, CreateReviewResponse } from '@/types/user';
 
 /** GET /api/v1/users/{userId} — 프로필 조회 */
 export async function getUserProfile(userId: string): Promise<UserProfile> {
@@ -89,4 +89,31 @@ export async function getUserReviews(
   };
 
   return { reviews, meta };
+}
+
+/** PATCH /api/v1/users/{userId}/review — 리뷰 공개/비공개 */
+export async function toggleReviewPublic(
+  userId: string,
+  reviewPublic: boolean
+): Promise<{ userId: string; reviewPublic: boolean; updatedAt: string }> {
+  return apiFetch(`/api/v1/users/${userId}/review`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reviewPublic }),
+  });
+}
+
+/** DELETE /api/v1/users/{userId} — 회원 탈퇴 */
+export async function deleteUser(userId: string): Promise<void> {
+  await apiFetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
+}
+
+/** POST /api/v1/reviews/{userId} — 리뷰 작성 */
+export async function createReview(
+  userId: string,
+  data: CreateReviewRequest
+): Promise<CreateReviewResponse> {
+  return apiFetch(`/api/v1/reviews/${userId}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }

@@ -21,16 +21,3 @@ export interface SignupRequest {
   profileImageObjectKey?: string;
   preferredCategories: string[];
 }
-
-/** 회원가입 응답 */
-export interface SignupResponse {
-  id: string;
-  email: string;
-  nickname: string;
-  profileImageUrl: string | null;
-  age: number;
-  gender: string;
-  enrollNumber: number;
-  preferredCategories: string[];
-  createdAt: string;
-}
