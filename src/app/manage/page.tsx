@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Users, MapPin, BookOpen, Sparkles, Search } from 'lucide-react';
+import { Users, Sparkles, Search } from 'lucide-react';
 import styles from './manage.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
+import ListGatheringCard from '@/components/gathering/ListGatheringCard';
 import type { GatheringItem } from '@/types/gathering';
 
 export default function ManagePage() {
@@ -81,45 +82,13 @@ export default function ManagePage() {
         ) : (
           <div className={styles.listWrapper}>
             {gatherings.map((g) => (
-              <Link href={`/gathering/gath_${g.id}`} key={g.id} className={styles.card}>
-                <div className={styles.imageBox}>
-                  <img
-                    src={g.imageUrl ?? '/images/logo.png'}
-                    alt={g.title}
-                    className={styles.image}
-                  />
-                </div>
-                <div className={styles.infoBox}>
-                  <div>
-                    <h3 className={styles.cardTitle}>{g.title}</h3>
-                    <p className={styles.cardDescription}>
-                      {g.description ?? '함께 성장하는 대학생 스터디 모임'}
-                    </p>
-                  </div>
-                  <div className={styles.metaRow}>
-                    <div className={styles.metaItem}>
-                      <Users size={16} />
-                      <span>{g.participantCount}명 참여중</span>
-                    </div>
-                    {g.location && (
-                      <div className={styles.metaItem}>
-                        <MapPin size={16} />
-                        <span>{g.location}</span>
-                      </div>
-                    )}
-                    <div className={styles.metaItem}>
-                      <BookOpen size={16} />
-                      <span>{g.category}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+              <ListGatheringCard key={g.id} gathering={g} />
             ))}
           </div>
         )}
       </main>
 
-      <BottomNav active="/manage" />
+      <BottomNav />
     </div>
   );
 }

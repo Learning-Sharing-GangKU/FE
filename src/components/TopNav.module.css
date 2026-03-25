@@ -1,16 +1,56 @@
-.topNav {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: white;
+.header {
+  width: 100%;
   border-bottom: 1px solid #e5e7eb;
-  padding: 16px;
+  background: white;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.title {
-  font-size: 1.5rem;
+.inner {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+  align-items: center;
+  height: 64px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.logoText {
   font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.spacer {
+  /* 중간 빈 공간 */
+}
+
+.authArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.authBtn {
+  padding: 8px 16px;
+  border: 1px solid #111827;
+  color: #111827;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.authBtn:hover {
+  background: #111827;
+  color: white;
 }

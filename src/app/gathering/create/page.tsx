@@ -6,6 +6,7 @@ import styles from './create.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function CreateGatheringPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -14,6 +15,7 @@ export default function CreateGatheringPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedCategoryList, setSelectedCategoryList] = useState<string[]>([]);
+  const [showCreateConfirm, setShowCreateConfirm] = useState(false);
 
   const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,7 +39,7 @@ export default function CreateGatheringPage() {
       <main className={styles.main}>
         <h1 className={styles.title}>모임 생성</h1>
 
-        <form className={styles.form} onSubmit={() => {}}>
+        <form className={styles.form} onSubmit={(e) => { e.preventDefault(); setShowCreateConfirm(true); }}>
           {/* 모임 이름 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>모임 이름</label>
@@ -185,16 +187,24 @@ export default function CreateGatheringPage() {
         </form>
       </main>
 
-      <BottomNav active="/gathering/create" />
+      <BottomNav />
 
       {isCategoryModalOpen && (
         <CategorySelectModal
-          selected={selectedCategoryList}
-          setSelected={setSelectedCategoryList}
-          max={1}
+          mode="group"
+          initialSelected={selectedCategoryList}
+          onConfirm={(cats) => setSelectedCategoryList(cats)}
           onClose={() => setIsCategoryModalOpen(false)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={showCreateConfirm}
+        onClose={() => setShowCreateConfirm(false)}
+        onConfirm={() => { setShowCreateConfirm(false); }}
+        title="모임을 생성하시겠습니까?"
+        confirmText="생성하기"
+      />
     </div>
   );
 }

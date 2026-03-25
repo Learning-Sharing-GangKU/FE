@@ -60,8 +60,9 @@ export interface UserProfile {
   gender: 'MALE' | 'FEMALE' | 'OTHER' | 'UNDISCLOSED';
   enrollNumber: number;
   preferredCategories: string[];
-  reviewPublic: boolean;
-  averageRating: number;
+  reviewsPublic: boolean;
+  rating: number;
+  reviewCount: number;
   reviews: ReviewItem[];
   reviewsMeta: ReviewsMeta;
 }

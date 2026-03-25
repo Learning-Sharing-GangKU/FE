@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Home, Search, PlusCircle, FolderOpen, User } from 'lucide-react';
 import styles from './BottomNav.module.css';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,33 +13,38 @@ const NAV_ITEMS = [
   { href: '/manage',           icon: FolderOpen,  label: '모임 관리' },
 ] as const;
 
-interface Props {
-  active?: string;
-}
-
-export default function BottomNav({ active }: Props) {
+export default function BottomNav() {
+  const pathname = usePathname();
   const { myUserId } = useAuth();
   const profileHref = myUserId !== null ? `/profile/${myUserId}` : '/login';
 
+  const isActive = (href: string) => pathname.startsWith(href);
+  const isProfileActive = pathname.startsWith('/profile');
+
   return (
-    <nav className={styles.bottomNav}>
-      {NAV_ITEMS.map(({ href, icon: Icon, label }) => (
+    <nav className={styles.nav}>
+      <div className={styles.inner}>
+        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+          const active = isActive(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`${styles.item} ${active ? styles.active : ''}`}
+            >
+              <Icon size={24} strokeWidth={active ? 2.5 : 1.5} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
         <Link
-          key={href}
-          href={href}
-          className={`${styles.navItem} ${active === href ? styles.active : ''}`}
+          href={profileHref}
+          className={`${styles.item} ${isProfileActive ? styles.active : ''}`}
         >
-          <Icon size={20} />
-          <span>{label}</span>
+          <User size={24} strokeWidth={isProfileActive ? 2.5 : 1.5} />
+          <span>프로필</span>
         </Link>
-      ))}
-      <Link
-        href={profileHref}
-        className={`${styles.navItem} ${active === '/profile' ? styles.active : ''}`}
-      >
-        <User size={20} />
-        <span>프로필</span>
-      </Link>
+      </div>
     </nav>
   );
 }

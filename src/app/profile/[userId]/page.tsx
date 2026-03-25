@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { MoreVertical, Star, ChevronDown } from 'lucide-react';
+import { Star, ChevronDown } from 'lucide-react';
 import styles from '../profile.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import LoginRequiredModal from '@/components/auth/LoginRequiredModal';
 import ReviewWriteModal from '@/components/profile/ReviewWriteModal';
+import ProfileSection from '@/components/profile/ProfileSection';
+import WriteReviewButton from '@/components/profile/WriteReviewButton';
+import ConfirmModal from '@/components/ConfirmModal';
 import { useProfilePage } from '@/hooks/profile/useProfilePage';
 
 export default function ProfilePage() {
@@ -24,8 +27,9 @@ export default function ProfilePage() {
     toast,
   } = useProfilePage(userId);
 
-  const [showMenu, setShowMenu] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
   if (!isReady) return null;
 
@@ -51,68 +55,13 @@ export default function ProfilePage() {
       <TopNav />
 
       <div className={styles.inner}>
-        {/* 프로필 카드 */}
-        <div className={styles.profileCard}>
-          <div className={styles.profileRow}>
-            <div className={styles.avatar}>
-              {profile.profileImageUrl ? (
-                <img src={profile.profileImageUrl} alt={profile.nickname} className={styles.avatarImg} />
-              ) : (
-                <span className={styles.avatarInitial}>{profile.nickname.charAt(0)}</span>
-              )}
-            </div>
-
-            <div className={styles.profileInfo}>
-              <div className={styles.profileInfoTop}>
-                <div>
-                  <h2 className={styles.nickname}>{profile.nickname}</h2>
-                  <div className={styles.meta}>
-                    <span>{profile.age}세</span>
-                    <span className={styles.dot}>•</span>
-                    <span>{profile.enrollNumber}학번</span>
-                    <span className={styles.dot}>•</span>
-                    <span>{profile.gender === 'MALE' ? '남' : '여'}</span>
-                  </div>
-                  <div className={styles.tags}>
-                    {profile.preferredCategories.map((cat, i) => (
-                      <span key={i} className={styles.tag}>{cat}</span>
-                    ))}
-                  </div>
-                </div>
-
-                {isMine && (
-                  <div className={styles.menuWrapper}>
-                    <button
-                      className={styles.menuButton}
-                      onClick={() => setShowMenu(!showMenu)}
-                    >
-                      <MoreVertical size={20} color="#6b7280" />
-                    </button>
-                    {showMenu && (
-                      <>
-                        <div className={styles.menuBackdrop} onClick={() => setShowMenu(false)} />
-                        <div className={styles.menuPopup}>
-                          <button
-                            className={styles.menuItem}
-                            onClick={() => { setShowMenu(false); handleProfileEdit(); }}
-                          >
-                            프로필 수정
-                          </button>
-                          <button
-                            className={`${styles.menuItem} ${styles.menuItemRed}`}
-                            onClick={() => { setShowMenu(false); logout(); }}
-                          >
-                            회원탈퇴
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 프로필 섹션 */}
+        <ProfileSection
+          profile={profile}
+          isMine={isMine}
+          onProfileEdit={() => setShowEditProfileModal(true)}
+          onLogout={() => setShowWithdrawModal(true)}
+        />
 
         {/* 리뷰 카드 */}
         <div className={styles.reviewCard}>
@@ -137,9 +86,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <button className={styles.writeReviewBtn} onClick={() => setShowReviewModal(true)}>
-                리뷰 남기기
-              </button>
+              <WriteReviewButton onClick={() => setShowReviewModal(true)} />
             )}
           </div>
 
@@ -199,7 +146,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <BottomNav active="/profile" />
+      <BottomNav />
 
       {toast && <div className={styles.toastMessage}>{toast}</div>}
 
@@ -212,6 +159,21 @@ export default function ProfilePage() {
           }}
         />
       )}
+
+      <ConfirmModal
+        isOpen={showEditProfileModal}
+        onClose={() => setShowEditProfileModal(false)}
+        onConfirm={() => { setShowEditProfileModal(false); handleProfileEdit(); }}
+        title="프로필을 수정하시겠습니까?"
+        confirmText="수정하기"
+      />
+      <ConfirmModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        onConfirm={() => { setShowWithdrawModal(false); logout(); }}
+        title="정말 로그아웃 하시겠습니까?"
+        confirmText="로그아웃"
+      />
     </div>
   );
 }
