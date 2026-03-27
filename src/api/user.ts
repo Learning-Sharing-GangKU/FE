@@ -1,9 +1,11 @@
 import { apiFetch } from '@/api/client';
 import type { UserProfile, ReviewItem, ReviewsMeta, UpdateProfilePayload, CreateReviewRequest, CreateReviewResponse } from '@/types/user';
 
+const toApiUserId = (userId: string) => `usr_${userId}`;
+
 /** GET /api/v1/users/{userId} — 프로필 조회 */
 export async function getUserProfile(userId: string): Promise<UserProfile> {
-  const raw = await apiFetch(`/api/v1/users/${userId}`);
+  const raw = await apiFetch(`/api/v1/users/${toApiUserId(userId)}`);
 
   const categories = raw?.preferredCategories ?? [];
   const preferredCategories =
@@ -53,7 +55,7 @@ export async function updateUserProfile(
   userId: string,
   data: UpdateProfilePayload
 ): Promise<void> {
-  await apiFetch(`/api/v1/users/${userId}`, {
+  await apiFetch(`/api/v1/users/${toApiUserId(userId)}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
@@ -69,7 +71,7 @@ export async function getUserReviews(
   if (params?.cursor) query.set('cursor', params.cursor);
   if (params?.sort) query.set('sort', params.sort);
 
-  const raw = await apiFetch(`/api/v1/users/${userId}/reviews?${query.toString()}`);
+  const raw = await apiFetch(`/api/v1/users/${toApiUserId(userId)}/reviews?${query.toString()}`);
 
   const reviews = (raw?.data ?? []).map((r: any) => ({
     id: r.id,
@@ -96,7 +98,7 @@ export async function toggleReviewPublic(
   userId: string,
   reviewPublic: boolean
 ): Promise<{ userId: string; reviewPublic: boolean; updatedAt: string }> {
-  return apiFetch(`/api/v1/users/${userId}/review`, {
+  return apiFetch(`/api/v1/users/${toApiUserId(userId)}/review`, {
     method: 'PATCH',
     body: JSON.stringify({ reviewPublic }),
   });
@@ -104,7 +106,7 @@ export async function toggleReviewPublic(
 
 /** DELETE /api/v1/users/{userId} — 회원 탈퇴 */
 export async function deleteUser(userId: string): Promise<void> {
-  await apiFetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
+  await apiFetch(`/api/v1/users/${toApiUserId(userId)}`, { method: 'DELETE' });
 }
 
 /** POST /api/v1/reviews/{userId} — 리뷰 작성 */
@@ -112,7 +114,7 @@ export async function createReview(
   userId: string,
   data: CreateReviewRequest
 ): Promise<CreateReviewResponse> {
-  return apiFetch(`/api/v1/reviews/${userId}`, {
+  return apiFetch(`/api/v1/reviews/${toApiUserId(userId)}`, {
     method: 'POST',
     body: JSON.stringify(data),
   });

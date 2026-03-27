@@ -2,16 +2,12 @@
 export { apiFetch } from '@/api/client';
 export type {
   GatheringItem,
-  GatheringSummary,
   GatheringParticipant,
   GatheringDetailResponse,
 } from '@/types/gathering';
 export {
   getGatheringDetail,
   getGatherings,
-  getLatestGatherings,
-  getPopularGatherings,
-  getRecommendedGatherings,
   joinGathering,
   exitGathering,
   fetchUserGatherings,

@@ -8,6 +8,9 @@ import { getAccessToken } from "@/lib/auth";
 import CategorySelectModal from "@/components/CategorySelectModal";
 import AiIntroModal from '@/components/gathering/AiIntroModal';
 import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
+import { useUpdateGathering } from '@/hooks/gathering/useUpdateGathering';
+import { useAiIntro } from '@/hooks/useAiIntro';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 
 export default function GatheringEditPage() {
@@ -15,10 +18,12 @@ export default function GatheringEditPage() {
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
     const [error, setError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [showAiModal, setShowAiModal] = useState(false);
     const [toast, setToast] = React.useState<string | null>(null);
-    const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+
+    const { mutate: updateGathering, isPending: isUpdating } = useUpdateGathering();
+    const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
+    const { mutate: uploadImage } = useImageUpload();
     const params = useParams();
     const router = useRouter();
     const gatheringId = params.id as string;
@@ -94,7 +99,9 @@ export default function GatheringEditPage() {
         if (!file) return;
 
         setImageUrl(URL.createObjectURL(file));
-        setImageObjectKey("temp/local-preview"); // presigned 붙이면 수정됨
+        uploadImage(file, {
+            onSuccess: ({ objectKey }) => setImageObjectKey(objectKey),
+        });
     };
 
     // ==================================================
@@ -150,33 +157,16 @@ export default function GatheringEditPage() {
             return;
         }
 
-        try {
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${gatheringId}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(updated),
-                }
-            );
-
-            const json = await res.json();
-
-            if (!res.ok) {
-                setToast(json.error?.message || "수정에 실패했습니다.");
-                return;
+        updateGathering(
+            { gatheringId, data: updated },
+            {
+                onSuccess: () => {
+                    setToast("수정 완료!");
+                    setTimeout(() => router.push(`/gathering/${gatheringId}`), 500);
+                },
+                onError: () => setToast("수정에 실패했습니다."),
             }
-
-            setToast("수정 완료!");
-            setTimeout(() => {
-                router.push(`/gathering/${gatheringId}`);
-            }, 500);
-        } catch (err) {
-            setToast("서버 오류가 발생했습니다.");
-        }
+        );
     };
 
     if (loading) return <div>로딩중...</div>;
@@ -193,43 +183,22 @@ export default function GatheringEditPage() {
         setShowAiModal(true); // 🔥 모달 열기
     };
 
-    const handleSubmitAiIntro = async (keywords: string) => {
+    const handleSubmitAiIntro = (keywords: string) => {
         setShowAiModal(false);
-
-        try {
-            const token = getAccessToken();
-
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/intro`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        title,
-                        category,
-                        capacity,
-                        date: new Date(date).toISOString(),
-                        location,
-                        keywords: keywords.split(",").map(k => k.trim()),
-                    }),
-                }
-            );
-
-            const data = await res.json();
-            if (!res.ok) {
-                setError(data.error?.message || "AI 생성 실패");
-                return;
+        generateIntro(
+            {
+                title,
+                category,
+                capacity,
+                date: new Date(date).toISOString(),
+                location,
+                keywords: keywords.split(",").map(k => k.trim()),
+            },
+            {
+                onSuccess: (data) => setDescription(data.intro),
+                onError: () => setError("AI 요청 중 오류가 발생했습니다."),
             }
-
-            // 🔥 설명 자동 생성 적용
-            setDescription(data.intro);
-
-        } catch (e) {
-            setError("AI 요청 중 오류가 발생했습니다.");
-        }
+        );
     };
 
     return (
@@ -312,13 +281,13 @@ export default function GatheringEditPage() {
 
                 {isCategoryModalOpen && (
                     <CategorySelectModal
-                        selected={selectedCategoryList}
-                        setSelected={setSelectedCategoryList}
-                        max={1}
-                        onClose={() => {
-                            setCategory(selectedCategoryList[0] || '');
-                            setIsCategoryModalOpen(false);
+                        mode="group"
+                        initialSelected={selectedCategoryList}
+                        onConfirm={(cats) => {
+                            setSelectedCategoryList(cats);
+                            setCategory(cats[0] || '');
                         }}
+                        onClose={() => setIsCategoryModalOpen(false)}
                     />
                 )}
             </div>
@@ -391,8 +360,8 @@ export default function GatheringEditPage() {
             {/* ===========================
                     저장 버튼
             ============================ */}
-            <button className={styles.submitButton} onClick={handleSave}>
-                수정 완료
+            <button className={styles.submitButton} onClick={handleSave} disabled={isUpdating || isGenerating}>
+                {isUpdating ? '수정 중...' : isGenerating ? 'AI 생성 중...' : '수정 완료'}
             </button>
             {showAiModal && (
                 <AiIntroModal

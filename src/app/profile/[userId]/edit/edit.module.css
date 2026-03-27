@@ -1,0 +1,293 @@
+/* edit.module.css — signup.module.css 기반 + inputLocked 추가 */
+
+.container {
+  min-height: 100vh;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 672px;
+  margin: 0 auto;
+  padding: 24px 24px 96px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #111;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+/* 수정 불가 필드 — 회색 빗선 */
+.inputLocked {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  box-sizing: border-box;
+  cursor: not-allowed;
+  background: repeating-linear-gradient(
+    -45deg,
+    #f9fafb,
+    #f9fafb 5px,
+    #e5e7eb 5px,
+    #e5e7eb 10px
+  );
+}
+
+.emailRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.emailDomain {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.passwordRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profileCircle {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px dashed #d1d5db;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  background-color: #f3f4f6;
+  transition: border-color 0.15s;
+}
+
+.profileCircle:hover {
+  border-color: #3b82f6;
+}
+
+.profileImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.profileCircle:hover .profileOverlay {
+  opacity: 1;
+}
+
+.profilePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.profileHint {
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profileHint p {
+  margin: 0;
+}
+
+.profileHint p:last-child {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.select {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #111;
+  background-color: white;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: #3b82f6;
+}
+
+.actionButton {
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: #111827;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.actionButton:hover {
+  background-color: #374151;
+}
+
+.selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid #bfdbfe;
+}
+
+.tagRemove {
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2563eb;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.tagRemove:hover {
+  opacity: 1;
+  color: #dc2626;
+}
+
+.submitButton {
+  width: 100%;
+  height: 48px;
+  background-color: #111827;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.submitButton:hover {
+  background-color: #374151;
+}
+
+.submitButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.toastMessage {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111827;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 100;
+}

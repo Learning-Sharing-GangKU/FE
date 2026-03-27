@@ -1,36 +1,48 @@
 'use client';
 
-import { useState } from 'react';
-import { Eye, EyeOff, Upload, Camera } from 'lucide-react';
-import styles from './signup.module.css';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Upload, Camera } from 'lucide-react';
+import styles from './edit.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
-import ConfirmModal from '@/components/ConfirmModal';
-import { useSignup, useSendEmailVerification } from '@/hooks/auth/useSignup';
+import { useProfile } from '@/hooks/profile/useProfile';
+import { useUpdateProfile } from '@/hooks/profile/useUpdateProfile';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useToast } from '@/hooks/useToast';
+import type { UpdateProfilePayload } from '@/types/user';
 
-export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+export default function ProfileEditPage() {
+  const { userId } = useParams<{ userId: string }>();
+  const router = useRouter();
+  const { profile, isLoading } = useProfile(userId);
+  const { mutate: updateProfile, isPending } = useUpdateProfile(userId);
+  const { mutate: uploadImage } = useImageUpload();
+  const { toast, showToast } = useToast();
+
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [profileImageObjectKey, setProfileImageObjectKey] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showSignupConfirm, setShowSignupConfirm] = useState(false);
 
-  const [emailId, setEmailId] = useState('');
-  const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [enrollNumber, setEnrollNumber] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const { mutate: signupMutate, isPending } = useSignup();
-  const { mutate: sendVerification } = useSendEmailVerification();
-  const { mutate: uploadImage } = useImageUpload();
+  // 프로필 데이터 로드 후 폼 초기값 세팅
+  useEffect(() => {
+    if (!profile) return;
+    setNickname(profile.nickname);
+    setAge(String(profile.age));
+    setGender(profile.gender);
+    setEnrollNumber(String(profile.enrollNumber));
+    setSelectedCategories(profile.preferredCategories);
+    setProfileImagePreview(profile.profileImageUrl ?? null);
+  }, [profile]);
 
-  const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -41,74 +53,65 @@ export default function SignupPage() {
     });
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile) return;
+
+    const payload: UpdateProfilePayload = {};
+
+    if (nickname !== profile.nickname) payload.nickname = nickname;
+    if (Number(age) !== profile.age) payload.age = Number(age);
+    if (gender !== profile.gender) payload.gender = gender as UpdateProfilePayload['gender'];
+    if (Number(enrollNumber) !== profile.enrollNumber) payload.enrollNumber = Number(enrollNumber);
+    if (JSON.stringify(selectedCategories) !== JSON.stringify(profile.preferredCategories))
+      payload.preferredCategories = selectedCategories;
+    if (profileImageObjectKey) payload.profileImageObjectKey = profileImageObjectKey;
+
+    if (Object.keys(payload).length === 0) {
+      showToast('변경된 내용이 없습니다.');
+      return;
+    }
+
+    updateProfile(payload, {
+      onSuccess: () => router.push(`/profile/${userId}`),
+      onError: () => showToast('수정에 실패했습니다.'),
+    });
+  };
+
+  if (isLoading) return null;
+
   return (
     <div className={styles.container}>
       <TopNav />
 
       <main className={styles.main}>
-        <h2 className={styles.title}>회원가입</h2>
+        <h2 className={styles.title}>프로필 수정</h2>
 
-        <form className={styles.form} onSubmit={(e) => { e.preventDefault(); setShowSignupConfirm(true); }}>
-          {/* 이메일 */}
+        <form className={styles.form} onSubmit={handleSubmit}>
+          {/* 이메일 — 수정 불가 */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>이메일</label>
+            <label className={styles.label}>이메일 (변경 불가)</label>
             <div className={styles.emailRow}>
               <input
                 type="text"
-                placeholder="이메일을 입력하세요"
-                className={styles.input}
-                value={emailId}
-                onChange={(e) => setEmailId(e.target.value)}
+                className={styles.inputLocked}
+                placeholder="이메일은 변경할 수 없습니다"
+                disabled
               />
               <span className={styles.emailDomain}>@konkuk.ac.kr</span>
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => sendVerification(`${emailId}@konkuk.ac.kr`)}
-              >
-                이메일 인증
-              </button>
             </div>
           </div>
 
-          {/* 비밀번호 */}
+          {/* 비밀번호 — 수정 불가 */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>비밀번호</label>
+            <label className={styles.label}>비밀번호 (변경 불가)</label>
             <div className={styles.passwordRow}>
               <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="비밀번호"
-                className={styles.input}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                className={styles.inputLocked}
+                placeholder="비밀번호는 변경할 수 없습니다"
+                disabled
               />
-              <button
-                type="button"
-                className={styles.eyeButton}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            <p className={styles.hint}>영대소문자, 숫자, 특수문자를 포함하여 8자 이상 입력해주세요</p>
-          </div>
-
-          {/* 비밀번호 확인 */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.label}>비밀번호 확인</label>
-            <div className={styles.passwordRow}>
-              <input
-                type={showPasswordConfirm ? 'text' : 'password'}
-                placeholder="비밀번호 확인"
-                className={styles.input}
-              />
-              <button
-                type="button"
-                className={styles.eyeButton}
-                onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-              >
-                {showPasswordConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
             </div>
           </div>
 
@@ -118,7 +121,7 @@ export default function SignupPage() {
             <div className={styles.profileRow}>
               <div
                 className={styles.profileCircle}
-                onClick={() => document.getElementById('imageUpload')?.click()}
+                onClick={() => document.getElementById('profileImageInput')?.click()}
               >
                 {profileImagePreview ? (
                   <>
@@ -134,15 +137,15 @@ export default function SignupPage() {
                   </div>
                 )}
                 <input
-                  id="imageUpload"
+                  id="profileImageInput"
                   type="file"
                   accept="image/*"
                   hidden
-                  onChange={handleImagePreview}
+                  onChange={handleImageChange}
                 />
               </div>
               <div className={styles.profileHint}>
-                <p>프로필 사진을 등록해주세요</p>
+                <p>프로필 사진을 변경할 수 있습니다</p>
                 <p>JPG, PNG 파일 (최대 5MB)</p>
               </div>
             </div>
@@ -221,14 +224,15 @@ export default function SignupPage() {
             )}
           </div>
 
-          {/* 제출 */}
           <button type="submit" className={styles.submitButton} disabled={isPending}>
-            {isPending ? '처리 중...' : '회원가입 완료'}
+            {isPending ? '수정 중...' : '수정 완료'}
           </button>
         </form>
       </main>
 
       <BottomNav />
+
+      {toast && <div className={styles.toastMessage}>{toast}</div>}
 
       {showCategoryModal && (
         <CategorySelectModal
@@ -238,26 +242,6 @@ export default function SignupPage() {
           onClose={() => setShowCategoryModal(false)}
         />
       )}
-
-      <ConfirmModal
-        isOpen={showSignupConfirm}
-        onClose={() => setShowSignupConfirm(false)}
-        onConfirm={() => {
-          setShowSignupConfirm(false);
-          signupMutate({
-            email: `${emailId}@konkuk.ac.kr`,
-            password,
-            nickname,
-            age: Number(age),
-            gender: gender as 'MALE' | 'FEMALE',
-            enrollNumber: Number(enrollNumber),
-            preferredCategories: selectedCategories,
-            ...(profileImageObjectKey && { profileImageObjectKey }),
-          });
-        }}
-        title="회원 가입을 완료하시겠습니까?"
-        confirmText="가입하기"
-      />
     </div>
   );
 }

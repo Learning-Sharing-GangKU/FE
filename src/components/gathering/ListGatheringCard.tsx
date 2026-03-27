@@ -11,7 +11,7 @@ type Props = {
 
 export default function ListGatheringCard({ gathering }: Props) {
   return (
-    <Link href={`/gathering/gath_${gathering.id}`} className={styles.card}>
+    <Link href={`/gathering/${gathering.id}`} className={styles.card}>
       {/* 썸네일 */}
       <div className={styles.imageBox}>
         <img
