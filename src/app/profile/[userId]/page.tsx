@@ -24,7 +24,7 @@ export default function ProfilePage() {
   const { mutate: createReview } = useCreateReview(userId);
   const { toast, showToast } = useToast();
 
-  const isMine = myUserId !== null && myUserId === Number(userId);
+  const isMine = myUserId !== null && `usr_${myUserId}` === userId;
 
   const router = useRouter();
 

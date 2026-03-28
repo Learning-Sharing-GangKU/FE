@@ -52,7 +52,7 @@ export default function BottomNav() {
           );
         })}
         <Link
-          href={myUserId !== null ? `/profile/${myUserId}` : '#'}
+          href={myUserId !== null ? `/profile/usr_${myUserId}` : '#'}
           className={`${styles.item} ${isProfileActive ? styles.active : ''}`}
           onClick={(e) => { if (myUserId === null) { e.preventDefault(); setPendingHref(`/profile`); setShowAuthModal(true); } }}
         >
