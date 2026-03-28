@@ -93,26 +93,26 @@ export default function SignupPage() {
                 }}
               />
               <span className={styles.emailDomain}>@konkuk.ac.kr</span>
-              {!emailSent ? (
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  disabled={isSending || !emailId}
-                  onClick={handleSendEmail}
-                >
-                  이메일 발송
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  disabled={isConfirming || emailVerified}
-                  onClick={handleConfirmEmail}
-                >
-                  인증 완료 확인
-                </button>
-              )}
+              <button
+                type="button"
+                className={styles.actionButton}
+                disabled={isSending || !emailId || emailSent}
+                onClick={handleSendEmail}
+              >
+                이메일 발송
+              </button>
             </div>
+
+            {emailSent && !emailVerified && (
+              <button
+                type="button"
+                className={styles.actionButton}
+                disabled={isConfirming}
+                onClick={handleConfirmEmail}
+              >
+                {isConfirming ? '확인 중...' : '인증 완료 확인'}
+              </button>
+            )}
             {emailStatusText && (
               <p className={styles.emailVerifiedText}>
                 {emailStatusText}
