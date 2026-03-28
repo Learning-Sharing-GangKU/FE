@@ -281,3 +281,14 @@
 .submitButton:hover {
   background-color: #374151;
 }
+
+.emailVerifiedText {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.emailPendingText {
+  color: #6b7280;
+}

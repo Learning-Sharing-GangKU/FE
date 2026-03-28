@@ -8,7 +8,7 @@ type Props = {
   onConfirm: () => void;
   title: string;
   confirmText: string;
-  cancelText?: string;
+  cancelText?: string | false;
   description?: string;
 };
 
@@ -32,9 +32,11 @@ export default function ConfirmModal({
           <button className={styles.confirmBtn} onClick={onConfirm}>
             {confirmText}
           </button>
-          <button className={styles.cancelBtn} onClick={onClose}>
-            {cancelText}
-          </button>
+          {cancelText !== false && (
+            <button className={styles.cancelBtn} onClick={onClose}>
+              {cancelText ?? '취소'}
+            </button>
+          )}
         </div>
         {description && (
           <p className={styles.description}>{description}</p>

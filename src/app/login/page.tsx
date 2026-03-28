@@ -1,20 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import styles from './login.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
+import AuthRequiredModal from '@/components/AuthRequiredModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
 import { useLogin } from '@/hooks/auth/useLogin';
 
 export default function LoginPage() {
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
+  const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(false);
+  const [showLoginErrorModal, setShowLoginErrorModal] = useState(false);
   const { mutate: loginMutate, isPending } = useLogin();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('unauthorized') === '1') {
+      setShowUnauthorizedModal(true);
+    }
+  }, [searchParams]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutate({ email: `${emailId}@konkuk.ac.kr`, password });
+    loginMutate(
+      { email: `${emailId}@konkuk.ac.kr`, password },
+      { onError: () => setShowLoginErrorModal(true) }
+    );
   };
 
   return (
@@ -73,6 +88,21 @@ export default function LoginPage() {
         </div>
       </main>
       <BottomNav />
+
+      <AuthRequiredModal
+        isOpen={showUnauthorizedModal}
+        onClose={() => setShowUnauthorizedModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showLoginErrorModal}
+        onClose={() => setShowLoginErrorModal(false)}
+        onConfirm={() => setShowLoginErrorModal(false)}
+        title="로그인 실패"
+        description="이메일 또는 비밀번호가 올바르지 않습니다."
+        confirmText="확인"
+        cancelText={false}
+      />
     </div>
   );
 }

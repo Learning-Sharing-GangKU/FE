@@ -8,6 +8,7 @@ import React, {
   useRef,
   useCallback,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL;
 axios.defaults.withCredentials = true;
@@ -18,6 +19,7 @@ import {
   removeAccessToken,
   isTokenExpiredOrNearExpiry,
 } from '@/lib/auth';
+import { logout as logoutApi } from '@/api/auth';
 interface AuthContextType {
   isLoggedIn: boolean | null; // null = 로딩 중, true = 로그인, false = 로그아웃
   myUserId: number | null;    // 현재 로그인한 유저의 ID (JWT sub)
@@ -44,6 +46,7 @@ function getUserIdFromToken(token?: string | null): number | null {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [myUserId, setMyUserId] = useState<number | null>(null);
+  const router = useRouter();
 
   const reissueIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isReissuingRef = useRef(false);
@@ -89,8 +92,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
           return false;
         }
-      } catch (err) {
-        console.warn('토큰 재발급 실패:', err);
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status !== 400 && status !== 401) {
+          console.warn('토큰 재발급 실패:', err);
+        }
         if (forceLogoutOnFailure) {
           removeAccessToken();
           setMyUserId(null);
@@ -217,10 +223,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // ✅ 로그아웃
   const logout = async () => {
     try {
-      await fetch('/api/v1/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await logoutApi();
     } catch (err) {
       console.error('로그아웃 API 요청 실패:', err);
     } finally {
@@ -228,6 +231,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setMyUserId(null);
       localStorage.removeItem('userId');
       setIsLoggedIn(false);
+      router.push('/home');
     }
   };
 

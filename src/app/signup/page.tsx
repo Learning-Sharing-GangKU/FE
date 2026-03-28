@@ -7,7 +7,7 @@ import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import ConfirmModal from '@/components/ConfirmModal';
-import { useSignup, useSendEmailVerification } from '@/hooks/auth/useSignup';
+import { useSignup, useSendEmailVerification, useConfirmEmailVerification } from '@/hooks/auth/useSignup';
 import { useImageUpload } from '@/hooks/useImageUpload';
 
 export default function SignupPage() {
@@ -18,6 +18,9 @@ export default function SignupPage() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailStatusText, setEmailStatusText] = useState('');
 
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
@@ -27,8 +30,32 @@ export default function SignupPage() {
   const [enrollNumber, setEnrollNumber] = useState('');
 
   const { mutate: signupMutate, isPending } = useSignup();
-  const { mutate: sendVerification } = useSendEmailVerification();
+  const { mutate: sendVerification, isPending: isSending } = useSendEmailVerification();
   const { mutate: uploadImage } = useImageUpload();
+  const { mutate: confirmVerification, isPending: isConfirming } = useConfirmEmailVerification();
+
+  const handleSendEmail = () => {
+    sendVerification(`${emailId}@konkuk.ac.kr`, {
+      onSuccess: () => {
+        setEmailSent(true);
+        setEmailStatusText('메일 발송이 완료되었습니다. 이메일 링크를 클릭하시면 인증이 완료됩니다.');
+      },
+      onError: (error) => {
+        setEmailStatusText(`메일 발송에 실패했습니다. (${error.message})`);
+      },
+    });
+  };
+  const handleConfirmEmail = () => {
+    confirmVerification(undefined, {
+      onSuccess: () => {
+        setEmailVerified(true);
+        setEmailStatusText('이메일 인증이 완료되었습니다. ✅');
+      },
+      onError: () => {
+        setEmailStatusText('이메일 인증을 완료해주세요. 링크를 클릭한 후 다시 시도해주세요.');
+      },
+    });
+  };
 
   const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,17 +85,39 @@ export default function SignupPage() {
                 placeholder="이메일을 입력하세요"
                 className={styles.input}
                 value={emailId}
-                onChange={(e) => setEmailId(e.target.value)}
+                onChange={(e) => {
+                  setEmailId(e.target.value);
+                  setEmailSent(false);
+                  setEmailVerified(false);
+                  setEmailStatusText('');
+                }}
               />
               <span className={styles.emailDomain}>@konkuk.ac.kr</span>
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => sendVerification(`${emailId}@konkuk.ac.kr`)}
-              >
-                이메일 인증
-              </button>
+              {!emailSent ? (
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  disabled={isSending || !emailId}
+                  onClick={handleSendEmail}
+                >
+                  이메일 발송
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  disabled={isConfirming || emailVerified}
+                  onClick={handleConfirmEmail}
+                >
+                  인증 완료 확인
+                </button>
+              )}
             </div>
+            {emailStatusText && (
+              <p className={styles.emailVerifiedText}>
+                {emailStatusText}
+              </p>
+            )}
           </div>
 
           {/* 비밀번호 */}
@@ -222,7 +271,7 @@ export default function SignupPage() {
           </div>
 
           {/* 제출 */}
-          <button type="submit" className={styles.submitButton} disabled={isPending}>
+          <button type="submit" className={styles.submitButton} disabled={isPending || !emailVerified}>
             {isPending ? '처리 중...' : '회원가입 완료'}
           </button>
         </form>

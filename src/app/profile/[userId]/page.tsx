@@ -6,7 +6,6 @@ import { Star, ChevronDown } from 'lucide-react';
 import styles from '../profile.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
-import LoginRequiredModal from '@/components/auth/LoginRequiredModal';
 import ReviewWriteModal from '@/components/profile/ReviewWriteModal';
 import ProfileSection from '@/components/profile/ProfileSection';
 import WriteReviewButton from '@/components/profile/WriteReviewButton';
@@ -25,7 +24,6 @@ export default function ProfilePage() {
   const { mutate: createReview } = useCreateReview(userId);
   const { toast, showToast } = useToast();
 
-  const isReady = isLoggedIn !== null;
   const isMine = myUserId !== null && myUserId === Number(userId);
 
   const router = useRouter();
@@ -43,15 +41,7 @@ export default function ProfilePage() {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
-  if (!isReady) return null;
-
-  if (isLoggedIn === false) {
-    return (
-      <div style={{ width: '100vw', height: '100vh' }}>
-        <LoginRequiredModal />
-      </div>
-    );
-  }
+  if (isLoggedIn === null) return null;
 
   if (!profile) {
     return (
