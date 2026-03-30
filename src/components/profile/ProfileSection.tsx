@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { MoreVertical } from 'lucide-react';
 import styles from './ProfileSection.module.css';
 import type { UserProfile } from '@/types/user';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 type Props = {
   profile: UserProfile;
@@ -19,13 +20,11 @@ export default function ProfileSection({ profile, isMine, onProfileEdit, onLogou
     <div className={styles.profileCard}>
       <div className={styles.profileRow}>
         {/* 아바타 */}
-        <div className={styles.avatar}>
-          {profile.profileImageUrl ? (
-            <img src={profile.profileImageUrl} alt={profile.nickname} className={styles.avatarImg} />
-          ) : (
-            <span className={styles.avatarInitial}>{profile.nickname.charAt(0)}</span>
-          )}
-        </div>
+        <ProfileAvatar
+          profileImageUrl={profile.profileImageUrl}
+          nickname={profile.nickname}
+          size="lg"
+        />
 
         {/* 정보 */}
         <div className={styles.profileInfo}>

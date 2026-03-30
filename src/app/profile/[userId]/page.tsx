@@ -15,6 +15,7 @@ import { useProfile } from '@/hooks/profile/useProfile';
 import { useReviewToggle } from '@/hooks/profile/useReviewToggle';
 import { useCreateReview } from '@/hooks/profile/useCreateReview';
 import { useToast } from '@/hooks/useToast';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -114,9 +115,11 @@ export default function ProfilePage() {
                 key={review.id}
                 className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
               >
-                <div className={styles.reviewAvatarCircle}>
-                  {review.reviewerNickname.charAt(0)}
-                </div>
+                <ProfileAvatar
+                  profileImageUrl={review.reviewerProfileImageUrl}
+                  nickname={review.reviewerNickname}
+                  size="sm"
+                />
                 <div className={styles.reviewContent}>
                   <div className={styles.reviewMeta}>
                     <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>

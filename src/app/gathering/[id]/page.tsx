@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
 import { useDeleteGathering } from '@/hooks/gathering/useDeleteGathering';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -164,10 +165,10 @@ export default function GatheringDetailPage() {
             <div className={styles.participantGrid}>
               {pageParticipants.map((p) => (
                 <div key={p.userId} className={styles.participantItem}>
-                  <img
-                    src={p.profileImageUrl ?? '/images/logo.png'}
-                    alt={p.nickname}
-                    className={styles.participantAvatar}
+                  <ProfileAvatar
+                    profileImageUrl={p.profileImageUrl}
+                    nickname={p.nickname}
+                    size="sm"
                   />
                   <span className={styles.participantName}>{p.nickname}</span>
                 </div>
