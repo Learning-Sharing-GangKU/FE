@@ -7,26 +7,66 @@ import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import ConfirmModal from '@/components/ConfirmModal';
+import { useSignup, useSendEmailVerification, useConfirmEmailVerification } from '@/hooks/auth/useSignup';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 export default function SignupPage() {
-  // UI 상태만 유지
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [profileImageObjectKey, setProfileImageObjectKey] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailStatusText, setEmailStatusText] = useState('');
+
+  const [emailId, setEmailId] = useState('');
+  const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [enrollNumber, setEnrollNumber] = useState('');
+
+  const { mutate: signupMutate, isPending } = useSignup();
+  const { mutate: sendVerification, isPending: isSending } = useSendEmailVerification();
+  const { mutate: uploadImage } = useImageUpload();
+  const { mutate: confirmVerification, isPending: isConfirming } = useConfirmEmailVerification();
+
+  const handleSendEmail = () => {
+    sendVerification(`${emailId}@konkuk.ac.kr`, {
+      onSuccess: () => {
+        setEmailSent(true);
+        setEmailStatusText('메일 발송이 완료되었습니다. 이메일 링크를 클릭하시면 인증이 완료됩니다.');
+      },
+      onError: (error) => {
+        setEmailStatusText(`메일 발송에 실패했습니다. (${error.message})`);
+      },
+    });
+  };
+  const handleConfirmEmail = () => {
+    confirmVerification(undefined, {
+      onSuccess: () => {
+        setEmailVerified(true);
+        setEmailStatusText('이메일 인증이 완료되었습니다. ✅');
+      },
+      onError: () => {
+        setEmailStatusText('이메일 인증을 완료해주세요. 링크를 클릭한 후 다시 시도해주세요.');
+      },
+    });
+  };
 
   const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProfileImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setProfileImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+    uploadImage(file, {
+      onSuccess: ({ objectKey }) => setProfileImageObjectKey(objectKey),
+    });
   };
-
-  // TODO: src/hooks에서 폼 핸들러 및 제출 로직 주입 예정
 
   return (
     <div className={styles.container}>
@@ -44,12 +84,40 @@ export default function SignupPage() {
                 type="text"
                 placeholder="이메일을 입력하세요"
                 className={styles.input}
+                value={emailId}
+                onChange={(e) => {
+                  setEmailId(e.target.value);
+                  setEmailSent(false);
+                  setEmailVerified(false);
+                  setEmailStatusText('');
+                }}
               />
               <span className={styles.emailDomain}>@konkuk.ac.kr</span>
-              <button type="button" className={styles.actionButton}>
-                이메일 인증
+              <button
+                type="button"
+                className={styles.actionButton}
+                disabled={isSending || !emailId || emailSent}
+                onClick={handleSendEmail}
+              >
+                이메일 발송
               </button>
             </div>
+
+            {emailSent && !emailVerified && (
+              <button
+                type="button"
+                className={styles.actionButton}
+                disabled={isConfirming}
+                onClick={handleConfirmEmail}
+              >
+                {isConfirming ? '확인 중...' : '인증 완료 확인'}
+              </button>
+            )}
+            {emailStatusText && (
+              <p className={styles.emailVerifiedText}>
+                {emailStatusText}
+              </p>
+            )}
           </div>
 
           {/* 비밀번호 */}
@@ -60,6 +128,8 @@ export default function SignupPage() {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="비밀번호"
                 className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
               <button
                 type="button"
@@ -131,7 +201,7 @@ export default function SignupPage() {
           <div className={styles.grid2}>
             <div className={styles.fieldGroup}>
               <label className={styles.label}>나이</label>
-              <select className={styles.select}>
+              <select className={styles.select} value={age} onChange={(e) => setAge(e.target.value)}>
                 <option value="">나이</option>
                 {Array.from({ length: 87 }, (_, i) => i + 14).map((v) => (
                   <option key={v} value={v}>{v}세</option>
@@ -140,7 +210,7 @@ export default function SignupPage() {
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label}>성별</label>
-              <select className={styles.select}>
+              <select className={styles.select} value={gender} onChange={(e) => setGender(e.target.value)}>
                 <option value="">성별</option>
                 <option value="MALE">남성</option>
                 <option value="FEMALE">여성</option>
@@ -151,7 +221,7 @@ export default function SignupPage() {
           {/* 학번 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>학번</label>
-            <select className={styles.select}>
+            <select className={styles.select} value={enrollNumber} onChange={(e) => setEnrollNumber(e.target.value)}>
               <option value="">학번</option>
               {Array.from({ length: 20 }, (_, i) => 10 + i).map((v) => (
                 <option key={v} value={v}>{v}학번</option>
@@ -166,6 +236,8 @@ export default function SignupPage() {
               type="text"
               placeholder="닉네임"
               className={styles.input}
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
             />
           </div>
 
@@ -199,8 +271,8 @@ export default function SignupPage() {
           </div>
 
           {/* 제출 */}
-          <button type="submit" className={styles.submitButton}>
-            회원가입 완료
+          <button type="submit" className={styles.submitButton} disabled={isPending || !emailVerified}>
+            {isPending ? '처리 중...' : '회원가입 완료'}
           </button>
         </form>
       </main>
@@ -219,7 +291,19 @@ export default function SignupPage() {
       <ConfirmModal
         isOpen={showSignupConfirm}
         onClose={() => setShowSignupConfirm(false)}
-        onConfirm={() => { setShowSignupConfirm(false); }}
+        onConfirm={() => {
+          setShowSignupConfirm(false);
+          signupMutate({
+            email: `${emailId}@konkuk.ac.kr`,
+            password,
+            nickname,
+            age: Number(age),
+            gender: gender as 'MALE' | 'FEMALE',
+            enrollNumber: Number(enrollNumber),
+            preferredCategories: selectedCategories,
+            ...(profileImageObjectKey && { profileImageObjectKey }),
+          });
+        }}
         title="회원 가입을 완료하시겠습니까?"
         confirmText="가입하기"
       />

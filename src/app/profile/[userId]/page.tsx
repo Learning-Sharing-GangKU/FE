@@ -1,45 +1,48 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Star, ChevronDown } from 'lucide-react';
 import styles from '../profile.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
-import LoginRequiredModal from '@/components/auth/LoginRequiredModal';
 import ReviewWriteModal from '@/components/profile/ReviewWriteModal';
 import ProfileSection from '@/components/profile/ProfileSection';
 import WriteReviewButton from '@/components/profile/WriteReviewButton';
 import ConfirmModal from '@/components/ConfirmModal';
-import { useProfilePage } from '@/hooks/profile/useProfilePage';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/profile/useProfile';
+import { useReviewToggle } from '@/hooks/profile/useReviewToggle';
+import { useCreateReview } from '@/hooks/profile/useCreateReview';
+import { useToast } from '@/hooks/useToast';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
-  const {
-    profile,
-    isMine,
-    isReady,
-    isLoggedIn,
-    logout,
-    loadMoreReviews,
-    handleReviewVisibilityToggle,
-    handleProfileEdit,
-    toast,
-  } = useProfilePage(userId);
+  const { isLoggedIn, myUserId, logout } = useAuth();
+  const { profile, loadMoreReviews } = useProfile(userId);
+  const { mutate: toggleReview } = useReviewToggle(userId);
+  const { mutate: createReview } = useCreateReview(userId);
+  const { toast, showToast } = useToast();
+
+  const isMine = myUserId !== null && `usr_${myUserId}` === userId;
+
+  const router = useRouter();
+
+  const handleReviewVisibilityToggle = () => {
+    if (!profile) return;
+    toggleReview(!profile.reviewsPublic, {
+      onSuccess: () => showToast(profile.reviewsPublic ? '리뷰가 비공개로 변경되었습니다.' : '리뷰가 공개로 변경되었습니다.'),
+    });
+  };
+
+  const handleProfileEdit = () => router.push(`/profile/${userId}/edit`);
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
-  if (!isReady) return null;
-
-  if (isLoggedIn === false) {
-    return (
-      <div style={{ width: '100vw', height: '100vh' }}>
-        <LoginRequiredModal />
-      </div>
-    );
-  }
+  if (isLoggedIn === null) return null;
 
   if (!profile) {
     return (
@@ -112,9 +115,11 @@ export default function ProfilePage() {
                 key={review.id}
                 className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
               >
-                <div className={styles.reviewAvatarCircle}>
-                  {review.reviewerNickname.charAt(0)}
-                </div>
+                <ProfileAvatar
+                  profileImageUrl={review.reviewerProfileImageUrl}
+                  nickname={review.reviewerNickname}
+                  size="sm"
+                />
                 <div className={styles.reviewContent}>
                   <div className={styles.reviewMeta}>
                     <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>
@@ -154,8 +159,11 @@ export default function ProfilePage() {
         <ReviewWriteModal
           targetUser={profile}
           onClose={() => setShowReviewModal(false)}
-          onSubmit={() => {
-            // TODO: src/hooks에서 리뷰 제출 API 연결 예정
+          onSubmit={(rating, content) => {
+            createReview(
+              { rating, comment: content },
+              { onSuccess: () => { setShowReviewModal(false); showToast('리뷰가 등록되었습니다.'); } }
+            );
           }}
         />
       )}

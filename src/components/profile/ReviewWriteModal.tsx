@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Star, User } from 'lucide-react';
+import { X, Star } from 'lucide-react';
 import styles from './ReviewWriteModal.module.css';
 import type { UserSummary } from '@/types/user';
 import ConfirmModal from '@/components/ConfirmModal';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 interface ReviewWriteModalProps {
   targetUser: UserSummary;
@@ -49,13 +50,11 @@ export default function ReviewWriteModal({ targetUser, onClose, onSubmit }: Revi
           <div className={styles.modalBody}>
             {/* 유저 정보 */}
             <div className={styles.userRow}>
-              <div className={styles.userAvatar}>
-                {targetUser.profileImageUrl ? (
-                  <img src={targetUser.profileImageUrl} alt={targetUser.nickname} className={styles.userAvatarImg} />
-                ) : (
-                  <User size={32} color="#374151" />
-                )}
-              </div>
+              <ProfileAvatar
+                profileImageUrl={targetUser.profileImageUrl}
+                nickname={targetUser.nickname}
+                size="md"
+              />
               <div className={styles.userInfo}>
                 <h3 className={styles.userName}>{targetUser.nickname}</h3>
                 <p className={styles.userMeta}>

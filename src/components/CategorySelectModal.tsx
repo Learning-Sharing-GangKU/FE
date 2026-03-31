@@ -1,17 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import styles from './CategorySelectModal.module.css';
-
-const CATEGORY_ROWS = [
-  ['운동/스포츠', '맛집 탐방'],
-  ['아웃도어/여행', '문화/공연'],
-  ['자기계발', '독서', '음악/악기'],
-  ['외국어', '봉사활동', '사교/인맥'],
-  ['게임/오락', '요리/베이킹'],
-  ['반려동물', '재테크/투자'],
-  ['영화/드라마'],
-];
+import { getCategories } from '@/api/gathering';
 
 type Props = {
   mode: 'preference' | 'group'; // preference: 최대 3개, group: 1개 필수
@@ -27,6 +19,11 @@ export default function CategorySelectModal({
   onClose,
 }: Props) {
   const [selected, setSelected] = useState<string[]>(initialSelected);
+  const { data } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  });
+  const categories = data?.categories ?? [];
 
   useEffect(() => {
     setSelected(initialSelected);
@@ -74,26 +71,24 @@ export default function CategorySelectModal({
 
         {/* 카테고리 버블 */}
         <div className={styles.body}>
-          {CATEGORY_ROWS.map((row, rowIndex) => (
-            <div key={rowIndex} className={styles.row}>
-              {row.map((category) => {
-                const isSelected = selected.includes(category);
-                const isDisabled = !isSelected && selected.length >= maxSelection;
+          <div className={styles.row} style={{ flexWrap: 'wrap' }}>
+            {categories.map((category) => {
+              const isSelected = selected.includes(category);
+              const isDisabled = !isSelected && selected.length >= maxSelection;
 
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    disabled={isDisabled}
-                    onClick={() => handleToggle(category)}
-                    className={`${styles.chip} ${isSelected ? styles.chipSelected : ''} ${isDisabled ? styles.chipDisabled : ''}`}
-                  >
-                    {category}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => handleToggle(category)}
+                  className={`${styles.chip} ${isSelected ? styles.chipSelected : ''} ${isDisabled ? styles.chipDisabled : ''}`}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* 완료 버튼 */}

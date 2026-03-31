@@ -7,13 +7,13 @@ import styles from './manage.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import ListGatheringCard from '@/components/gathering/ListGatheringCard';
-import type { GatheringItem } from '@/types/gathering';
+import { useUserGatherings } from '@/hooks/gathering/useUserGatherings';
 
 export default function ManagePage() {
   const [activeTab, setActiveTab] = useState<'created' | 'joined'>('created');
 
-  // TODO: src/hooks에서 데이터 및 액션 핸들러 주입 예정
-  const gatherings: GatheringItem[] = [];
+  const role = activeTab === 'created' ? 'host' : 'guest';
+  const { gatherings } = useUserGatherings(role);
 
   const hasNoMeetings = gatherings.length === 0;
 

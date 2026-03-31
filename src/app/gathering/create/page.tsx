@@ -1,21 +1,34 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Calendar, Sparkles } from 'lucide-react';
 import styles from './create.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import ConfirmModal from '@/components/ConfirmModal';
+import { useCreateGathering } from '@/hooks/gathering/useCreateGathering';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 export default function CreateGatheringPage() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { mutate: createGathering, isPending } = useCreateGathering();
+  const { mutate: uploadImage } = useImageUpload();
 
-  // UI 상태만 유지
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageObjectKey, setImageObjectKey] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedCategoryList, setSelectedCategoryList] = useState<string[]>([]);
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
+
+  const [title, setTitle] = useState('');
+  const [capacity, setCapacity] = useState('');
+  const [date, setDate] = useState('');
+  const [location, setLocation] = useState('');
+  const [openChatUrl, setOpenChatUrl] = useState('');
+  const [description, setDescription] = useState('');
 
   const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -23,6 +36,9 @@ export default function CreateGatheringPage() {
     const reader = new FileReader();
     reader.onloadend = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
+    uploadImage(file, {
+      onSuccess: ({ objectKey }) => setImageObjectKey(objectKey),
+    });
   };
 
   const handleRemoveImage = () => {
@@ -47,6 +63,8 @@ export default function CreateGatheringPage() {
               type="text"
               placeholder="모임 이름을 입력하세요"
               className={styles.input}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
@@ -122,6 +140,8 @@ export default function CreateGatheringPage() {
               min="1"
               placeholder="최대 인원을 입력하세요"
               className={styles.input}
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
             />
           </div>
 
@@ -132,6 +152,8 @@ export default function CreateGatheringPage() {
               <input
                 type="datetime-local"
                 className={styles.input}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
               />
               <Calendar size={20} className={styles.calendarIcon} />
             </div>
@@ -144,6 +166,8 @@ export default function CreateGatheringPage() {
               type="text"
               placeholder="장소를 입력하세요"
               className={styles.input}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
             />
           </div>
 
@@ -154,6 +178,8 @@ export default function CreateGatheringPage() {
               type="url"
               placeholder="https://open.kakao.com/..."
               className={styles.input}
+              value={openChatUrl}
+              onChange={(e) => setOpenChatUrl(e.target.value)}
             />
             <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
           </div>
@@ -177,12 +203,14 @@ export default function CreateGatheringPage() {
             <textarea
               placeholder="모임에 대한 설명을 입력하세요"
               className={styles.textarea}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
           {/* 제출 */}
-          <button type="submit" className={styles.submitButton}>
-            모임 생성
+          <button type="submit" className={styles.submitButton} disabled={isPending}>
+            {isPending ? '생성 중...' : '모임 생성'}
           </button>
         </form>
       </main>
@@ -201,7 +229,22 @@ export default function CreateGatheringPage() {
       <ConfirmModal
         isOpen={showCreateConfirm}
         onClose={() => setShowCreateConfirm(false)}
-        onConfirm={() => { setShowCreateConfirm(false); }}
+        onConfirm={() => {
+          setShowCreateConfirm(false);
+          createGathering(
+            {
+              title,
+              category: selectedCategoryList[0],
+              capacity: Number(capacity),
+              date,
+              location,
+              openChatUrl,
+              description,
+              ...(imageObjectKey && { gatheringImageObjectKey: imageObjectKey }),
+            },
+            { onSuccess: (data) => router.push(`/gathering/${data.id}`) } // data.id는 이미 gath_ prefix 포함
+          );
+        }}
         title="모임을 생성하시겠습니까?"
         confirmText="생성하기"
       />

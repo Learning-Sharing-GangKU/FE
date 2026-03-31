@@ -11,7 +11,7 @@ type Props = {
 
 export default function HomeGatheringCard({ room }: Props) {
   return (
-    <Link href={`/gathering/gath_${room.id}`} className={styles.card}>
+    <Link href={`/gathering/${room.id}`} className={styles.card}>
       {/* 썸네일 */}
       <div className={styles.imageWrapper}>
         <img

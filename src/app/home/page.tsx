@@ -1,38 +1,36 @@
 "use client";
 
+import { useRef } from "react";
 import styles from "./home.module.css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import TopNav from "@/components/TopNav";
 import HomeGatheringCard from "@/components/home/HomeGatheringCard";
 import type { GatheringItem } from "@/types/gathering";
+import { useHome } from "@/hooks/gathering/useGatheringList";
 
-function Section({
-  title,
-  rooms,
-  onLeft,
-  onRight,
-}: {
-  title: string;
-  rooms: GatheringItem[];
-  onLeft: () => void;
-  onRight: () => void;
-}) {
+function Section({ title, rooms }: { title: string; rooms: GatheringItem[] }) {
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: "left" | "right") => {
+    carouselRef.current?.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
+  };
+
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>{title}</h2>
       </div>
       <div className={styles.carouselWrapper}>
-        <button onClick={onLeft} className={styles.arrowButton}>
+        <button onClick={() => scroll("left")} className={styles.arrowButton}>
           <ChevronLeft size={20} />
         </button>
-        <div className={styles.carousel}>
+        <div ref={carouselRef} className={styles.carousel}>
           {rooms.map((room) => (
             <HomeGatheringCard key={room.id} room={room} />
           ))}
         </div>
-        <button onClick={onRight} className={styles.arrowButton}>
+        <button onClick={() => scroll("right")} className={styles.arrowButton}>
           <ChevronRight size={20} />
         </button>
       </div>
@@ -41,15 +39,12 @@ function Section({
 }
 
 export default function HomePage() {
-  // TODO: src/hooks에서 데이터 및 스크롤 핸들러 주입 예정
-  const recommendedGatheringItems: GatheringItem[] = [];
-  const latestGatheringItems: GatheringItem[] = [];
-  const popularGatheringItems: GatheringItem[] = [];
+  const { data, isLoading } = useHome();
 
   const sections = [
-    { title: "추천 모임", rooms: recommendedGatheringItems },
-    { title: "최신 모임", rooms: latestGatheringItems },
-    { title: "인기 모임", rooms: popularGatheringItems },
+    { title: "추천 모임", rooms: data?.recommended.data ?? [] },
+    { title: "최신 모임", rooms: data?.latest.data ?? [] },
+    { title: "인기 모임", rooms: data?.popular.data ?? [] },
   ];
 
   return (
@@ -57,15 +52,13 @@ export default function HomePage() {
       <TopNav />
 
       <main className={styles.main}>
-        {sections.map(({ title, rooms }) => (
-          <Section
-            key={title}
-            title={title}
-            rooms={rooms}
-            onLeft={() => {}}
-            onRight={() => {}}
-          />
-        ))}
+        {isLoading ? (
+          <div className={styles.loading}>불러오는 중...</div>
+        ) : (
+          sections.map(({ title, rooms }) => (
+            <Section key={title} title={title} rooms={rooms} />
+          ))
+        )}
       </main>
 
       <BottomNav />

@@ -1,3 +1,5 @@
+/* edit.module.css — signup.module.css 기반 + inputLocked 추가 */
+
 .container {
   min-height: 100vh;
   background-color: white;
@@ -13,21 +15,18 @@
   padding: 24px 24px 96px;
 }
 
-/* 타이틀 */
 .title {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 24px;
 }
 
-/* 폼 */
 .form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* 필드 그룹 */
 .fieldGroup {
   display: flex;
   flex-direction: column;
@@ -39,7 +38,6 @@
   color: #6b7280;
 }
 
-/* 입력 필드 */
 .input {
   width: 100%;
   height: 44px;
@@ -61,7 +59,26 @@
   color: #9ca3af;
 }
 
-/* 이메일 행 */
+/* 수정 불가 필드 — 회색 빗선 */
+.inputLocked {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  box-sizing: border-box;
+  cursor: not-allowed;
+  background: repeating-linear-gradient(
+    -45deg,
+    #f9fafb,
+    #f9fafb 5px,
+    #e5e7eb 5px,
+    #e5e7eb 10px
+  );
+}
+
 .emailRow {
   display: flex;
   align-items: center;
@@ -70,34 +87,14 @@
 
 .emailDomain {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #9ca3af;
   white-space: nowrap;
 }
 
-/* 비밀번호 행 */
 .passwordRow {
   position: relative;
   display: flex;
   align-items: center;
-}
-
-.passwordRow .input {
-  padding-right: 44px;
-}
-
-.eyeButton {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.eyeButton:hover {
-  color: #111;
 }
 
 .hint {
@@ -106,25 +103,6 @@
   margin: 0;
 }
 
-/* 액션 버튼 (이메일 인증, 카테고리 선택) */
-.actionButton {
-  padding: 10px 16px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background-color: #111827;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.actionButton:hover {
-  background-color: #374151;
-}
-
-/* 프로필 이미지 */
 .profileRow {
   display: flex;
   align-items: center;
@@ -198,14 +176,12 @@
   color: #9ca3af;
 }
 
-/* 2열 그리드 */
 .grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-/* 셀렉트 */
 .select {
   width: 100%;
   height: 44px;
@@ -224,7 +200,23 @@
   border-color: #3b82f6;
 }
 
-/* 카테고리 태그 */
+.actionButton {
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: #111827;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.actionButton:hover {
+  background-color: #374151;
+}
+
 .selectedTags {
   display: flex;
   flex-wrap: wrap;
@@ -263,7 +255,6 @@
   color: #dc2626;
 }
 
-/* 제출 버튼 */
 .submitButton {
   width: 100%;
   height: 48px;
@@ -282,13 +273,21 @@
   background-color: #374151;
 }
 
-.emailVerifiedText {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #2563eb;
-  font-weight: 500;
+.submitButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
 }
 
-.emailPendingText {
-  color: #6b7280;
+.toastMessage {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111827;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 100;
 }

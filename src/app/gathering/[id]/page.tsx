@@ -17,15 +17,19 @@ import styles from './roomDetail.module.css';
 import BottomNav from '@/components/BottomNav';
 import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
+import { useDeleteGathering } from '@/hooks/gathering/useDeleteGathering';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 const ITEMS_PER_PAGE = 5;
 
 export default function GatheringDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const gatheringId = params.id as string;
   const { data: gathering, isLoading } = useGatheringDetail(gatheringId);
+  const { mutate: deleteGathering } = useDeleteGathering();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -161,10 +165,10 @@ export default function GatheringDetailPage() {
             <div className={styles.participantGrid}>
               {pageParticipants.map((p) => (
                 <div key={p.userId} className={styles.participantItem}>
-                  <img
-                    src={p.profileImageUrl ?? '/images/logo.png'}
-                    alt={p.nickname}
-                    className={styles.participantAvatar}
+                  <ProfileAvatar
+                    profileImageUrl={p.profileImageUrl}
+                    nickname={p.nickname}
+                    size="sm"
                   />
                   <span className={styles.participantName}>{p.nickname}</span>
                 </div>
@@ -203,7 +207,7 @@ export default function GatheringDetailPage() {
         )}
 
         {/* 참여 / 참여 취소 버튼 */}
-        {gathering.isJoined ? (
+        {gathering.joined ? (
           <button className={styles.joinButton} onClick={() => setShowCancelJoinModal(true)}>
             참여 취소하기
           </button>
@@ -235,7 +239,10 @@ export default function GatheringDetailPage() {
       <ConfirmModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        onConfirm={() => { setShowDeleteModal(false); }}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          deleteGathering(gatheringId, { onSuccess: () => router.push('/home') });
+        }}
         title="모임을 삭제하시겠습니까?"
         confirmText="삭제하기"
         description="삭제된 모임은 복구할 수 없습니다."

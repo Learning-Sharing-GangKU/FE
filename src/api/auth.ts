@@ -17,7 +17,7 @@ export async function logout(): Promise<void> {
 /** POST /api/v1/auth/email/verification — 이메일 인증 발송 */
 export async function sendEmailVerification(
   email: string
-): Promise<{ message: string }> {
+): Promise<void> {
   return apiFetch('/api/v1/auth/email/verification', {
     method: 'POST',
     body: JSON.stringify({ email }),
@@ -25,10 +25,7 @@ export async function sendEmailVerification(
 }
 
 /** POST /api/v1/auth/email/verification/confirm — 이메일 인증 확인 */
-export async function confirmEmailVerification(): Promise<{
-  verified: boolean;
-  email: string;
-}> {
+export async function confirmEmailVerification(): Promise<{ verified: boolean; email: string }> {
   return apiFetch('/api/v1/auth/email/verification/confirm', {
     method: 'POST',
     body: JSON.stringify({}),

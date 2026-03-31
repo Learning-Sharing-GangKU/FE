@@ -7,6 +7,7 @@ export const TOKEN_ISSUED_AT_KEY = 'tokenIssuedAt';
 export function setAccessToken(token: string) {
   localStorage.setItem(ACCESS_TOKEN_KEY, token);
   localStorage.setItem(TOKEN_ISSUED_AT_KEY, Date.now().toString());
+  document.cookie = 'isAuthenticated=1; path=/; max-age=86400; SameSite=Lax';
 }
 
 export function getAccessToken(): string | null {
@@ -21,6 +22,7 @@ export function getTokenIssuedAt(): number | null {
 export function removeAccessToken() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(TOKEN_ISSUED_AT_KEY);
+  document.cookie = 'isAuthenticated=; path=/; max-age=0; SameSite=Lax';
 }
 
 export function isTokenExpiredOrNearExpiry(minutesBeforeExpiry = 1): boolean {
