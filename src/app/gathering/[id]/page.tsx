@@ -21,6 +21,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
 import { useDeleteGathering } from '@/hooks/gathering/useDeleteGathering';
 import ProfileAvatar from '@/components/ProfileAvatar';
+import { useQueryClient } from '@tanstack/react-query';
+import { joinGathering, exitGathering } from '@/api/gathering';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -28,6 +30,7 @@ export default function GatheringDetailPage() {
   const params = useParams();
   const router = useRouter();
   const gatheringId = params.id as string;
+  const queryClient = useQueryClient();
   const { data: gathering, isLoading } = useGatheringDetail(gatheringId);
   const { mutate: deleteGathering } = useDeleteGathering();
 
@@ -185,8 +188,8 @@ export default function GatheringDetailPage() {
           </div>
         </div>
 
-        {/* 채팅방 링크 카드 */}
-        {gathering.openChatUrl && (
+        {/* 채팅방 링크 카드 - 참여자에게만 표시 */}
+        {gathering.joined && gathering.openChatUrl && (
           <div className={styles.card}>
             <h3 className={styles.sectionTitle}>모임 대화방 링크</h3>
             <div className={styles.chatRow}>
@@ -223,7 +226,11 @@ export default function GatheringDetailPage() {
       <ConfirmModal
         isOpen={showJoinModal}
         onClose={() => setShowJoinModal(false)}
-        onConfirm={() => { setShowJoinModal(false); }}
+        onConfirm={async () => {
+          await joinGathering(gatheringId);
+          queryClient.invalidateQueries({ queryKey: ['gathering', gatheringId] });
+          setShowJoinModal(false);
+        }}
         title="모임에 참여하시겠습니까?"
         confirmText="참여하기"
         description="모임 참여 후 활동을 시작할 수 있습니다."
@@ -231,7 +238,11 @@ export default function GatheringDetailPage() {
       <ConfirmModal
         isOpen={showCancelJoinModal}
         onClose={() => setShowCancelJoinModal(false)}
-        onConfirm={() => { setShowCancelJoinModal(false); }}
+        onConfirm={async () => {
+          await exitGathering(gatheringId);
+          queryClient.invalidateQueries({ queryKey: ['gathering', gatheringId] });
+          setShowCancelJoinModal(false);
+        }}
         title="모임 참여를 취소하시겠습니까?"
         confirmText="취소하기"
         description="참여 취소 시 다시 신청해야 합니다."

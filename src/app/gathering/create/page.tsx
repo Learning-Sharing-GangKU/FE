@@ -236,7 +236,7 @@ export default function CreateGatheringPage() {
               title,
               category: selectedCategoryList[0],
               capacity: Number(capacity),
-              date,
+              date: date.length === 16 ? `${date}:00` : date,
               location,
               openChatUrl,
               description,

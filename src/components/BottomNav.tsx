@@ -19,7 +19,7 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { myUserId } = useAuth();
+  const { myUserId, isLoggedIn } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | undefined>(undefined);
 
@@ -27,7 +27,7 @@ export default function BottomNav() {
   const isProfileActive = pathname.startsWith('/profile');
 
   const handleProtectedClick = (e: React.MouseEvent, href: string) => {
-    if (myUserId === null && PROTECTED_HREFS.has(href)) {
+    if (isLoggedIn === false && PROTECTED_HREFS.has(href)) {
       e.preventDefault();
       setPendingHref(href);
       setShowAuthModal(true);
@@ -52,9 +52,9 @@ export default function BottomNav() {
           );
         })}
         <Link
-          href={myUserId !== null ? `/profile/usr_${myUserId}` : '#'}
+          href={myUserId !== null ? `/profile/${myUserId}` : '#'}
           className={`${styles.item} ${isProfileActive ? styles.active : ''}`}
-          onClick={(e) => { if (myUserId === null) { e.preventDefault(); setPendingHref(`/profile`); setShowAuthModal(true); } }}
+          onClick={(e) => { if (isLoggedIn === false) { e.preventDefault(); setPendingHref(`/profile`); setShowAuthModal(true); } }}
         >
           <User size={24} strokeWidth={isProfileActive ? 2.5 : 1.5} />
           <span>프로필</span>
