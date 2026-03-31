@@ -1,13 +1,6 @@
 'use client';
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -15,128 +8,61 @@ axios.defaults.withCredentials = true;
 
 import {
   getAccessToken,
-  setAccessToken,
-  removeAccessToken,
   isTokenExpiredOrNearExpiry,
 } from '@/lib/auth';
 import { logout as logoutApi } from '@/api/auth';
-interface AuthContextType {
-  isLoggedIn: boolean | null; // null = 로딩 중, true = 로그인, false = 로그아웃
-  myUserId: number | null;    // 현재 로그인한 유저의 ID (JWT sub)
-  login: (token: string) => void;
-  logout: () => Promise<void>;
-}
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-/** ✅ JWT accessToken 에서 sub(userId) 파싱 */
-function getUserIdFromToken(token?: string | null): number | null {
-  if (!token) return null;
-  try {
-    const [, payload] = token.split('.');
-    if (!payload) return null;
-    const decoded = JSON.parse(atob(payload)); // { sub: "1", iat, exp ... }
-    const sub = decoded?.sub;
-    const num = Number(sub);
-    return Number.isFinite(num) ? num : null;
-  } catch {
-    return null;
-  }
-}
+import { useAuthStore, getUserIdFromToken } from '@/stores/authStore';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [myUserId, setMyUserId] = useState<number | null>(null);
   const router = useRouter();
+  const { login, setFromToken, clearAuth, logout: storeLogout } = useAuthStore();
 
   const reissueIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isReissuingRef = useRef(false);
 
-  // ✅ 토큰 재발급
+  // 토큰 재발급
   const reissueToken = useCallback(
     async (forceLogoutOnFailure = false): Promise<boolean> => {
-      if (isReissuingRef.current) {
-        return false;
-      }
-
+      if (isReissuingRef.current) return false;
       try {
         isReissuingRef.current = true;
-
-        const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/reissue`,
-          {},
-          { withCredentials: true }
-        );
-
-
+        const res = await axios.post('/api/v1/auth/reissue', {}, { withCredentials: true });
         if (res.data?.accessToken) {
-          const newToken = res.data.accessToken;
-          setAccessToken(newToken);
-
-          // 🔹 새 토큰에서 userId 다시 파싱
-          const uid = getUserIdFromToken(newToken);
-          setMyUserId(uid);
-          if (uid != null) {
-            localStorage.setItem('userId', String(uid));
-          } else {
-            localStorage.removeItem('userId');
-          }
-
-          setIsLoggedIn(true);
+          setFromToken(res.data.accessToken);
           return true;
-        } else {
-          if (forceLogoutOnFailure) {
-            removeAccessToken();
-            setMyUserId(null);
-            localStorage.removeItem('userId');
-            setIsLoggedIn(false);
-          }
-          return false;
         }
+        if (forceLogoutOnFailure) clearAuth();
+        return false;
       } catch (err: any) {
         const status = err?.response?.status;
         if (status !== 400 && status !== 401) {
           console.warn('토큰 재발급 실패:', err);
         }
-        if (forceLogoutOnFailure) {
-          removeAccessToken();
-          setMyUserId(null);
-          localStorage.removeItem('userId');
-          setIsLoggedIn(false);
-        }
+        if (forceLogoutOnFailure) clearAuth();
         return false;
       } finally {
         isReissuingRef.current = false;
       }
     },
-    []
+    [setFromToken, clearAuth]
   );
 
-  // ✅ 새로고침 시 로그인 상태 복원
+  // 새로고침 시 로그인 상태 복원
   useEffect(() => {
     const restoreAuth = async () => {
       const existingToken = getAccessToken();
-
       if (existingToken) {
-        // 1) 토큰에서 userId 복원
-        const uid = getUserIdFromToken(existingToken);
-        setMyUserId(uid);
-        if (uid != null) {
-          localStorage.setItem('userId', String(uid));
-        }
-        setIsLoggedIn(true);
-
-        // 2) 백그라운드에서 재발급 시도 (실패해도 기존 토큰 유지)
+        setFromToken(existingToken);
         reissueToken().catch(() => {});
       } else {
-        // 토큰 없으면 재발급 시도 (실패 시 로그아웃 처리)
         await reissueToken(true);
       }
     };
-
     restoreAuth();
-  }, [reissueToken]);
+  }, []);
 
-  // ✅ 1분마다 만료임박 체크 → 재발급
+  // 1분마다 만료임박 체크 → 재발급
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   useEffect(() => {
     if (!isLoggedIn) {
       if (reissueIntervalRef.current) {
@@ -145,13 +71,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       return;
     }
-
     reissueIntervalRef.current = setInterval(() => {
-      if (isTokenExpiredOrNearExpiry(1)) {
-        reissueToken();
-      }
+      if (isTokenExpiredOrNearExpiry(1)) reissueToken();
     }, 60 * 1000);
-
     return () => {
       if (reissueIntervalRef.current) {
         clearInterval(reissueIntervalRef.current);
@@ -160,92 +82,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [isLoggedIn, reissueToken]);
 
-  // ✅ 로그인 시 AccessToken 저장 + userId 세팅
-  const login = (token: string) => {
-    setAccessToken(token);
-
-    const uid = getUserIdFromToken(token);
-    setMyUserId(uid);
-    if (uid != null) {
-      localStorage.setItem('userId', String(uid));
-    } else {
-      localStorage.removeItem('userId');
-    }
-
-    setIsLoggedIn(true);
-  };
-
-  // ✅ axios interceptor 설정
+  // axios interceptor
   useEffect(() => {
-    const requestInterceptor = axios.interceptors.request.use(
-      (config) => {
-        const token = getAccessToken();
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        config.withCredentials = true;
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => response,
+    const reqId = axios.interceptors.request.use((config) => {
+      const token = getAccessToken();
+      if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
+      config.withCredentials = true;
+      return config;
+    });
+    const resId = axios.interceptors.response.use(
+      (res) => res,
       async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-
-          const success = await reissueToken(true);
-
-          if (success) {
+        const orig = error.config;
+        if (error.response?.status === 401 && !orig._retry) {
+          orig._retry = true;
+          const ok = await reissueToken(true);
+          if (ok) {
             const token = getAccessToken();
-            if (token && originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return axios(originalRequest);
-          } else {
-            return Promise.reject(error);
+            if (token && orig.headers) orig.headers.Authorization = `Bearer ${token}`;
+            return axios(orig);
           }
         }
-
         return Promise.reject(error);
       }
     );
-
     return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-      axios.interceptors.response.eject(responseInterceptor);
+      axios.interceptors.request.eject(reqId);
+      axios.interceptors.response.eject(resId);
     };
   }, [reissueToken]);
 
-  // ✅ 로그아웃
+  return <>{children}</>;
+};
+
+// 하위 호환성 유지
+export const useAuth = () => {
+  const { isLoggedIn, myUserId } = useAuthStore();
+  const router = useRouter();
+
   const logout = async () => {
     try {
       await logoutApi();
     } catch (err) {
       console.error('로그아웃 API 요청 실패:', err);
     } finally {
-      removeAccessToken();
-      setMyUserId(null);
-      localStorage.removeItem('userId');
-      setIsLoggedIn(false);
+      useAuthStore.getState().logout();
       router.push('/home');
     }
   };
 
-  return (
-    <AuthContext.Provider value={{ isLoggedIn, myUserId, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const login = (token: string) => {
+    useAuthStore.getState().login(token);
+  };
 
-// ✅ 커스텀 훅
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context)
-    throw new Error('useAuth must be used within an AuthProvider');
-  return context;
+  return { isLoggedIn, myUserId, login, logout };
 };

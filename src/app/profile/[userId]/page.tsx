@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Star, ChevronDown } from 'lucide-react';
 import styles from '../profile.module.css';
@@ -13,36 +13,48 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/profile/useProfile';
 import { useReviewToggle } from '@/hooks/profile/useReviewToggle';
-import { useCreateReview } from '@/hooks/profile/useCreateReview';
 import { useToast } from '@/hooks/useToast';
-import ProfileAvatar from '@/components/ProfileAvatar';
+import { createReview } from '@/api/user';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { isLoggedIn, myUserId, logout } = useAuth();
-  const { profile, loadMoreReviews } = useProfile(userId);
-  const { mutate: toggleReview } = useReviewToggle(userId);
-  const { mutate: createReview } = useCreateReview(userId);
+  const { profile, isLoading, loadMoreReviews } = useProfile(userId);
+  const reviewToggle = useReviewToggle(userId);
   const { toast, showToast } = useToast();
 
-  const isMine = myUserId !== null && `usr_${myUserId}` === userId;
-
-  const router = useRouter();
-
-  const handleReviewVisibilityToggle = () => {
-    if (!profile) return;
-    toggleReview(!profile.reviewsPublic, {
-      onSuccess: () => showToast(profile.reviewsPublic ? '리뷰가 비공개로 변경되었습니다.' : '리뷰가 공개로 변경되었습니다.'),
-    });
-  };
-
-  const handleProfileEdit = () => router.push(`/profile/${userId}/edit`);
+  const isMine = myUserId !== null && myUserId === userId;
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
-  if (isLoggedIn === null) return null;
+  const handleReviewVisibilityToggle = useCallback(async () => {
+    if (!profile || !isMine) return;
+    try {
+      await reviewToggle.mutateAsync(!profile.reviewsPublic);
+      showToast(profile.reviewsPublic ? '리뷰가 비공개되었습니다.' : '리뷰가 공개되었습니다.');
+    } catch {
+      showToast('리뷰 공개 설정 변경 실패');
+    }
+  }, [profile, isMine, reviewToggle, showToast]);
+
+  const handleProfileEdit = useCallback(() => {
+    router.push(`/profile/${userId}/edit`);
+  }, [router, userId]);
+
+  if (isLoading) return null;
+
+  if (isLoggedIn === false) {
+    return (
+      <div style={{ width: '100vw', height: '100vh' }}>
+        <div>로그인이 필요합니다.</div>
+      </div>
+    );
+  }
 
   if (!profile) {
     return (
@@ -58,7 +70,6 @@ export default function ProfilePage() {
       <TopNav />
 
       <div className={styles.inner}>
-        {/* 프로필 섹션 */}
         <ProfileSection
           profile={profile}
           isMine={isMine}
@@ -66,7 +77,6 @@ export default function ProfilePage() {
           onLogout={() => setShowWithdrawModal(true)}
         />
 
-        {/* 리뷰 카드 */}
         <div className={styles.reviewCard}>
           <div className={styles.reviewHeader}>
             <h3 className={styles.sectionTitle}>별점 및 리뷰</h3>
@@ -93,7 +103,6 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* 평점 요약 */}
           <div className={styles.ratingSummary}>
             <div className={styles.stars}>
               {[1, 2, 3, 4, 5].map((star) => (
@@ -108,18 +117,15 @@ export default function ProfilePage() {
             <span className={styles.reviewCount}>(리뷰 {profile.reviewCount}개)</span>
           </div>
 
-          {/* 리뷰 목록 */}
           <div className={styles.reviewList}>
-            {profile.reviews.map((review, index) => (
+            {profile.reviews.map((review: any, index: number) => (
               <div
                 key={review.id}
                 className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
               >
-                <ProfileAvatar
-                  profileImageUrl={review.reviewerProfileImageUrl}
-                  nickname={review.reviewerNickname}
-                  size="sm"
-                />
+                <div className={styles.reviewAvatarCircle}>
+                  {review.reviewerNickname.charAt(0)}
+                </div>
                 <div className={styles.reviewContent}>
                   <div className={styles.reviewMeta}>
                     <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>
@@ -159,11 +165,15 @@ export default function ProfilePage() {
         <ReviewWriteModal
           targetUser={profile}
           onClose={() => setShowReviewModal(false)}
-          onSubmit={(rating, content) => {
-            createReview(
-              { rating, comment: content },
-              { onSuccess: () => { setShowReviewModal(false); showToast('리뷰가 등록되었습니다.'); } }
-            );
+          onSubmit={async (rating, content) => {
+            try {
+              await createReview(userId, { rating, comment: content });
+              queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+              setShowReviewModal(false);
+              showToast('리뷰가 등록되었습니다.');
+            } catch {
+              showToast('리뷰 등록에 실패했습니다.');
+            }
           }}
         />
       )}

@@ -283,9 +283,10 @@ export default function GatheringEditPage() {
                     <CategorySelectModal
                         mode="group"
                         initialSelected={selectedCategoryList}
-                        onConfirm={(cats) => {
-                            setSelectedCategoryList(cats);
-                            setCategory(cats[0] || '');
+                        onConfirm={(selected) => {
+                            setSelectedCategoryList(selected);
+                            setCategory(selected[0] || '');
+                            setIsCategoryModalOpen(false);
                         }}
                         onClose={() => setIsCategoryModalOpen(false)}
                     />
