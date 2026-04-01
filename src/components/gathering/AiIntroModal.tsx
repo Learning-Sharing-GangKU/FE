@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "./AiIntroModal.module.css";
 
 interface AiIntroModalProps {
@@ -14,7 +15,7 @@ export default function AiIntroModal({
 }: AiIntroModalProps) {
   const [keywords, setKeywords] = useState("");
 
-  return (
+  return createPortal(
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <h2 className={styles.title}>AI로 모임 설명 만들기</h2>
@@ -33,10 +34,11 @@ export default function AiIntroModal({
         <p className={styles.helper}>키워드는 쉼표로 구분해주세요.</p>
 
         <div className={styles.buttons}>
-          <button className={styles.cancel} onClick={onClose}>
+          <button type="button" className={styles.cancel} onClick={onClose}>
             취소
           </button>
           <button
+            type="button"
             className={styles.confirm}
             onClick={() => onSubmit(keywords)}
           >
@@ -44,6 +46,7 @@ export default function AiIntroModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

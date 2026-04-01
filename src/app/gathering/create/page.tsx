@@ -8,20 +8,24 @@ import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import ConfirmModal from '@/components/ConfirmModal';
+import AiIntroModal from '@/components/gathering/AiIntroModal';
 import { useCreateGathering } from '@/hooks/gathering/useCreateGathering';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useAiIntro } from '@/hooks/useAiIntro';
 
 export default function CreateGatheringPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutate: createGathering, isPending } = useCreateGathering();
   const { mutate: uploadImage } = useImageUpload();
+  const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageObjectKey, setImageObjectKey] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedCategoryList, setSelectedCategoryList] = useState<string[]>([]);
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   const [title, setTitle] = useState('');
   const [capacity, setCapacity] = useState('');
@@ -46,7 +50,41 @@ export default function CreateGatheringPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // TODO: src/hooks에서 폼 핸들러 및 제출 로직 주입 예정
+  const normalizeDate = (d: string) => {
+    if (d.length === 16) return `${d}:00`;  // HH:mm → HH:mm:ss
+    if (d.length === 19) return d;
+    return d;
+  };
+
+  const handleOpenAiModal = () => {
+    if (!title.trim() || selectedCategoryList.length === 0 || !capacity || Number(capacity) < 1 || !date || !location.trim()) {
+      alert('AI 설명을 생성하기 전에 모임 이름, 카테고리, 인원, 날짜, 장소를 먼저 입력해주세요.');
+      return;
+    }
+    setShowAiModal(true);
+  };
+
+  const handleAiSubmit = (keywordsStr: string) => {
+    const keywords = keywordsStr.split(',').map((k) => k.trim()).filter(Boolean);
+    setShowAiModal(false);
+    generateIntro(
+      {
+        title,
+        category: selectedCategoryList[0] ?? '',
+        capacity: Number(capacity),
+        date: normalizeDate(date),
+        location,
+        keywords,
+      },
+      {
+        onSuccess: (data) => setDescription(data.intro),
+        onError: (error) => {
+          console.error('AI 생성 오류:', error);
+          alert('AI 모임 설명 생성 중 오류가 발생했습니다. 입력값을 확인하거나 잠시 후 다시 시도해주세요.');
+        }
+      }
+    );
+  };
 
   return (
     <div className={styles.container}>
@@ -193,10 +231,11 @@ export default function CreateGatheringPage() {
                 <button
                   type="button"
                   className={styles.aiButton}
-                  onClick={() => {}}
+              onClick={handleOpenAiModal}
+                  disabled={isGenerating}
                 >
                   <Sparkles size={14} />
-                  AI 자동생성
+                  {isGenerating ? '생성 중...' : 'AI 자동생성'}
                 </button>
               </div>
             </div>
@@ -226,6 +265,13 @@ export default function CreateGatheringPage() {
         />
       )}
 
+      {showAiModal && (
+        <AiIntroModal
+          onClose={() => setShowAiModal(false)}
+          onSubmit={handleAiSubmit}
+        />
+      )}
+
       <ConfirmModal
         isOpen={showCreateConfirm}
         onClose={() => setShowCreateConfirm(false)}
@@ -236,13 +282,13 @@ export default function CreateGatheringPage() {
               title,
               category: selectedCategoryList[0],
               capacity: Number(capacity),
-              date: date.length === 16 ? `${date}:00` : date,
+              date: normalizeDate(date),
               location,
               openChatUrl,
               description,
               ...(imageObjectKey && { gatheringImageObjectKey: imageObjectKey }),
             },
-            { onSuccess: (data) => router.push(`/gathering/${data.id}`) } // data.id는 이미 gath_ prefix 포함
+            { onSuccess: (data) => router.push(`/gathering/${data.id}`) }
           );
         }}
         title="모임을 생성하시겠습니까?"
