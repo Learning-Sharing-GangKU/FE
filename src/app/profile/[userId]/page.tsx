@@ -22,7 +22,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isLoggedIn, myUserId, logout } = useAuth();
-  const { profile, isLoading, loadMoreReviews } = useProfile(userId);
+  const { profile, isLoading, error, loadMoreReviews } = useProfile(userId);
   const reviewToggle = useReviewToggle(userId);
   const { toast, showToast } = useToast();
 
@@ -47,6 +47,17 @@ export default function ProfilePage() {
   }, [router, userId]);
 
   if (isLoading) return null;
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <TopNav />
+        <div className={styles.loading}>
+          프로필을 불러오지 못했습니다. (API 통신 에러)
+        </div>
+      </div>
+    );
+  }
 
   if (isLoggedIn === false) {
     return (
