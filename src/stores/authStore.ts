@@ -7,10 +7,36 @@ export function getUserIdFromToken(token?: string | null): string | null {
   try {
     const [, payload] = token.split('.');
     if (!payload) return null;
-    const decoded = JSON.parse(atob(payload));
-    const num = Number(decoded?.sub);
+
+    // Base64URL to Base64
+    let base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+
+    // decodeURIComponent to safely handle UTF-8 chars in token
+    const jsonStr = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const decoded = JSON.parse(jsonStr);
+    console.log('🔥🔥 [DEBUG] JWT Token payload:', decoded);
+
+    let sub = decoded?.sub || decoded?.userId || decoded?.id || decoded?.memberId;
+    if (!sub) return null;
+    
+    // 강제로 문자열 캐싱
+    sub = String(sub);
+
+    if (sub.startsWith('usr_')) {
+      return sub;
+    }
+    const num = Number(sub);
     return Number.isFinite(num) ? `usr_${num}` : null;
-  } catch {
+  } catch (err) {
+    console.error('getUserIdFromToken error:', err);
     return null;
   }
 }
