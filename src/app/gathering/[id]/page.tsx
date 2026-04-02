@@ -22,7 +22,8 @@ import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
 import { useDeleteGathering } from '@/hooks/gathering/useDeleteGathering';
 import ProfileAvatar from '@/components/ProfileAvatar';
 import { useQueryClient } from '@tanstack/react-query';
-import { joinGathering, exitGathering } from '@/api/gathering';
+import { joinGathering, exitGathering, finishGathering } from '@/api/gathering';
+import { useAuthStore } from '@/stores/authStore';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -38,7 +39,10 @@ export default function GatheringDetailPage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCancelJoinModal, setShowCancelJoinModal] = useState(false);
+  const [showFinishModal, setShowFinishModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const { myUserId } = useAuthStore();
 
   if (isLoading || !gathering) {
     return (
@@ -54,6 +58,10 @@ export default function GatheringDetailPage() {
     currentPage * ITEMS_PER_PAGE + ITEMS_PER_PAGE
   );
 
+  const isHost =
+    myUserId === String(gathering.host.id) ||
+    myUserId === `usr_${gathering.host.id}`;
+
   return (
     <div className={styles.container}>
       {/* 헤더 */}
@@ -66,30 +74,32 @@ export default function GatheringDetailPage() {
             <h1 className={styles.headerTitle}>GangKU 🎓</h1>
           </div>
 
-          <div className={styles.menuWrapper}>
-            <button
-              className={styles.moreButton}
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <MoreVertical size={24} />
-            </button>
+          {isHost && (
+            <div className={styles.menuWrapper}>
+              <button
+                className={styles.moreButton}
+                onClick={() => setMenuOpen(!menuOpen)}
+              >
+                <MoreVertical size={24} />
+              </button>
 
-            {menuOpen && (
-              <>
-                <div className={styles.menuBackdrop} onClick={() => setMenuOpen(false)} />
-                <div className={styles.menuPopup}>
-                  <button className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-                    <Edit size={16} />
-                    모임 수정
-                  </button>
-                  <button className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={() => { setMenuOpen(false); setShowDeleteModal(true); }}>
-                    <Trash2 size={16} />
-                    모임 삭제
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+              {menuOpen && (
+                <>
+                  <div className={styles.menuBackdrop} onClick={() => setMenuOpen(false)} />
+                  <div className={styles.menuPopup}>
+                    <button className={styles.menuItem} onClick={() => { setMenuOpen(false); router.push(`/gathering/${gatheringId}/edit`); }}>
+                      <Edit size={16} />
+                      모임 수정
+                    </button>
+                    <button className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={() => { setMenuOpen(false); setShowDeleteModal(true); }}>
+                      <Trash2 size={16} />
+                      모임 삭제
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -209,8 +219,12 @@ export default function GatheringDetailPage() {
           </div>
         )}
 
-        {/* 참여 / 참여 취소 버튼 */}
-        {gathering.joined ? (
+        {/* 참여 / 참여 취소 / 모임 종료 버튼 */}
+        {isHost ? (
+          <button className={styles.joinButton} onClick={() => setShowFinishModal(true)}>
+            모임 종료
+          </button>
+        ) : gathering.joined ? (
           <button className={styles.joinButton} onClick={() => setShowCancelJoinModal(true)}>
             참여 취소하기
           </button>
@@ -246,6 +260,19 @@ export default function GatheringDetailPage() {
         title="모임 참여를 취소하시겠습니까?"
         confirmText="취소하기"
         description="참여 취소 시 다시 신청해야 합니다."
+      />
+      <ConfirmModal
+        isOpen={showFinishModal}
+        onClose={() => setShowFinishModal(false)}
+        onConfirm={async () => {
+          await finishGathering(gatheringId);
+          queryClient.invalidateQueries({ queryKey: ['gathering', gatheringId] });
+          setShowFinishModal(false);
+          router.push('/home'); // 예시로 종료 후 홈으로 이동
+        }}
+        title="모임을 종료하시겠습니까?"
+        confirmText="종료하기"
+        description="모임이 종료되면 더 이상 참가할 수 없습니다."
       />
       <ConfirmModal
         isOpen={showDeleteModal}

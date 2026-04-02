@@ -46,8 +46,6 @@ export default function ProfilePage() {
     router.push(`/profile/${userId}/edit`);
   }, [router, userId]);
 
-  if (isLoading) return null;
-
   if (error) {
     return (
       <div className={styles.container}>

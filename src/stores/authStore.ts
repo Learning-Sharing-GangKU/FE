@@ -22,11 +22,10 @@ export function getUserIdFromToken(token?: string | null): string | null {
         .join('')
     );
     const decoded = JSON.parse(jsonStr);
-    console.log('🔥🔥 [DEBUG] JWT Token payload:', decoded);
 
     let sub = decoded?.sub || decoded?.userId || decoded?.id || decoded?.memberId;
     if (!sub) return null;
-    
+
     // 강제로 문자열 캐싱
     sub = String(sub);
 

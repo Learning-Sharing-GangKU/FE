@@ -1,17 +1,19 @@
 "use client";
 
-import React from 'react';
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from "next/navigation";
-import styles from "./edit.module.css";
+import { X, Calendar, Sparkles } from 'lucide-react';
+import styles from "../../create/create.module.css"; // 🔥 생성 페이지 CSS 재사용
+import TopNav from '@/components/TopNav';
+import BottomNav from '@/components/BottomNav';
 import { getAccessToken } from "@/lib/auth";
 import CategorySelectModal from "@/components/CategorySelectModal";
 import AiIntroModal from '@/components/gathering/AiIntroModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 import { useUpdateGathering } from '@/hooks/gathering/useUpdateGathering';
 import { useAiIntro } from '@/hooks/useAiIntro';
 import { useImageUpload } from '@/hooks/useImageUpload';
-
 
 export default function GatheringEditPage() {
     const [selectedCategoryList, setSelectedCategoryList] = useState<string[]>([]);
@@ -19,7 +21,8 @@ export default function GatheringEditPage() {
 
     const [error, setError] = useState<string | null>(null);
     const [showAiModal, setShowAiModal] = useState(false);
-    const [toast, setToast] = React.useState<string | null>(null);
+    const [showEditConfirm, setShowEditConfirm] = useState(false);
+    const [toast, setToast] = useState<string | null>(null);
 
     const { mutate: updateGathering, isPending: isUpdating } = useUpdateGathering();
     const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
@@ -31,32 +34,26 @@ export default function GatheringEditPage() {
     const token = getAccessToken();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [original, setOriginal] = useState<any>(null); // 🔥 원본 데이터 저장
+    const [original, setOriginal] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    // 입력값 상태
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [category, setCategory] = useState("");
-    const [location, setLocation] = useState("");
-    const [capacity, setCapacity] = useState(1);
+    const [capacity, setCapacity] = useState("");
     const [date, setDate] = useState("");
+    const [location, setLocation] = useState("");
     const [openChatUrl, setOpenChatUrl] = useState("");
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageObjectKey, setImageObjectKey] = useState<string | null>(null);
 
     const [failedMessage, setFailedMessage] = useState<string | null>(null);
-    // ==================================================
-    // 1) GET — 기존 정보 불러오기
-    // ==================================================
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const res = await fetch(
                     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/gatherings/${gatheringId}`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
+                    { headers: { Authorization: `Bearer ${token}` } }
                 );
 
                 const json = await res.json();
@@ -65,93 +62,72 @@ export default function GatheringEditPage() {
                     return;
                 }
 
-                setOriginal(json); // 🔥 원본 저장
-
-                // 입력값에 반영
+                setOriginal(json);
                 setTitle(json.title);
                 setDescription(json.description);
-                setCategory(json.category);
                 setLocation(json.location);
-                setCapacity(json.capacity);
+                setCapacity(String(json.capacity));
                 setOpenChatUrl(json.openChatUrl);
-                setImageUrl(json.gatheringImageUrl);
+                setImagePreview(json.gatheringImageUrl);
                 setImageObjectKey(json.gatheringImageObjectKey);
 
                 if (json.category) {
                     setSelectedCategoryList([json.category]);
                 }
-                // date → datetime-local 포맷으로 변환
                 const local = new Date(json.date);
                 setDate(local.toISOString().slice(0, 16));
             } finally {
                 setLoading(false);
             }
         };
-
         fetchData();
-    }, [gatheringId]);
+    }, [gatheringId, token]);
 
-    // ==================================================
-    // 2) 이미지 업로드 (현재는 preview용)
-    // ==================================================
-    const onChangeImage = (e: any) => {
-        const file = e.target.files[0];
+    const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
         if (!file) return;
-
-        setImageUrl(URL.createObjectURL(file));
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result as string);
+        reader.readAsDataURL(file);
         uploadImage(file, {
             onSuccess: ({ objectKey }) => setImageObjectKey(objectKey),
         });
     };
 
-    // ==================================================
-    // 3) PATCH — 변경된 내용만 보내기
-    // ==================================================
+    const handleRemoveImage = () => {
+        setImagePreview(null);
+        setImageObjectKey(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
     const handleSave = async () => {
+        setShowEditConfirm(false);
         if (!original) return;
 
-        // 🔥 프론트단 필수값 검사
-        if (!title.trim()) {
-            setFailedMessage("모임 이름을 입력해주세요.");
-            return;
-        }
-        if (!category) {
-            setFailedMessage("카테고리를 선택해주세요.");
-            return;
-        }
-        if (!location.trim()) {
-            setFailedMessage("장소를 입력해주세요.");
-            return;
-        }
-        if (!date) {
-            setFailedMessage("날짜를 선택해주세요.");
-            return;
-        }
-        if (!capacity || capacity < 1) {
-            setFailedMessage("최대 인원은 1명 이상이어야 합니다.");
-            return;
-        }
-        if (!original) return;
+        if (!title.trim()) return setFailedMessage("모임 이름을 입력해주세요.");
+        if (selectedCategoryList.length === 0) return setFailedMessage("카테고리를 선택해주세요.");
+        if (!location.trim()) return setFailedMessage("장소를 입력해주세요.");
+        if (!date) return setFailedMessage("날짜를 선택해주세요.");
+        if (!capacity || Number(capacity) < 1) return setFailedMessage("최대 인원은 1명 이상이어야 합니다.");
 
-        const updated: any = {}; // 🔥 바뀐 항목만 담는 객체
-
-        // 변경 감지(diff)
+        const updated: any = {};
         if (original.title !== title) updated.title = title;
         if (original.description !== description) updated.description = description;
-        if (original.category !== category) updated.category = category;
+        if (original.category !== selectedCategoryList[0]) updated.category = selectedCategoryList[0];
         if (original.location !== location) updated.location = location;
-        if (original.capacity !== capacity) updated.capacity = capacity;
+        if (original.capacity !== Number(capacity)) updated.capacity = Number(capacity);
 
-        const utcDate = new Date(date).toISOString();
-        if (original.date !== utcDate) updated.date = utcDate;
+        let formattedDate = date;
+        if (formattedDate.length === 16) formattedDate = `${formattedDate}:00`;
+        if (original.date !== formattedDate) updated.date = formattedDate;
 
         if (original.openChatUrl !== openChatUrl) updated.openChatUrl = openChatUrl;
 
+        // 이미지 처리 로직
         if (imageObjectKey && original.gatheringImageObjectKey !== imageObjectKey) {
             updated.gatheringImageObjectKey = imageObjectKey;
         }
 
-        // 변경된 게 없으면 PATCH 안 보냄
         if (Object.keys(updated).length === 0) {
             setToast("변경된 내용이 없습니다.");
             return;
@@ -162,223 +138,250 @@ export default function GatheringEditPage() {
             {
                 onSuccess: () => {
                     setToast("수정 완료!");
-                    setTimeout(() => router.push(`/gathering/${gatheringId}`), 500);
+                    router.push(`/gathering/${gatheringId}`);
                 },
                 onError: () => setToast("수정에 실패했습니다."),
             }
         );
     };
 
-    if (loading) return <div>로딩중...</div>;
-
-    // -------------------------------
-    // ⭐ AI 모임 설명 자동 생성
-    // -------------------------------
-
-    const handleAIGenerateDescription = () => {
-        if (!title || !category || !capacity || !date || !location) {
-            setError("모든 기본 정보를 먼저 입력해주세요.");
+    const handleOpenAiModal = () => {
+        if (!title.trim() || selectedCategoryList.length === 0 || !capacity || Number(capacity) < 1 || !date || !location.trim()) {
+            setFailedMessage('AI 설명을 생성하기 전에 메인 정보를 모두 입력해주세요.');
             return;
         }
-        setShowAiModal(true); // 🔥 모달 열기
+        setShowAiModal(true);
     };
 
-    const handleSubmitAiIntro = (keywords: string) => {
+    const handleAiSubmit = (keywordsStr: string) => {
+        const keywords = keywordsStr.split(',').map(k => k.trim()).filter(Boolean);
         setShowAiModal(false);
+        
+        let formattedDate = date;
+        if (formattedDate.length === 16) formattedDate = `${formattedDate}:00`;
+
         generateIntro(
             {
                 title,
-                category,
-                capacity,
-                date: new Date(date).toISOString(),
+                category: selectedCategoryList[0],
+                capacity: Number(capacity),
+                date: formattedDate,
                 location,
-                keywords: keywords.split(",").map(k => k.trim()),
+                keywords,
             },
             {
                 onSuccess: (data) => setDescription(data.intro),
-                onError: () => setError("AI 요청 중 오류가 발생했습니다."),
+                onError: () => setFailedMessage("AI 요청 중 오류가 발생했습니다."),
             }
         );
     };
 
+    if (loading) return <div className={styles.container} style={{ padding: "100px", textAlign: "center" }}>로딩중...</div>;
+
     return (
         <div className={styles.container}>
-            {toast && <div className={styles.toast}>{toast}</div>}
+            <TopNav />
 
-            {/* 제목 */}
-            <div className={styles.headerContainer}>
-                <div className={styles.headerDetail}>
-                    <button aria-label="뒤로" className={styles.backButton} onClick={() => router.back()}>
-                        ←
-                    </button>
-                </div>
+            {toast && <div style={{position: 'fixed', top: 60, left: 0, width: '100%', textAlign: 'center', background: '#4CAF50', color: '#fff', padding: '10px', zIndex: 1000}}>{toast}</div>}
+
+            <main className={styles.main}>
                 <h1 className={styles.title}>모임 수정</h1>
-            </div>
-            {/* ===========================
-          이미지 업로드
-      ============================ */}
-            <div className={styles.label}>모임 이미지 (선택사항)</div>
-            <div className={styles.imageUploadSection}>
-                <button
-                    className={styles.imageUploadButton}
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    이미지 업로드
-                </button>
 
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    style={{ display: "none" }}
-                    onChange={onChangeImage}
-                />
-
-                {imageUrl && (
-                    <div className={styles.imagePreview}>
-                        <img src={imageUrl} alt="미리보기" />
+                <form className={styles.form} onSubmit={(e) => { e.preventDefault(); setShowEditConfirm(true); }}>
+                    {/* 모임 이름 */}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>모임 이름</label>
+                        <input
+                            type="text"
+                            placeholder="모임 이름을 입력하세요"
+                            className={styles.input}
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
                     </div>
-                )}
-            </div>
 
-            {/* ===========================
-          모임 이름
-      ============================ */}
-            <div className={styles.label}>모임 이름</div>
-            <input
-                className={styles.input}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="모임 이름을 입력하세요"
-            />
+                    {/* 모임 이미지 */}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>모임 이미지 (선택사항)</label>
+                        <div className={styles.imageSection}>
+                            {imagePreview && (
+                                <div className={styles.imagePreview}>
+                                    <img src={imagePreview} alt="모임 미리보기" className={styles.previewImg} />
+                                    <button
+                                        type="button"
+                                        className={styles.removeImageButton}
+                                        onClick={handleRemoveImage}
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            )}
+                            <input
+                                ref={fileInputRef}
+                                id="meeting-image"
+                                type="file"
+                                accept="image/*"
+                                hidden
+                                onChange={handleImagePreview}
+                            />
+                            <button
+                                type="button"
+                                className={styles.uploadButton}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {imagePreview ? '이미지 변경' : '이미지 업로드'}
+                            </button>
+                        </div>
+                    </div>
 
-            {/* 카테고리 선택 */}
-            <div className={styles.categorySection}>
-                <label className={styles.label}>카테고리</label>
-                <button className={styles.verifyButton} onClick={() => setIsCategoryModalOpen(true)}>
-                    {selectedCategoryList.length > 0
-                        ? `카테고리 선택 (${selectedCategoryList.length}/1)`
-                        : '카테고리 선택'}
-                </button>
+                    {/* 카테고리 */}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>모임 카테고리</label>
+                        <button
+                            type="button"
+                            className={styles.categoryButton}
+                            onClick={() => setIsCategoryModalOpen(true)}
+                        >
+                            {selectedCategoryList.length > 0
+                                ? `카테고리 선택 (${selectedCategoryList.length}/1)`
+                                : '모임 카테고리 선택'}
+                        </button>
+                        {selectedCategoryList.length > 0 && (
+                            <div className={styles.selectedTags}>
+                                {selectedCategoryList.map((cat) => (
+                                    <div key={cat} className={styles.tag}>
+                                        <span>{cat}</span>
+                                        <button
+                                            type="button"
+                                            className={styles.tagRemove}
+                                            onClick={() => setSelectedCategoryList([])}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
-                {selectedCategoryList.length > 0 && (
-                    <div className={styles.selectedTags}>
-                        {selectedCategoryList.map((cat) => (
-                            <div key={cat} className={styles.tag}>
-                                <span>{cat}</span>
+                    {/* 최대 인원 */}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>모임 최대인원</label>
+                        <input
+                            type="number"
+                            min="1"
+                            placeholder="최대 인원을 입력하세요"
+                            className={styles.input}
+                            value={capacity}
+                            onChange={(e) => setCapacity(e.target.value)}
+                        />
+                    </div>
+
+                    {/* 날짜 */}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>모임 날짜</label>
+                        <div className={styles.dateRow}>
+                            <input
+                                type="datetime-local"
+                                className={styles.input}
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                            />
+                            <Calendar size={20} className={styles.calendarIcon} />
+                        </div>
+                    </div>
+
+                    {/* 장소 */}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>모임 장소</label>
+                        <input
+                            type="text"
+                            placeholder="장소를 입력하세요"
+                            className={styles.input}
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                        />
+                    </div>
+
+                    {/* 오픈채팅방 링크 */}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>모임 오픈채팅방 링크</label>
+                        <input
+                            type="url"
+                            placeholder="https://open.kakao.com/..."
+                            className={styles.input}
+                            value={openChatUrl}
+                            onChange={(e) => setOpenChatUrl(e.target.value)}
+                        />
+                        <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
+                    </div>
+
+                    {/* 모임 설명 */}
+                    <div className={styles.fieldGroup}>
+                        <div className={styles.descriptionHeader}>
+                            <label className={styles.label}>모임 설명</label>
+                            <div className={styles.aiRow}>
+                                <span className={styles.aiHint}>모임 설명을 자동으로 적어드릴까요?</span>
                                 <button
-                                    className={styles.tagRemove}
-                                    onClick={() => {
-                                        setSelectedCategoryList(prev => prev.filter(c => c !== cat));
-                                        setCategory('');
-                                    }}
+                                    type="button"
+                                    className={styles.aiButton}
+                                    onClick={handleOpenAiModal}
+                                    disabled={isGenerating}
                                 >
-                                    ×
+                                    <Sparkles size={14} />
+                                    {isGenerating ? '생성 중...' : 'AI 자동생성'}
                                 </button>
                             </div>
-                        ))}
+                        </div>
+                        <textarea
+                            placeholder="모임에 대한 설명을 입력하세요"
+                            className={styles.textarea}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
                     </div>
-                )}
 
-                {isCategoryModalOpen && (
-                    <CategorySelectModal
-                        mode="group"
-                        initialSelected={selectedCategoryList}
-                        onConfirm={(selected) => {
-                            setSelectedCategoryList(selected);
-                            setCategory(selected[0] || '');
-                            setIsCategoryModalOpen(false);
-                        }}
-                        onClose={() => setIsCategoryModalOpen(false)}
-                    />
-                )}
-            </div>
+                    {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
 
-            <div className={styles.label}>최대 인원</div>
-            <input
-                className={styles.input}
-                type="number"
-                min={1}
-                value={capacity}
-                onChange={(e) => setCapacity(Number(e.target.value))}
-            />
-
-            {/* ===========================
-                        날짜
-            ============================ */}
-            <div className={styles.label}>날짜</div>
-            <input
-                className={styles.input}
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-            />
-
-            {/* ===========================
-                        장소
-            ============================ */}
-            <div className={styles.label}>장소</div>
-            <input
-                className={styles.input}
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="장소를 입력하세요"
-            />
-
-            {/* ===========================
-                    오픈채팅 링크
-            ============================ */}
-            <div className={styles.label}>오픈채팅 링크</div>
-            <input
-                className={styles.input}
-                value={openChatUrl}
-                onChange={(e) => setOpenChatUrl(e.target.value)}
-                placeholder="https:// 로 시작하는 링크"
-            />
-
-            {/* 모임 설명 */}
-            <div className={styles.descriptionSection}>
-                <div className={styles.descriptionHeader}>
-                    <label className={styles.label}>모임 설명</label>
-
-                    <button
-                        className={styles.aiGenerateButton}
-                        onClick={handleAIGenerateDescription}
-                    >
-                        AI 자동생성
+                    {/* 제출 */}
+                    <button type="submit" className={styles.submitButton} disabled={isUpdating}>
+                        {isUpdating ? '수정 중...' : '수정 완료'}
                     </button>
-                </div>
+                </form>
+            </main>
 
-                <textarea
-                    className={styles.textarea}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+            <BottomNav />
+
+            {isCategoryModalOpen && (
+                <CategorySelectModal
+                    mode="group"
+                    initialSelected={selectedCategoryList}
+                    onConfirm={(cats) => { setSelectedCategoryList(cats); setIsCategoryModalOpen(false); }}
+                    onClose={() => setIsCategoryModalOpen(false)}
                 />
-            </div>
+            )}
 
-            {error && <div className={styles.error}>{error}</div>}
-
-
-            {/* ===========================
-                    저장 버튼
-            ============================ */}
-            <button className={styles.submitButton} onClick={handleSave} disabled={isUpdating || isGenerating}>
-                {isUpdating ? '수정 중...' : isGenerating ? 'AI 생성 중...' : '수정 완료'}
-            </button>
             {showAiModal && (
                 <AiIntroModal
                     onClose={() => setShowAiModal(false)}
-                    onSubmit={handleSubmitAiIntro}
+                    onSubmit={handleAiSubmit}
                 />
             )}
+
+            <ConfirmModal
+                isOpen={showEditConfirm}
+                onClose={() => setShowEditConfirm(false)}
+                onConfirm={handleSave}
+                title="모임을 수정하시겠습니까?"
+                confirmText="수정하기"
+            />
+
             {failedMessage && (
                 <GatheringFailedModal
                     message={failedMessage}
                     onClose={() => setFailedMessage(null)}
                 />
             )}
-
         </div>
     );
-
-
 }
