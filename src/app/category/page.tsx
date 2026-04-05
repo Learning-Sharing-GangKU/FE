@@ -23,7 +23,6 @@ export default function CategoryPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // TODO: src/hooks에서 데이터 및 필터 핸들러 주입 예정
-   // TODO: src/hooks에서 데이터 및 필터 핸들러 주입 예정
   const { data, isLoading, isError, error } = useGatheringList({
   category: selectedCategories[0],
   page: 1,
