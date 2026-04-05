@@ -10,12 +10,11 @@ type Props = {
   profile: UserProfile;
   isMine: boolean;
   onProfileEdit: () => void;
-  onLogout: () => void;
+  onWithdraw: () => void;
 };
 
-export default function ProfileSection({ profile, isMine, onProfileEdit, onLogout }: Props) {
+export default function ProfileSection({ profile, isMine, onProfileEdit, onWithdraw }: Props) {
   const [showMenu, setShowMenu] = useState(false);
-
   return (
     <div className={styles.profileCard}>
       <div className={styles.profileRow}>
@@ -65,10 +64,10 @@ export default function ProfileSection({ profile, isMine, onProfileEdit, onLogou
                       </button>
                       <button
                         className={`${styles.menuItem} ${styles.menuItemRed}`}
-                        onClick={() => { setShowMenu(false); onLogout(); }}
+                        onClick={() => { setShowMenu(false); onWithdraw(); }}
                       >
                         회원탈퇴
-                      </button>
+                      </button> 
                     </div>
                   </>
                 )}

@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import styles from './login.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
-import AuthRequiredModal from '@/components/AuthRequiredModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
 import { useLogin } from '@/hooks/auth/useLogin';
@@ -89,9 +88,14 @@ export default function LoginPage() {
       </main>
       <BottomNav />
 
-      <AuthRequiredModal
+      <ConfirmModal
         isOpen={showUnauthorizedModal}
         onClose={() => setShowUnauthorizedModal(false)}
+        onConfirm={() => setShowUnauthorizedModal(false)}
+        title="로그인이 필요합니다"
+        description="해당 페이지는 로그인 후 이용할 수 있습니다."
+        confirmText="확인"
+        cancelText={false}
       />
 
       <ConfirmModal

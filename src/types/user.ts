@@ -60,7 +60,7 @@ export interface UserProfile {
   gender: 'MALE' | 'FEMALE' | 'OTHER' | 'UNDISCLOSED';
   enrollNumber: number;
   preferredCategories: string[];
-  reviewsPublic: boolean;
+  reviewPublic: boolean;
   rating: number;
   reviewCount: number;
   reviews: ReviewItem[];

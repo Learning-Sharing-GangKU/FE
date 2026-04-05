@@ -27,8 +27,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
     gender: raw?.gender ?? 'MALE',
     enrollNumber: raw?.enrollNumber ?? 0,
     preferredCategories,
-    reviewsPublic: raw?.reviewsPublic ?? true,
-    rating: raw?.reviewsRating ?? 0,
+    reviewPublic: raw?.reviewPublic ?? true,
+    rating: raw?.averageRating ?? 0,
     reviewCount: raw?.reviewCount ?? 0,
     reviews: reviewsData.map((r: any) => ({
       id: r.id,

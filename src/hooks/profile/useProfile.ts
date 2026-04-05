@@ -10,6 +10,7 @@ export function useProfile(userId: string | null) {
     queryKey: ['profile', userId],
     queryFn: () => getUserProfile(userId!),
     enabled: !!userId,
+    staleTime: 3 * 60 * 1000,
   });
 
   const loadMoreReviews = useCallback(async () => {

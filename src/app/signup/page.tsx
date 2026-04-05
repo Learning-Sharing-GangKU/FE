@@ -10,6 +10,57 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useSignup, useSendEmailVerification, useConfirmEmailVerification } from '@/hooks/auth/useSignup';
 import { useImageUpload } from '@/hooks/useImageUpload';
 
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,20}$/;
+
+function validate(fields: {
+  emailId: string;
+  emailVerified: boolean;
+  password: string;
+  passwordConfirm: string;
+  nickname: string;
+  age: string;
+  gender: string;
+  enrollNumber: string;
+  selectedCategories: string[];
+}) {
+  const errors: Record<string, string> = {};
+
+  if (!fields.emailId) {
+    errors.email = '이메일을 입력해주세요.';
+  } else if (!fields.emailVerified) {
+    errors.email = '이메일 인증을 완료해주세요.';
+  }
+
+  if (!fields.password) {
+    errors.password = '비밀번호를 입력해주세요.';
+  } else if (!PASSWORD_REGEX.test(fields.password)) {
+    errors.password = '비밀번호는 8자 이상, 영문 대/소문자, 숫자, 특수문자를 포함해야 합니다.';
+  }
+
+  if (!fields.passwordConfirm) {
+    errors.passwordConfirm = '비밀번호 확인을 입력해주세요.';
+  } else if (fields.password !== fields.passwordConfirm) {
+    errors.passwordConfirm = '비밀번호 확인이 일치하지 않습니다.';
+  }
+
+  if (!fields.nickname) {
+    errors.nickname = '닉네임을 입력해주세요.';
+  } else if (!NICKNAME_REGEX.test(fields.nickname)) {
+    errors.nickname = '닉네임은 한글, 영문, 숫자만 가능하며 2~20자여야 합니다.';
+  }
+
+  if (!fields.age) errors.age = '나이를 선택해주세요.';
+  if (!fields.gender) errors.gender = '성별을 선택해주세요.';
+  if (!fields.enrollNumber) errors.enrollNumber = '학번을 선택해주세요.';
+
+  if (fields.selectedCategories.length > 3) {
+    errors.categories = '관심 카테고리는 최대 3개까지 선택할 수 있습니다.';
+  }
+
+  return errors;
+}
+
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
@@ -21,18 +72,31 @@ export default function SignupPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailStatusText, setEmailStatusText] = useState('');
+  const [nicknameStatusText, setNicknameStatusText] = useState('');
 
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [nickname, setNickname] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [enrollNumber, setEnrollNumber] = useState('');
 
-  const { mutate: signupMutate, isPending } = useSignup();
-  const { mutate: sendVerification, isPending: isSending } = useSendEmailVerification();
+  // 사용자가 한 번이라도 입력한 필드만 에러 표시
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const { mutate: signupMutate, isPending, errorCode: signupErrorCode, reset: resetSignup } = useSignup();
+  const { mutate: sendVerification, isPending: isSending, errorCode: emailSendErrorCode, reset: resetEmailSend } = useSendEmailVerification();
   const { mutate: uploadImage } = useImageUpload();
   const { mutate: confirmVerification, isPending: isConfirming } = useConfirmEmailVerification();
+
+  const isEmailDuplicate = emailSendErrorCode === 'EMAIL_ALREADY_EXISTS';
+
+  const fields = { emailId, emailVerified: emailVerified && !isEmailDuplicate, password, passwordConfirm, nickname, age, gender, enrollNumber, selectedCategories };
+  const errors = validate(fields);
+  const isFormValid = Object.keys(errors).length === 0;
+
+  const touch = (field: string) => setTouched((prev) => ({ ...prev, [field]: true }));
 
   const handleSendEmail = () => {
     sendVerification(`${emailId}@konkuk.ac.kr`, {
@@ -40,11 +104,15 @@ export default function SignupPage() {
         setEmailSent(true);
         setEmailStatusText('메일 발송이 완료되었습니다. 이메일 링크를 클릭하시면 인증이 완료됩니다.');
       },
-      onError: (error) => {
-        setEmailStatusText(`메일 발송에 실패했습니다. (${error.message})`);
+      onError: (error: any) => {
+        const msg = error?.code === 'EMAIL_ALREADY_EXISTS'
+          ? '이미 가입된 이메일입니다.'
+          : `메일 발송에 실패했습니다. (${error.message})`;
+        setEmailStatusText(msg);
       },
     });
   };
+
   const handleConfirmEmail = () => {
     confirmVerification(undefined, {
       onSuccess: () => {
@@ -68,6 +136,13 @@ export default function SignupPage() {
     });
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const submitErrors = validate(fields);
+    if (Object.keys(submitErrors).length > 0) return;
+    setShowSignupConfirm(true);
+  };
+
   return (
     <div className={styles.container}>
       <TopNav />
@@ -75,7 +150,7 @@ export default function SignupPage() {
       <main className={styles.main}>
         <h2 className={styles.title}>회원가입</h2>
 
-        <form className={styles.form} onSubmit={(e) => { e.preventDefault(); setShowSignupConfirm(true); }}>
+        <form className={styles.form} onSubmit={handleSubmit}>
           {/* 이메일 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>이메일</label>
@@ -90,7 +165,9 @@ export default function SignupPage() {
                   setEmailSent(false);
                   setEmailVerified(false);
                   setEmailStatusText('');
+                  resetEmailSend();
                 }}
+                onBlur={() => touch('email')}
               />
               <span className={styles.emailDomain}>@konkuk.ac.kr</span>
               <button
@@ -114,9 +191,10 @@ export default function SignupPage() {
               </button>
             )}
             {emailStatusText && (
-              <p className={styles.emailVerifiedText}>
-                {emailStatusText}
-              </p>
+              <p className={styles.emailVerifiedText}>{emailStatusText}</p>
+            )}
+            {touched.email && errors.email && !isEmailDuplicate && !emailStatusText && (
+              <p className={styles.errorText}>{errors.email}</p>
             )}
           </div>
 
@@ -130,6 +208,7 @@ export default function SignupPage() {
                 className={styles.input}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => touch('password')}
               />
               <button
                 type="button"
@@ -140,6 +219,9 @@ export default function SignupPage() {
               </button>
             </div>
             <p className={styles.hint}>영대소문자, 숫자, 특수문자를 포함하여 8자 이상 입력해주세요</p>
+            {touched.password && errors.password && (
+              <p className={styles.errorText}>{errors.password}</p>
+            )}
           </div>
 
           {/* 비밀번호 확인 */}
@@ -150,6 +232,9 @@ export default function SignupPage() {
                 type={showPasswordConfirm ? 'text' : 'password'}
                 placeholder="비밀번호 확인"
                 className={styles.input}
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                onBlur={() => touch('passwordConfirm')}
               />
               <button
                 type="button"
@@ -159,6 +244,9 @@ export default function SignupPage() {
                 {showPasswordConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+            {touched.passwordConfirm && errors.passwordConfirm && (
+              <p className={styles.errorText}>{errors.passwordConfirm}</p>
+            )}
           </div>
 
           {/* 프로필 이미지 */}
@@ -201,32 +289,56 @@ export default function SignupPage() {
           <div className={styles.grid2}>
             <div className={styles.fieldGroup}>
               <label className={styles.label}>나이</label>
-              <select className={styles.select} value={age} onChange={(e) => setAge(e.target.value)}>
+              <select
+                className={styles.select}
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                onBlur={() => touch('age')}
+              >
                 <option value="">나이</option>
                 {Array.from({ length: 87 }, (_, i) => i + 14).map((v) => (
                   <option key={v} value={v}>{v}세</option>
                 ))}
               </select>
+              {touched.age && errors.age && (
+                <p className={styles.errorText}>{errors.age}</p>
+              )}
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label}>성별</label>
-              <select className={styles.select} value={gender} onChange={(e) => setGender(e.target.value)}>
+              <select
+                className={styles.select}
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                onBlur={() => touch('gender')}
+              >
                 <option value="">성별</option>
                 <option value="MALE">남성</option>
                 <option value="FEMALE">여성</option>
               </select>
+              {touched.gender && errors.gender && (
+                <p className={styles.errorText}>{errors.gender}</p>
+              )}
             </div>
           </div>
 
           {/* 학번 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>학번</label>
-            <select className={styles.select} value={enrollNumber} onChange={(e) => setEnrollNumber(e.target.value)}>
+            <select
+              className={styles.select}
+              value={enrollNumber}
+              onChange={(e) => setEnrollNumber(e.target.value)}
+              onBlur={() => touch('enrollNumber')}
+            >
               <option value="">학번</option>
               {Array.from({ length: 20 }, (_, i) => 10 + i).map((v) => (
                 <option key={v} value={v}>{v}학번</option>
               ))}
             </select>
+            {touched.enrollNumber && errors.enrollNumber && (
+              <p className={styles.errorText}>{errors.enrollNumber}</p>
+            )}
           </div>
 
           {/* 닉네임 */}
@@ -237,8 +349,15 @@ export default function SignupPage() {
               placeholder="닉네임"
               className={styles.input}
               value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              onChange={(e) => { setNickname(e.target.value); setNicknameStatusText(''); resetSignup(); }}
+              onBlur={() => touch('nickname')}
             />
+            {touched.nickname && errors.nickname && !nicknameStatusText && (
+              <p className={styles.errorText}>{errors.nickname}</p>
+            )}
+            {nicknameStatusText && (
+              <p className={styles.errorText}>{nicknameStatusText}</p>
+            )}
           </div>
 
           {/* 선호 카테고리 */}
@@ -268,10 +387,13 @@ export default function SignupPage() {
                 ))}
               </div>
             )}
+            {errors.categories && (
+              <p className={styles.errorText}>{errors.categories}</p>
+            )}
           </div>
 
           {/* 제출 */}
-          <button type="submit" className={styles.submitButton} disabled={isPending || !emailVerified}>
+          <button type="submit" className={styles.submitButton} disabled={isPending || !isFormValid}>
             {isPending ? '처리 중...' : '회원가입 완료'}
           </button>
         </form>
@@ -293,16 +415,25 @@ export default function SignupPage() {
         onClose={() => setShowSignupConfirm(false)}
         onConfirm={() => {
           setShowSignupConfirm(false);
-          signupMutate({
-            email: `${emailId}@konkuk.ac.kr`,
-            password,
-            nickname,
-            age: Number(age),
-            gender: gender as 'MALE' | 'FEMALE',
-            enrollNumber: Number(enrollNumber),
-            preferredCategories: selectedCategories,
-            ...(profileImageObjectKey && { profileImageObjectKey }),
-          });
+          signupMutate(
+            {
+              email: `${emailId}@konkuk.ac.kr`,
+              password,
+              nickname,
+              age: Number(age),
+              gender: gender as 'MALE' | 'FEMALE',
+              enrollNumber: Number(enrollNumber),
+              preferredCategories: selectedCategories,
+              ...(profileImageObjectKey && { profileImageObjectKey }),
+            },
+            {
+              onError: (error: any) => {
+                if (error?.code === 'NICKNAME_ALREADY_EXISTS') {
+                  setNicknameStatusText('이미 사용 중인 닉네임입니다.');
+                }
+              },
+            }
+          );
         }}
         title="회원 가입을 완료하시겠습니까?"
         confirmText="가입하기"

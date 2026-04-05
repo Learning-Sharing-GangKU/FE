@@ -13,6 +13,34 @@ import { useImageUpload } from '@/hooks/useImageUpload';
 import { useToast } from '@/hooks/useToast';
 import type { UpdateProfilePayload } from '@/types/user';
 
+const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,20}$/;
+
+function validate(fields: {
+  nickname: string;
+  age: string;
+  gender: string;
+  enrollNumber: string;
+  selectedCategories: string[];
+}) {
+  const errors: Record<string, string> = {};
+
+  if (!fields.nickname) {
+    errors.nickname = '닉네임을 입력해주세요.';
+  } else if (!NICKNAME_REGEX.test(fields.nickname)) {
+    errors.nickname = '닉네임은 한글, 영문, 숫자만 가능하며 2~20자여야 합니다.';
+  }
+
+  if (!fields.age) errors.age = '나이를 선택해주세요.';
+  if (!fields.gender) errors.gender = '성별을 선택해주세요.';
+  if (!fields.enrollNumber) errors.enrollNumber = '학번을 선택해주세요.';
+
+  if (fields.selectedCategories.length > 3) {
+    errors.categories = '관심 카테고리는 최대 3개까지 선택할 수 있습니다.';
+  }
+
+  return errors;
+}
+
 export default function ProfileEditPage() {
   const { userId } = useParams<{ userId: string }>();
   const router = useRouter();
@@ -30,6 +58,10 @@ export default function ProfileEditPage() {
   const [gender, setGender] = useState('');
   const [enrollNumber, setEnrollNumber] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [nicknameStatusText, setNicknameStatusText] = useState('');
+
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (field: string) => setTouched((prev) => ({ ...prev, [field]: true }));
 
   // 프로필 데이터 로드 후 폼 초기값 세팅
   useEffect(() => {
@@ -42,6 +74,8 @@ export default function ProfileEditPage() {
     setProfileImagePreview(profile.profileImageUrl ?? null);
   }, [profile]);
 
+  const fields = { nickname, age, gender, enrollNumber, selectedCategories };
+  const errors = validate(fields);
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -56,6 +90,12 @@ export default function ProfileEditPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
+
+    const submitErrors = validate(fields);
+    if (Object.keys(submitErrors).length > 0) {
+      setTouched({ nickname: true, age: true, gender: true, enrollNumber: true });
+      return;
+    }
 
     const payload: UpdateProfilePayload = {};
 
@@ -74,7 +114,13 @@ export default function ProfileEditPage() {
 
     updateProfile(payload, {
       onSuccess: () => router.push(`/profile/${userId}`),
-      onError: () => showToast('수정에 실패했습니다.'),
+      onError: (error: any) => {
+        if (error?.code === 'NICKNAME_ALREADY_EXISTS') {
+          setNicknameStatusText('이미 사용 중인 닉네임입니다.');
+        } else {
+          showToast('수정에 실패했습니다.');
+        }
+      },
     });
   };
 
@@ -155,32 +201,56 @@ export default function ProfileEditPage() {
           <div className={styles.grid2}>
             <div className={styles.fieldGroup}>
               <label className={styles.label}>나이</label>
-              <select className={styles.select} value={age} onChange={(e) => setAge(e.target.value)}>
+              <select
+                className={styles.select}
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                onBlur={() => touch('age')}
+              >
                 <option value="">나이</option>
                 {Array.from({ length: 87 }, (_, i) => i + 14).map((v) => (
                   <option key={v} value={v}>{v}세</option>
                 ))}
               </select>
+              {touched.age && errors.age && (
+                <p className={styles.errorText}>{errors.age}</p>
+              )}
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.label}>성별</label>
-              <select className={styles.select} value={gender} onChange={(e) => setGender(e.target.value)}>
+              <select
+                className={styles.select}
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                onBlur={() => touch('gender')}
+              >
                 <option value="">성별</option>
                 <option value="MALE">남성</option>
                 <option value="FEMALE">여성</option>
               </select>
+              {touched.gender && errors.gender && (
+                <p className={styles.errorText}>{errors.gender}</p>
+              )}
             </div>
           </div>
 
           {/* 학번 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>학번</label>
-            <select className={styles.select} value={enrollNumber} onChange={(e) => setEnrollNumber(e.target.value)}>
+            <select
+              className={styles.select}
+              value={enrollNumber}
+              onChange={(e) => setEnrollNumber(e.target.value)}
+              onBlur={() => touch('enrollNumber')}
+            >
               <option value="">학번</option>
               {Array.from({ length: 20 }, (_, i) => 10 + i).map((v) => (
                 <option key={v} value={v}>{v}학번</option>
               ))}
             </select>
+            {touched.enrollNumber && errors.enrollNumber && (
+              <p className={styles.errorText}>{errors.enrollNumber}</p>
+            )}
           </div>
 
           {/* 닉네임 */}
@@ -191,8 +261,15 @@ export default function ProfileEditPage() {
               placeholder="닉네임"
               className={styles.input}
               value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              onChange={(e) => { setNickname(e.target.value); setNicknameStatusText(''); }}
+              onBlur={() => touch('nickname')}
             />
+            {touched.nickname && errors.nickname && !nicknameStatusText && (
+              <p className={styles.errorText}>{errors.nickname}</p>
+            )}
+            {nicknameStatusText && (
+              <p className={styles.errorText}>{nicknameStatusText}</p>
+            )}
           </div>
 
           {/* 선호 카테고리 */}
@@ -221,6 +298,9 @@ export default function ProfileEditPage() {
                   </div>
                 ))}
               </div>
+            )}
+            {errors.categories && (
+              <p className={styles.errorText}>{errors.categories}</p>
             )}
           </div>
 

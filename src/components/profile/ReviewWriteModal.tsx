@@ -27,9 +27,8 @@ export default function ReviewWriteModal({ targetUser, onClose, onSubmit }: Revi
   };
 
   const handleConfirm = () => {
-    onSubmit(rating, content);
     setShowConfirm(false);
-    onClose();
+    onSubmit(rating, content);
   };
 
   return (

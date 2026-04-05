@@ -6,19 +6,27 @@ import type { SignupRequest } from '@/types/auth';
 /** 회원가입 */
 export function useSignup() {
   const router = useRouter();
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (data: SignupRequest) => signup(data),
-    onSuccess: () => {
-      router.push('/login');
-    },
+    onSuccess: () => router.push('/login'),
   });
+
+  return {
+    ...mutation,
+    errorCode: (mutation.error as any)?.code as string | undefined,
+  };
 }
 
 /** 이메일 인증 발송 */
 export function useSendEmailVerification() {
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (email: string) => sendEmailVerification(email),
   });
+
+  return {
+    ...mutation,
+    errorCode: (mutation.error as any)?.code as string | undefined,
+  };
 }
 
 /** 이메일 인증 확인 */
