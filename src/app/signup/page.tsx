@@ -7,139 +7,53 @@ import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import ConfirmModal from '@/components/ConfirmModal';
-import { useSignup, useSendEmailVerification, useConfirmEmailVerification } from '@/hooks/auth/useSignup';
-import { useImageUpload } from '@/hooks/useImageUpload';
-
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,20}$/;
-
-function validate(fields: {
-  emailId: string;
-  emailVerified: boolean;
-  password: string;
-  passwordConfirm: string;
-  nickname: string;
-  age: string;
-  gender: string;
-  enrollNumber: string;
-  selectedCategories: string[];
-}) {
-  const errors: Record<string, string> = {};
-
-  if (!fields.emailId) {
-    errors.email = '이메일을 입력해주세요.';
-  } else if (!fields.emailVerified) {
-    errors.email = '이메일 인증을 완료해주세요.';
-  }
-
-  if (!fields.password) {
-    errors.password = '비밀번호를 입력해주세요.';
-  } else if (!PASSWORD_REGEX.test(fields.password)) {
-    errors.password = '비밀번호는 8자 이상, 영문 대/소문자, 숫자, 특수문자를 포함해야 합니다.';
-  }
-
-  if (!fields.passwordConfirm) {
-    errors.passwordConfirm = '비밀번호 확인을 입력해주세요.';
-  } else if (fields.password !== fields.passwordConfirm) {
-    errors.passwordConfirm = '비밀번호 확인이 일치하지 않습니다.';
-  }
-
-  if (!fields.nickname) {
-    errors.nickname = '닉네임을 입력해주세요.';
-  } else if (!NICKNAME_REGEX.test(fields.nickname)) {
-    errors.nickname = '닉네임은 한글, 영문, 숫자만 가능하며 2~20자여야 합니다.';
-  }
-
-  if (!fields.age) errors.age = '나이를 선택해주세요.';
-  if (!fields.gender) errors.gender = '성별을 선택해주세요.';
-  if (!fields.enrollNumber) errors.enrollNumber = '학번을 선택해주세요.';
-
-  if (fields.selectedCategories.length > 3) {
-    errors.categories = '관심 카테고리는 최대 3개까지 선택할 수 있습니다.';
-  }
-
-  return errors;
-}
+import { useSignupForm } from '@/hooks/auth/useSignupForm';
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
-  const [profileImageObjectKey, setProfileImageObjectKey] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [emailStatusText, setEmailStatusText] = useState('');
-  const [nicknameStatusText, setNicknameStatusText] = useState('');
 
-  const [emailId, setEmailId] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [enrollNumber, setEnrollNumber] = useState('');
-
-  // 사용자가 한 번이라도 입력한 필드만 에러 표시
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  const { mutate: signupMutate, isPending, errorCode: signupErrorCode, reset: resetSignup } = useSignup();
-  const { mutate: sendVerification, isPending: isSending, errorCode: emailSendErrorCode, reset: resetEmailSend } = useSendEmailVerification();
-  const { mutate: uploadImage } = useImageUpload();
-  const { mutate: confirmVerification, isPending: isConfirming } = useConfirmEmailVerification();
-
-  const isEmailDuplicate = emailSendErrorCode === 'EMAIL_ALREADY_EXISTS';
-
-  const fields = { emailId, emailVerified: emailVerified && !isEmailDuplicate, password, passwordConfirm, nickname, age, gender, enrollNumber, selectedCategories };
-  const errors = validate(fields);
-  const isFormValid = Object.keys(errors).length === 0;
-
-  const touch = (field: string) => setTouched((prev) => ({ ...prev, [field]: true }));
-
-  const handleSendEmail = () => {
-    sendVerification(`${emailId}@konkuk.ac.kr`, {
-      onSuccess: () => {
-        setEmailSent(true);
-        setEmailStatusText('메일 발송이 완료되었습니다. 이메일 링크를 클릭하시면 인증이 완료됩니다.');
-      },
-      onError: (error: any) => {
-        const msg = error?.code === 'EMAIL_ALREADY_EXISTS'
-          ? '이미 가입된 이메일입니다.'
-          : `메일 발송에 실패했습니다. (${error.message})`;
-        setEmailStatusText(msg);
-      },
-    });
-  };
-
-  const handleConfirmEmail = () => {
-    confirmVerification(undefined, {
-      onSuccess: () => {
-        setEmailVerified(true);
-        setEmailStatusText('이메일 인증이 완료되었습니다. ✅');
-      },
-      onError: () => {
-        setEmailStatusText('이메일 인증을 완료해주세요. 링크를 클릭한 후 다시 시도해주세요.');
-      },
-    });
-  };
-
-  const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setProfileImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
-    uploadImage(file, {
-      onSuccess: ({ objectKey }) => setProfileImageObjectKey(objectKey),
-    });
-  };
+  const {
+    emailId,
+    password,
+    passwordConfirm,
+    nickname,
+    age,
+    gender,
+    enrollNumber,
+    selectedCategories,
+    setSelectedCategories,
+    setPassword,
+    setPasswordConfirm,
+    setAge,
+    setGender,
+    setEnrollNumber,
+    emailSent,
+    emailVerified,
+    emailStatusText,
+    isEmailDuplicate,
+    nicknameStatusText,
+    errors,
+    isFormValid,
+    touched,
+    touch,
+    isPending,
+    isSending,
+    isConfirming,
+    handleEmailIdChange,
+    handleNicknameChange,
+    handleSendEmail,
+    handleConfirmEmail,
+    handleImageUpload,
+    handleConfirmSignup,
+  } = useSignupForm();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const submitErrors = validate(fields);
-    if (Object.keys(submitErrors).length > 0) return;
+    if (!isFormValid) return;
     setShowSignupConfirm(true);
   };
 
@@ -160,13 +74,7 @@ export default function SignupPage() {
                 placeholder="이메일을 입력하세요"
                 className={styles.input}
                 value={emailId}
-                onChange={(e) => {
-                  setEmailId(e.target.value);
-                  setEmailSent(false);
-                  setEmailVerified(false);
-                  setEmailStatusText('');
-                  resetEmailSend();
-                }}
+                onChange={(e) => handleEmailIdChange(e.target.value)}
                 onBlur={() => touch('email')}
               />
               <span className={styles.emailDomain}>@konkuk.ac.kr</span>
@@ -275,7 +183,10 @@ export default function SignupPage() {
                   type="file"
                   accept="image/*"
                   hidden
-                  onChange={handleImagePreview}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file, setProfileImagePreview);
+                  }}
                 />
               </div>
               <div className={styles.profileHint}>
@@ -349,7 +260,7 @@ export default function SignupPage() {
               placeholder="닉네임"
               className={styles.input}
               value={nickname}
-              onChange={(e) => { setNickname(e.target.value); setNicknameStatusText(''); resetSignup(); }}
+              onChange={(e) => handleNicknameChange(e.target.value)}
               onBlur={() => touch('nickname')}
             />
             {touched.nickname && errors.nickname && !nicknameStatusText && (
@@ -415,25 +326,7 @@ export default function SignupPage() {
         onClose={() => setShowSignupConfirm(false)}
         onConfirm={() => {
           setShowSignupConfirm(false);
-          signupMutate(
-            {
-              email: `${emailId}@konkuk.ac.kr`,
-              password,
-              nickname,
-              age: Number(age),
-              gender: gender as 'MALE' | 'FEMALE',
-              enrollNumber: Number(enrollNumber),
-              preferredCategories: selectedCategories,
-              ...(profileImageObjectKey && { profileImageObjectKey }),
-            },
-            {
-              onError: (error: any) => {
-                if (error?.code === 'NICKNAME_ALREADY_EXISTS') {
-                  setNicknameStatusText('이미 사용 중인 닉네임입니다.');
-                }
-              },
-            }
-          );
+          handleConfirmSignup();
         }}
         title="회원 가입을 완료하시겠습니까?"
         confirmText="가입하기"

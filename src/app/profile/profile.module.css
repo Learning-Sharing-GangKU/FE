@@ -206,6 +206,40 @@
   background-color: #374151;
 }
 
+/* 비공개 리뷰 */
+.reviewsHidden {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.reviewsHiddenIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.reviewsHiddenTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.reviewsHiddenDesc {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
 /* 토스트 */
 .toastMessage {
   position: fixed;

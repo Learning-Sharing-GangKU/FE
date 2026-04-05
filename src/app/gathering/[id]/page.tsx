@@ -20,9 +20,9 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
 import { useDeleteGathering } from '@/hooks/gathering/useDeleteGathering';
+import { useJoinGathering } from '@/hooks/gathering/useJoinGathering';
+import { useLeaveGathering } from '@/hooks/gathering/useLeaveGathering';
 import ProfileAvatar from '@/components/ProfileAvatar';
-import { useQueryClient } from '@tanstack/react-query';
-import { joinGathering, exitGathering } from '@/api/gathering';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -30,9 +30,10 @@ export default function GatheringDetailPage() {
   const params = useParams();
   const router = useRouter();
   const gatheringId = params.id as string;
-  const queryClient = useQueryClient();
   const { data: gathering, isLoading } = useGatheringDetail(gatheringId);
   const { mutate: deleteGathering } = useDeleteGathering();
+  const { mutate: joinMutate } = useJoinGathering(gatheringId);
+  const { mutate: leaveMutate } = useLeaveGathering(gatheringId);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -226,10 +227,8 @@ export default function GatheringDetailPage() {
       <ConfirmModal
         isOpen={showJoinModal}
         onClose={() => setShowJoinModal(false)}
-        onConfirm={async () => {
-          await joinGathering(gatheringId);
-          queryClient.invalidateQueries({ queryKey: ['gathering', gatheringId] });
-          setShowJoinModal(false);
+        onConfirm={() => {
+          joinMutate(undefined, { onSuccess: () => setShowJoinModal(false) });
         }}
         title="모임에 참여하시겠습니까?"
         confirmText="참여하기"
@@ -238,10 +237,8 @@ export default function GatheringDetailPage() {
       <ConfirmModal
         isOpen={showCancelJoinModal}
         onClose={() => setShowCancelJoinModal(false)}
-        onConfirm={async () => {
-          await exitGathering(gatheringId);
-          queryClient.invalidateQueries({ queryKey: ['gathering', gatheringId] });
-          setShowCancelJoinModal(false);
+        onConfirm={() => {
+          leaveMutate(undefined, { onSuccess: () => setShowCancelJoinModal(false) });
         }}
         title="모임 참여를 취소하시겠습니까?"
         confirmText="취소하기"
