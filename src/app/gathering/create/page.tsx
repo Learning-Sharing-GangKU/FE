@@ -2,7 +2,10 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Calendar, Sparkles } from 'lucide-react';
+
 import styles from './create.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
@@ -12,27 +15,42 @@ import AiIntroModal from '@/components/gathering/AiIntroModal';
 import { useCreateGathering } from '@/hooks/gathering/useCreateGathering';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useAiIntro } from '@/hooks/useAiIntro';
+import { useToast } from '@/hooks/useToast';
+import { gatheringSchema, GatheringFormData } from '@/schemas/gatheringSchema';
 
 export default function CreateGatheringPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const { mutate: createGathering, isPending } = useCreateGathering();
   const { mutate: uploadImage } = useImageUpload();
   const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
+  const { toast, showToast } = useToast(3000);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageObjectKey, setImageObjectKey] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [selectedCategoryList, setSelectedCategoryList] = useState<string[]>([]);
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+  
+  // 제출 예정 폼 데이터 임시 보관
+  const [pendingData, setPendingData] = useState<GatheringFormData | null>(null);
 
-  const [title, setTitle] = useState('');
-  const [capacity, setCapacity] = useState('');
-  const [date, setDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [openChatUrl, setOpenChatUrl] = useState('');
-  const [description, setDescription] = useState('');
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    getValues,
+    formState: { errors },
+  } = useForm<GatheringFormData>({
+    resolver: zodResolver(gatheringSchema),
+    defaultValues: {
+      category: '',
+      gatheringImageObjectKey: null,
+    },
+  });
+
+  const selectedCategory = watch('category');
 
   const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,24 +59,56 @@ export default function CreateGatheringPage() {
     reader.onloadend = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
     uploadImage(file, {
-      onSuccess: ({ objectKey }) => setImageObjectKey(objectKey),
+      onSuccess: ({ objectKey }) => setValue('gatheringImageObjectKey', objectKey),
+      onError: () => showToast('이미지 업로드에 실패했습니다.'),
     });
   };
 
   const handleRemoveImage = () => {
     setImagePreview(null);
+    setValue('gatheringImageObjectKey', null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const normalizeDate = (d: string) => {
+    if (!d) return '';
     if (d.length === 16) return `${d}:00`;  // HH:mm → HH:mm:ss
     if (d.length === 19) return d;
     return d;
   };
 
+  const onValidSubmit = (data: GatheringFormData) => {
+    setPendingData(data);
+    setShowCreateConfirm(true);
+  };
+
+  const handleCreateConfirm = () => {
+    if (!pendingData) return;
+    setShowCreateConfirm(false);
+    
+    const apiData: any = {
+      ...pendingData,
+      date: normalizeDate(pendingData.date),
+    };
+    if (!apiData.gatheringImageObjectKey) {
+      delete apiData.gatheringImageObjectKey;
+    }
+
+    createGathering(apiData, {
+      onSuccess: (resData) => {
+        router.push(`/gathering/${resData.id}`);
+      },
+      onError: (err: any) => {
+        const errorMsg = err.message || '알 수 없는 오류가 발생했습니다.';
+        showToast(`모임 생성 실패: ${errorMsg}`);
+      },
+    });
+  };
+
   const handleOpenAiModal = () => {
-    if (!title.trim() || selectedCategoryList.length === 0 || !capacity || Number(capacity) < 1 || !date || !location.trim()) {
-      alert('AI 설명을 생성하기 전에 모임 이름, 카테고리, 인원, 날짜, 장소를 먼저 입력해주세요.');
+    const { title, date, location, capacity } = getValues();
+    if (!title?.trim() || !selectedCategory || !capacity || capacity < 1 || !date || !location?.trim()) {
+      showToast('AI 설명을 생성하기 전에 모임 이름, 카테고리, 인원, 날짜, 장소를 먼저 입력해주세요.');
       return;
     }
     setShowAiModal(true);
@@ -67,20 +117,25 @@ export default function CreateGatheringPage() {
   const handleAiSubmit = (keywordsStr: string) => {
     const keywords = keywordsStr.split(',').map((k) => k.trim()).filter(Boolean);
     setShowAiModal(false);
+    
+    const { title, date, location, capacity } = getValues();
+    
     generateIntro(
       {
         title,
-        category: selectedCategoryList[0] ?? '',
+        category: selectedCategory,
         capacity: Number(capacity),
         date: normalizeDate(date),
         location,
         keywords,
       },
       {
-        onSuccess: (data) => setDescription(data.intro),
+        onSuccess: (data) => {
+          setValue('description', data.intro, { shouldDirty: true, shouldValidate: true });
+        },
         onError: (error) => {
           console.error('AI 생성 오류:', error);
-          alert('AI 모임 설명 생성 중 오류가 발생했습니다. 입력값을 확인하거나 잠시 후 다시 시도해주세요.');
+          showToast('AI 모임 설명 생성 중 오류가 발생했습니다.');
         }
       }
     );
@@ -89,21 +144,22 @@ export default function CreateGatheringPage() {
   return (
     <div className={styles.container}>
       <TopNav />
+      {toast && <div className={styles.toastMessage}>{toast}</div>}
 
       <main className={styles.main}>
         <h1 className={styles.title}>모임 생성</h1>
 
-        <form className={styles.form} onSubmit={(e) => { e.preventDefault(); setShowCreateConfirm(true); }}>
+        <form className={styles.form} onSubmit={handleSubmit(onValidSubmit)} noValidate>
           {/* 모임 이름 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>모임 이름</label>
             <input
               type="text"
               placeholder="모임 이름을 입력하세요"
-              className={styles.input}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              className={`${styles.input} ${errors.title ? styles.inputError : ''}`}
+              {...register('title')}
             />
+            {errors.title && <p className={styles.errorText}>{errors.title.message}</p>}
           </div>
 
           {/* 모임 이미지 */}
@@ -138,6 +194,7 @@ export default function CreateGatheringPage() {
                 {imagePreview ? '이미지 변경' : '이미지 업로드'}
               </button>
             </div>
+            <input type="hidden" {...register('gatheringImageObjectKey')} />
           </div>
 
           {/* 카테고리 */}
@@ -145,29 +202,28 @@ export default function CreateGatheringPage() {
             <label className={styles.label}>모임 카테고리</label>
             <button
               type="button"
-              className={styles.categoryButton}
+              className={`${styles.categoryButton} ${errors.category ? styles.inputError : ''}`}
               onClick={() => setIsCategoryModalOpen(true)}
             >
-              {selectedCategoryList.length > 0
-                ? `카테고리 선택 (${selectedCategoryList.length}/1)`
+              {selectedCategory
+                ? `카테고리 선택 (1/1)`
                 : '모임 카테고리 선택'}
             </button>
-            {selectedCategoryList.length > 0 && (
+            {selectedCategory && (
               <div className={styles.selectedTags}>
-                {selectedCategoryList.map((cat) => (
-                  <div key={cat} className={styles.tag}>
-                    <span>{cat}</span>
-                    <button
-                      type="button"
-                      className={styles.tagRemove}
-                      onClick={() => setSelectedCategoryList([])}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                <div className={styles.tag}>
+                  <span>{selectedCategory}</span>
+                  <button
+                    type="button"
+                    className={styles.tagRemove}
+                    onClick={() => setValue('category', '', { shouldValidate: true })}
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
             )}
+            {errors.category && <p className={styles.errorText}>{errors.category.message}</p>}
           </div>
 
           {/* 최대 인원 */}
@@ -177,10 +233,10 @@ export default function CreateGatheringPage() {
               type="number"
               min="1"
               placeholder="최대 인원을 입력하세요"
-              className={styles.input}
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
+              className={`${styles.input} ${errors.capacity ? styles.inputError : ''}`}
+              {...register('capacity', { valueAsNumber: true })}
             />
+            {errors.capacity && <p className={styles.errorText}>{errors.capacity.message}</p>}
           </div>
 
           {/* 날짜 */}
@@ -189,12 +245,12 @@ export default function CreateGatheringPage() {
             <div className={styles.dateRow}>
               <input
                 type="datetime-local"
-                className={styles.input}
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                className={`${styles.input} ${errors.date ? styles.inputError : ''}`}
+                {...register('date')}
               />
               <Calendar size={20} className={styles.calendarIcon} />
             </div>
+            {errors.date && <p className={styles.errorText}>{errors.date.message}</p>}
           </div>
 
           {/* 장소 */}
@@ -203,10 +259,10 @@ export default function CreateGatheringPage() {
             <input
               type="text"
               placeholder="장소를 입력하세요"
-              className={styles.input}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              className={`${styles.input} ${errors.location ? styles.inputError : ''}`}
+              {...register('location')}
             />
+            {errors.location && <p className={styles.errorText}>{errors.location.message}</p>}
           </div>
 
           {/* 오픈채팅방 링크 */}
@@ -215,11 +271,14 @@ export default function CreateGatheringPage() {
             <input
               type="url"
               placeholder="https://open.kakao.com/..."
-              className={styles.input}
-              value={openChatUrl}
-              onChange={(e) => setOpenChatUrl(e.target.value)}
+              className={`${styles.input} ${errors.openChatUrl ? styles.inputError : ''}`}
+              {...register('openChatUrl')}
             />
-            <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
+            {errors.openChatUrl ? (
+              <p className={styles.errorText}>{errors.openChatUrl.message}</p>
+            ) : (
+              <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
+            )}
           </div>
 
           {/* 모임 설명 */}
@@ -231,7 +290,7 @@ export default function CreateGatheringPage() {
                 <button
                   type="button"
                   className={styles.aiButton}
-              onClick={handleOpenAiModal}
+                  onClick={handleOpenAiModal}
                   disabled={isGenerating}
                 >
                   <Sparkles size={14} />
@@ -241,10 +300,10 @@ export default function CreateGatheringPage() {
             </div>
             <textarea
               placeholder="모임에 대한 설명을 입력하세요"
-              className={styles.textarea}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              className={`${styles.textarea} ${errors.description ? styles.inputError : ''}`}
+              {...register('description')}
             />
+            {errors.description && <p className={styles.errorText}>{errors.description.message}</p>}
           </div>
 
           {/* 제출 */}
@@ -259,8 +318,11 @@ export default function CreateGatheringPage() {
       {isCategoryModalOpen && (
         <CategorySelectModal
           mode="group"
-          initialSelected={selectedCategoryList}
-          onConfirm={(cats) => setSelectedCategoryList(cats)}
+          initialSelected={selectedCategory ? [selectedCategory] : []}
+          onConfirm={(cats) => {
+            setValue('category', cats[0] || '', { shouldValidate: true });
+            setIsCategoryModalOpen(false);
+          }}
           onClose={() => setIsCategoryModalOpen(false)}
         />
       )}
@@ -275,22 +337,7 @@ export default function CreateGatheringPage() {
       <ConfirmModal
         isOpen={showCreateConfirm}
         onClose={() => setShowCreateConfirm(false)}
-        onConfirm={() => {
-          setShowCreateConfirm(false);
-          createGathering(
-            {
-              title,
-              category: selectedCategoryList[0],
-              capacity: Number(capacity),
-              date: normalizeDate(date),
-              location,
-              openChatUrl,
-              description,
-              ...(imageObjectKey && { gatheringImageObjectKey: imageObjectKey }),
-            },
-            { onSuccess: (data) => router.push(`/gathering/${data.id}`) }
-          );
-        }}
+        onConfirm={handleCreateConfirm}
         title="모임을 생성하시겠습니까?"
         confirmText="생성하기"
       />

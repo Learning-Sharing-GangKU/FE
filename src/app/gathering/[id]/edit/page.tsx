@@ -2,8 +2,11 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from "next/navigation";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Calendar, Sparkles } from 'lucide-react';
-import styles from "../../create/create.module.css"; // 🔥 생성 페이지 CSS 재사용
+
+import styles from "../../create/create.module.css";
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
 import { getAccessToken } from "@/lib/auth";
@@ -14,39 +17,45 @@ import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 import { useUpdateGathering } from '@/hooks/gathering/useUpdateGathering';
 import { useAiIntro } from '@/hooks/useAiIntro';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useToast } from '@/hooks/useToast';
+import { gatheringSchema, GatheringFormData } from '@/schemas/gatheringSchema';
 
 export default function GatheringEditPage() {
-    const [selectedCategoryList, setSelectedCategoryList] = useState<string[]>([]);
-    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-
-    const [error, setError] = useState<string | null>(null);
-    const [showAiModal, setShowAiModal] = useState(false);
-    const [showEditConfirm, setShowEditConfirm] = useState(false);
-    const [toast, setToast] = useState<string | null>(null);
+    const params = useParams();
+    const router = useRouter();
+    const gatheringId = params.id as string;
+    const token = getAccessToken();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { mutate: updateGathering, isPending: isUpdating } = useUpdateGathering();
     const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
     const { mutate: uploadImage } = useImageUpload();
-    const params = useParams();
-    const router = useRouter();
-    const gatheringId = params.id as string;
+    const { toast, showToast } = useToast(3000);
 
-    const token = getAccessToken();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const [original, setOriginal] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [capacity, setCapacity] = useState("");
-    const [date, setDate] = useState("");
-    const [location, setLocation] = useState("");
-    const [openChatUrl, setOpenChatUrl] = useState("");
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [showEditConfirm, setShowEditConfirm] = useState(false);
+    
+    // UI Preview
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [imageObjectKey, setImageObjectKey] = useState<string | null>(null);
-
+    const [loading, setLoading] = useState(true);
+    
+    // Fallback error modal
     const [failedMessage, setFailedMessage] = useState<string | null>(null);
+
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        getValues,
+        watch,
+        reset,
+        formState: { errors, dirtyFields },
+    } = useForm<GatheringFormData>({
+        resolver: zodResolver(gatheringSchema),
+    });
+
+    const selectedCategory = watch('category');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -58,30 +67,34 @@ export default function GatheringEditPage() {
 
                 const json = await res.json();
                 if (!res.ok) {
-                    setToast("모임 정보를 불러오지 못했습니다.");
+                    showToast("모임 정보를 불러오지 못했습니다.");
                     return;
                 }
 
-                setOriginal(json);
-                setTitle(json.title);
-                setDescription(json.description);
-                setLocation(json.location);
-                setCapacity(String(json.capacity));
-                setOpenChatUrl(json.openChatUrl);
-                setImagePreview(json.gatheringImageUrl);
-                setImageObjectKey(json.gatheringImageObjectKey);
-
-                if (json.category) {
-                    setSelectedCategoryList([json.category]);
+                let localDateStr = "";
+                if (json.date) {
+                    const local = new Date(json.date);
+                    localDateStr = local.toISOString().slice(0, 16);
                 }
-                const local = new Date(json.date);
-                setDate(local.toISOString().slice(0, 16));
+
+                reset({
+                    title: json.title,
+                    description: json.description,
+                    capacity: json.capacity,
+                    date: localDateStr,
+                    location: json.location,
+                    openChatUrl: json.openChatUrl,
+                    category: json.category,
+                    gatheringImageObjectKey: json.gatheringImageObjectKey,
+                });
+
+                setImagePreview(json.gatheringImageUrl);
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
-    }, [gatheringId, token]);
+    }, [gatheringId, token, reset, showToast]);
 
     const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -89,47 +102,44 @@ export default function GatheringEditPage() {
         const reader = new FileReader();
         reader.onloadend = () => setImagePreview(reader.result as string);
         reader.readAsDataURL(file);
+        
         uploadImage(file, {
-            onSuccess: ({ objectKey }) => setImageObjectKey(objectKey),
+            onSuccess: ({ objectKey }) => {
+                setValue('gatheringImageObjectKey', objectKey, { shouldDirty: true, shouldValidate: true });
+            },
+            onError: () => showToast("이미지 업로드에 실패했습니다."),
         });
     };
 
     const handleRemoveImage = () => {
         setImagePreview(null);
-        setImageObjectKey(null);
+        setValue('gatheringImageObjectKey', null, { shouldDirty: true, shouldValidate: true });
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const handleSave = async () => {
+    const normalizeDate = (d: string) => {
+        if (!d) return '';
+        if (d.length === 16) return `${d}:00`;  
+        if (d.length === 19) return d;
+        return d;
+    };
+
+    const handleSave = () => {
         setShowEditConfirm(false);
-        if (!original) return;
-
-        if (!title.trim()) return setFailedMessage("모임 이름을 입력해주세요.");
-        if (selectedCategoryList.length === 0) return setFailedMessage("카테고리를 선택해주세요.");
-        if (!location.trim()) return setFailedMessage("장소를 입력해주세요.");
-        if (!date) return setFailedMessage("날짜를 선택해주세요.");
-        if (!capacity || Number(capacity) < 1) return setFailedMessage("최대 인원은 1명 이상이어야 합니다.");
-
+        const submitData = getValues();
         const updated: any = {};
-        if (original.title !== title) updated.title = title;
-        if (original.description !== description) updated.description = description;
-        if (original.category !== selectedCategoryList[0]) updated.category = selectedCategoryList[0];
-        if (original.location !== location) updated.location = location;
-        if (original.capacity !== Number(capacity)) updated.capacity = Number(capacity);
 
-        let formattedDate = date;
-        if (formattedDate.length === 16) formattedDate = `${formattedDate}:00`;
-        if (original.date !== formattedDate) updated.date = formattedDate;
+        for (const key in dirtyFields) {
+            const fieldKey = key as keyof GatheringFormData;
+            updated[fieldKey] = submitData[fieldKey];
+        }
 
-        if (original.openChatUrl !== openChatUrl) updated.openChatUrl = openChatUrl;
-
-        // 이미지 처리 로직
-        if (imageObjectKey && original.gatheringImageObjectKey !== imageObjectKey) {
-            updated.gatheringImageObjectKey = imageObjectKey;
+        if (updated.date) {
+            updated.date = normalizeDate(updated.date);
         }
 
         if (Object.keys(updated).length === 0) {
-            setToast("변경된 내용이 없습니다.");
+            showToast("변경된 내용이 없습니다.");
             return;
         }
 
@@ -137,17 +147,24 @@ export default function GatheringEditPage() {
             { gatheringId, data: updated },
             {
                 onSuccess: () => {
-                    setToast("수정 완료!");
                     router.push(`/gathering/${gatheringId}`);
                 },
-                onError: () => setToast("수정에 실패했습니다."),
+                onError: (err: any) => {
+                    const message = err.message || "수정에 실패했습니다.";
+                    showToast(`수정 실패: ${message}`);
+                },
             }
         );
     };
 
+    const onValidSubmit = () => {
+        setShowEditConfirm(true);
+    };
+
     const handleOpenAiModal = () => {
-        if (!title.trim() || selectedCategoryList.length === 0 || !capacity || Number(capacity) < 1 || !date || !location.trim()) {
-            setFailedMessage('AI 설명을 생성하기 전에 메인 정보를 모두 입력해주세요.');
+        const { title, date, location, capacity } = getValues();
+        if (!title?.trim() || !selectedCategory || !capacity || capacity < 1 || !date || !location?.trim()) {
+            showToast('AI 설명을 생성하기 전에 메인 정보를 모두 입력해주세요.');
             return;
         }
         setShowAiModal(true);
@@ -157,21 +174,22 @@ export default function GatheringEditPage() {
         const keywords = keywordsStr.split(',').map(k => k.trim()).filter(Boolean);
         setShowAiModal(false);
         
-        let formattedDate = date;
-        if (formattedDate.length === 16) formattedDate = `${formattedDate}:00`;
+        const { title, date, location, capacity } = getValues();
 
         generateIntro(
             {
                 title,
-                category: selectedCategoryList[0],
+                category: selectedCategory,
                 capacity: Number(capacity),
-                date: formattedDate,
+                date: normalizeDate(date),
                 location,
                 keywords,
             },
             {
-                onSuccess: (data) => setDescription(data.intro),
-                onError: () => setFailedMessage("AI 요청 중 오류가 발생했습니다."),
+                onSuccess: (data) => {
+                    setValue('description', data.intro, { shouldDirty: true, shouldValidate: true });
+                },
+                onError: () => showToast("AI 요청 중 오류가 발생했습니다."),
             }
         );
     };
@@ -182,22 +200,22 @@ export default function GatheringEditPage() {
         <div className={styles.container}>
             <TopNav />
 
-            {toast && <div style={{position: 'fixed', top: 60, left: 0, width: '100%', textAlign: 'center', background: '#4CAF50', color: '#fff', padding: '10px', zIndex: 1000}}>{toast}</div>}
+            {toast && <div style={{position: 'fixed', top: 60, left: 0, width: '100%', textAlign: 'center', background: '#e11d48', color: '#fff', padding: '10px', zIndex: 1000}}>{toast}</div>}
 
             <main className={styles.main}>
                 <h1 className={styles.title}>모임 수정</h1>
 
-                <form className={styles.form} onSubmit={(e) => { e.preventDefault(); setShowEditConfirm(true); }}>
+                <form className={styles.form} onSubmit={handleSubmit(onValidSubmit)} noValidate>
                     {/* 모임 이름 */}
                     <div className={styles.fieldGroup}>
                         <label className={styles.label}>모임 이름</label>
                         <input
                             type="text"
                             placeholder="모임 이름을 입력하세요"
-                            className={styles.input}
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            className={`${styles.input} ${errors.title ? styles.inputError : ''}`}
+                            {...register('title')}
                         />
+                        {errors.title && <p className={styles.errorText}>{errors.title.message}</p>}
                     </div>
 
                     {/* 모임 이미지 */}
@@ -232,6 +250,7 @@ export default function GatheringEditPage() {
                                 {imagePreview ? '이미지 변경' : '이미지 업로드'}
                             </button>
                         </div>
+                        <input type="hidden" {...register('gatheringImageObjectKey')} />
                     </div>
 
                     {/* 카테고리 */}
@@ -239,29 +258,28 @@ export default function GatheringEditPage() {
                         <label className={styles.label}>모임 카테고리</label>
                         <button
                             type="button"
-                            className={styles.categoryButton}
+                            className={`${styles.categoryButton} ${errors.category ? styles.inputError : ''}`}
                             onClick={() => setIsCategoryModalOpen(true)}
                         >
-                            {selectedCategoryList.length > 0
-                                ? `카테고리 선택 (${selectedCategoryList.length}/1)`
+                            {selectedCategory
+                                ? `카테고리 선택 (1/1)`
                                 : '모임 카테고리 선택'}
                         </button>
-                        {selectedCategoryList.length > 0 && (
+                        {selectedCategory && (
                             <div className={styles.selectedTags}>
-                                {selectedCategoryList.map((cat) => (
-                                    <div key={cat} className={styles.tag}>
-                                        <span>{cat}</span>
-                                        <button
-                                            type="button"
-                                            className={styles.tagRemove}
-                                            onClick={() => setSelectedCategoryList([])}
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
+                                <div className={styles.tag}>
+                                    <span>{selectedCategory}</span>
+                                    <button
+                                        type="button"
+                                        className={styles.tagRemove}
+                                        onClick={() => setValue('category', '', { shouldDirty: true, shouldValidate: true })}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
                             </div>
                         )}
+                        {errors.category && <p className={styles.errorText}>{errors.category.message}</p>}
                     </div>
 
                     {/* 최대 인원 */}
@@ -271,10 +289,10 @@ export default function GatheringEditPage() {
                             type="number"
                             min="1"
                             placeholder="최대 인원을 입력하세요"
-                            className={styles.input}
-                            value={capacity}
-                            onChange={(e) => setCapacity(e.target.value)}
+                            className={`${styles.input} ${errors.capacity ? styles.inputError : ''}`}
+                            {...register('capacity', { valueAsNumber: true })}
                         />
+                        {errors.capacity && <p className={styles.errorText}>{errors.capacity.message}</p>}
                     </div>
 
                     {/* 날짜 */}
@@ -283,12 +301,12 @@ export default function GatheringEditPage() {
                         <div className={styles.dateRow}>
                             <input
                                 type="datetime-local"
-                                className={styles.input}
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
+                                className={`${styles.input} ${errors.date ? styles.inputError : ''}`}
+                                {...register('date')}
                             />
                             <Calendar size={20} className={styles.calendarIcon} />
                         </div>
+                        {errors.date && <p className={styles.errorText}>{errors.date.message}</p>}
                     </div>
 
                     {/* 장소 */}
@@ -297,10 +315,10 @@ export default function GatheringEditPage() {
                         <input
                             type="text"
                             placeholder="장소를 입력하세요"
-                            className={styles.input}
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
+                            className={`${styles.input} ${errors.location ? styles.inputError : ''}`}
+                            {...register('location')}
                         />
+                        {errors.location && <p className={styles.errorText}>{errors.location.message}</p>}
                     </div>
 
                     {/* 오픈채팅방 링크 */}
@@ -309,11 +327,14 @@ export default function GatheringEditPage() {
                         <input
                             type="url"
                             placeholder="https://open.kakao.com/..."
-                            className={styles.input}
-                            value={openChatUrl}
-                            onChange={(e) => setOpenChatUrl(e.target.value)}
+                            className={`${styles.input} ${errors.openChatUrl ? styles.inputError : ''}`}
+                            {...register('openChatUrl')}
                         />
-                        <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
+                        {errors.openChatUrl ? (
+                            <p className={styles.errorText}>{errors.openChatUrl.message}</p>
+                        ) : (
+                            <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
+                        )}
                     </div>
 
                     {/* 모임 설명 */}
@@ -335,13 +356,11 @@ export default function GatheringEditPage() {
                         </div>
                         <textarea
                             placeholder="모임에 대한 설명을 입력하세요"
-                            className={styles.textarea}
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            className={`${styles.textarea} ${errors.description ? styles.inputError : ''}`}
+                            {...register('description')}
                         />
+                        {errors.description && <p className={styles.errorText}>{errors.description.message}</p>}
                     </div>
-
-                    {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
 
                     {/* 제출 */}
                     <button type="submit" className={styles.submitButton} disabled={isUpdating}>
@@ -355,8 +374,11 @@ export default function GatheringEditPage() {
             {isCategoryModalOpen && (
                 <CategorySelectModal
                     mode="group"
-                    initialSelected={selectedCategoryList}
-                    onConfirm={(cats) => { setSelectedCategoryList(cats); setIsCategoryModalOpen(false); }}
+                    initialSelected={selectedCategory ? [selectedCategory] : []}
+                    onConfirm={(cats) => { 
+                        setValue('category', cats[0] || '', { shouldDirty: true, shouldValidate: true }); 
+                        setIsCategoryModalOpen(false); 
+                    }}
                     onClose={() => setIsCategoryModalOpen(false)}
                 />
             )}
@@ -378,8 +400,8 @@ export default function GatheringEditPage() {
 
             {failedMessage && (
                 <GatheringFailedModal
-                    message={failedMessage}
                     onClose={() => setFailedMessage(null)}
+                    message={failedMessage}
                 />
             )}
         </div>

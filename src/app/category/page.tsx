@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import ListGatheringCard from '@/components/gathering/ListGatheringCard';
 import type { GatheringItem } from '@/types/gathering';
+import { useGatheringList } from '@/hooks/gathering/useGatheringList';
 
 const SORT_OPTIONS = [
   { value: 'popular', label: '인기순' },
@@ -22,7 +23,15 @@ export default function CategoryPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // TODO: src/hooks에서 데이터 및 필터 핸들러 주입 예정
-  const gatherings: GatheringItem[] = [];
+   // TODO: src/hooks에서 데이터 및 필터 핸들러 주입 예정
+  const { data, isLoading, isError, error } = useGatheringList({
+  category: selectedCategories[0],
+  page: 1,
+  size: 12,
+  sort,
+});
+
+const gatherings = data?.data ?? [];
 
   const currentSortLabel = SORT_OPTIONS.find((o) => o.value === sort)?.label ?? '인기순';
 
