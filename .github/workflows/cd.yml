@@ -15,7 +15,7 @@ env:
   S3_BUCKET: ${{ secrets.S3_BUCKET }}
   CODEDEPLOY_APP: ${{ secrets.CODEDEPLOY_APP }}
   CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
-  SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
+  PORT: ${{ secrets.PORT }}
   NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
 
@@ -83,7 +83,7 @@ jobs:
 
           echo "${{ secrets.PROD_ENV_FILE }}" > bundle/.env
           echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" >> bundle/.env
-          echo "SERVICE_PORT=${{ env.SERVICE_PORT }}" >> bundle/.env
+          echo "PORT=${{ env.PORT }}" >> bundle/.env
           echo "AWS_REGION=${{ env.AWS_REGION }}" >> bundle/.env
 
           ZIP_NAME="fe-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip"
