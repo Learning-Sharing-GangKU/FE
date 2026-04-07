@@ -1,9 +1,25 @@
-import ProfileClient from "./ProfileClient";
+// ✅ 서버 컴포넌트 — 쿠키 토큰으로 프로필 데이터 미리 fetch
+import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
+import { fetchUserProfileSSR } from '@/api/serverFetch';
+import { makeServerQueryClient } from '@/lib/serverQueryClient';
+import ProfileClient from './ProfileClient';
 
-export default async function Page({ params }: { params: Promise<{ userId: string }> }) {
+export default async function ProfilePage({
+  params,
+}: {
+  params: Promise<{ userId: string }>;
+}) {
   const { userId } = await params;
+  const queryClient: QueryClient = makeServerQueryClient();
 
-  console.log("🔥 [page.tsx] UNWRAPPED userId:", userId);
+  const profileData = await fetchUserProfileSSR(userId);
+  if (profileData) {
+    queryClient.setQueryData(['profile', userId], profileData);
+  }
 
-  return <ProfileClient userId={userId} />;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <ProfileClient />
+    </HydrationBoundary>
+  );
 }

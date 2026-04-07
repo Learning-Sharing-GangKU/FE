@@ -1,0 +1,264 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  position: relative;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 672px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.closeButton:hover {
+  background: #f3f4f6;
+}
+
+.body {
+  overflow-y: auto;
+  padding: 24px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 폼 필드 — signup과 동일한 스타일 */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #111;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profileCircle {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px dashed #d1d5db;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  background-color: #f3f4f6;
+  transition: border-color 0.15s;
+}
+
+.profileCircle:hover {
+  border-color: #3b82f6;
+}
+
+.profileImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.profileCircle:hover .profileOverlay {
+  opacity: 1;
+}
+
+.profilePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.profileHint {
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profileHint p {
+  margin: 0;
+}
+
+.profileHint p:last-child {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.select {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #111;
+  background-color: white;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: #3b82f6;
+}
+
+.actionButton {
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: #111827;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.actionButton:hover {
+  background-color: #374151;
+}
+
+.selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid #bfdbfe;
+}
+
+.tagRemove {
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2563eb;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.tagRemove:hover {
+  opacity: 1;
+  color: #dc2626;
+}
+
+.submitButton {
+  width: 100%;
+  height: 48px;
+  background-color: #111827;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.submitButton:hover {
+  background-color: #374151;
+}

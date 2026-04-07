@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(npm run *)",
+      "Read(.env)",
+      "Edit(./src/**)"
+    ],
+    "deny": [
+      "Bash(curl *)",
+      "Edit(.env.production)"
+    ]
+  },
+  "selectedModel": "opus"
+}

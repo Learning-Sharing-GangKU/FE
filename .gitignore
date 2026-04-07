@@ -5,6 +5,7 @@ node_modules/
 .next/
 out/
 dist/
+tsconfig.tsbuildinfo
 
 # debug / log
 npm-debug.log*
