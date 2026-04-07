@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { Info } from "lucide-react";
 import styles from "./AiIntroModal.module.css";
 
 interface AiIntroModalProps {
@@ -32,6 +33,11 @@ export default function AiIntroModal({
         />
 
         <p className={styles.helper}>키워드는 쉼표로 구분해주세요.</p>
+
+        <div className={styles.notice}>
+          <Info size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
+          <span>AI 생성에는 <strong>약 30초~1분 정도</strong> 소요될 수 있습니다. 진행 중에는 창을 닫지 말고 잠시만 기다려주세요!</span>
+        </div>
 
         <div className={styles.buttons}>
           <button type="button" className={styles.cancel} onClick={onClose}>
