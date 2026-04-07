@@ -136,8 +136,12 @@ export default function GatheringDetailClient() {
             <div className={styles.metaItem}>
               <Calendar size={16} className={styles.metaIcon} />
               <span>{new Date(gathering.date).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-              <span className={styles.dot}>·</span>
-              <span>호스트: {gathering.host.nickname}</span>
+              <Link 
+                href={`/profile/${String(gathering.host.id).startsWith('usr_') ? gathering.host.id : `usr_${gathering.host.id}`}`}
+                style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
+              >
+                호스트: {gathering.host.nickname}
+              </Link>
             </div>
           </div>
         </div>
@@ -171,16 +175,19 @@ export default function GatheringDetailClient() {
             </button>
 
             <div className={styles.participantGrid}>
-              {pageParticipants.map((p) => (
-                <Link href={`/profile/${p.userId}`} key={p.userId} className={styles.participantItem}>
-                  <ProfileAvatar
-                    profileImageUrl={p.profileImageUrl}
-                    nickname={p.nickname}
-                    size="sm"
-                  />
-                  <span className={styles.participantName}>{p.nickname}</span>
-                </Link>
-              ))}
+              {pageParticipants.map((p) => {
+                const uid = String(p.userId).startsWith('usr_') ? p.userId : `usr_${p.userId}`;
+                return (
+                  <Link href={`/profile/${uid}`} key={p.userId} className={styles.participantItem}>
+                    <ProfileAvatar
+                      profileImageUrl={p.profileImageUrl}
+                      nickname={p.nickname}
+                      size="sm"
+                    />
+                    <span className={styles.participantName}>{p.nickname}</span>
+                  </Link>
+                );
+              })}
             </div>
 
             <button

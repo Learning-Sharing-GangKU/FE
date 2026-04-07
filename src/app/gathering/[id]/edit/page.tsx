@@ -151,7 +151,7 @@ export default function GatheringEditPage() {
                 },
                 onError: (err: any) => {
                     const message = err.message || "수정에 실패했습니다.";
-                    showToast(`수정 실패: ${message}`);
+                    setFailedMessage(`수정 실패: ${message}`);
                 },
             }
         );
@@ -199,8 +199,6 @@ export default function GatheringEditPage() {
     return (
         <div className={styles.container}>
             <TopNav />
-
-            {toast && <div style={{ position: 'fixed', top: 60, left: 0, width: '100%', textAlign: 'center', background: '#e11d48', color: '#fff', padding: '10px', zIndex: 1000 }}>{toast}</div>}
 
             <main className={styles.main}>
                 <h1 className={styles.title}>모임 수정</h1>

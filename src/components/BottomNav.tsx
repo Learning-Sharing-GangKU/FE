@@ -11,10 +11,10 @@ import AuthRequiredModal from '@/components/AuthRequiredModal';
 const PROTECTED_HREFS = new Set(['/gathering/create', '/manage']);
 
 const NAV_ITEMS = [
-  { href: '/home',             icon: Home,        label: '홈' },
-  { href: '/category',         icon: Search,      label: '모임 둘러보기' },
-  { href: '/gathering/create', icon: PlusCircle,  label: '모임 생성' },
-  { href: '/manage',           icon: FolderOpen,  label: '모임 관리' },
+  { href: '/home', icon: Home, label: '홈' },
+  { href: '/category', icon: Search, label: '모임 둘러보기' },
+  { href: '/gathering/create', icon: PlusCircle, label: '모임 생성' },
+  { href: '/manage', icon: FolderOpen, label: '모임 관리' },
 ] as const;
 
 export default function BottomNav() {
@@ -52,9 +52,15 @@ export default function BottomNav() {
           );
         })}
         <Link
-          href={myUserId !== null ? `/profile/${myUserId}` : '#'}
+          href={myUserId !== null ? `/profile/${String(myUserId).startsWith('usr_') ? myUserId : `usr_${myUserId}`}` : '#'}
           className={`${styles.item} ${isProfileActive ? styles.active : ''}`}
-          onClick={(e) => { if (isLoggedIn === false) { e.preventDefault(); setPendingHref(`/profile`); setShowAuthModal(true); } }}
+          onClick={(e) => { 
+            if (isLoggedIn === false) { 
+              e.preventDefault(); 
+              setPendingHref(`/login`); 
+              setShowAuthModal(true); 
+            } 
+          }}
         >
           <User size={24} strokeWidth={isProfileActive ? 2.5 : 1.5} />
           <span>프로필</span>
