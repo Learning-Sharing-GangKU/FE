@@ -9,19 +9,19 @@ if [ ! -f .env ]; then
 fi
 
 APP_IMAGE="$(grep '^APP_IMAGE=' .env | cut -d= -f2-)"
-SERVICE_PORT="$(grep '^SERVICE_PORT=' .env | cut -d= -f2-)"
+PORT="$(grep '^PORT=' .env | cut -d= -f2-)"
 
 if [ -z "$APP_IMAGE" ]; then
   echo "APP_IMAGE 값이 없습니다."
   exit 1
 fi
 
-if [ -z "$SERVICE_PORT" ]; then
-  echo "SERVICE_PORT 값이 없습니다."
+if [ -z "$PORT" ]; then
+  echo "PORT 값이 없습니다."
   exit 1
 fi
 
-mkdir -p /opt/be-app/logs
+mkdir -p /opt/fe-app/logs
 
 if ! docker network inspect app-net >/dev/null 2>&1; then
   echo "Docker network 'app-net' 이 존재하지 않습니다."
@@ -29,10 +29,10 @@ if ! docker network inspect app-net >/dev/null 2>&1; then
 fi
 
 # 기존 컨테이너 정리
-sudo docker rm -f fe-app || true
+docker rm -f fe-app || true
 
 # 컨테이너 실행
-sudo docker run -d \
+docker run -d \
   --name fe-app \
   --network app-net \
   -p "${PORT}:${PORT}" \
