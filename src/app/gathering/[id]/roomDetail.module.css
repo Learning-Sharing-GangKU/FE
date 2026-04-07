@@ -171,6 +171,7 @@
   color: #6b7280;
   margin: 0;
   line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .metaList {
@@ -286,6 +287,9 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .participantAvatar {
@@ -360,6 +364,16 @@
 
 .joinButton:hover {
   background: #374151;
+}
+
+.disabledButton {
+  background: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.disabledButton:hover {
+  background: #d1d5db;
 }
 
 /* 빈 상태 */

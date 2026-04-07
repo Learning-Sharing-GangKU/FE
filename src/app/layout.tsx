@@ -1,4 +1,5 @@
 import Providers from "@/components/Providers" 
+import { Toaster } from "@/components/Toaster"
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body>
         <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styles from './login.module.css';
 import TopNav from '@/components/TopNav';
@@ -10,7 +10,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
 import { useLogin } from '@/hooks/auth/useLogin';
 
-export default function LoginPage() {
+function LoginContent() {
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
   const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(false);
@@ -33,20 +33,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <TopNav />
-
+    <>
       <main className={styles.main}>
         <div className={styles.inner}>
-          {/* 로고 */}
           <div className={styles.logoWrapper}>
             <div className={styles.logoEmoji}>🎓</div>
           </div>
 
-          {/* 타이틀 */}
           <h1 className={styles.title}>로그인</h1>
 
-          {/* 폼 */}
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.fieldGroup}>
               <label htmlFor="email" className={styles.label}>이메일</label>
@@ -80,14 +75,12 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* 회원가입 링크 */}
           <div className={styles.signupText}>
             <span>계정이 없으신가요? </span>
             <Link href="/signup" className={styles.signupLink}>회원가입</Link>
           </div>
         </div>
       </main>
-      <BottomNav />
 
       <AuthRequiredModal
         isOpen={showUnauthorizedModal}
@@ -103,6 +96,19 @@ export default function LoginPage() {
         confirmText="확인"
         cancelText={false}
       />
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className={styles.container}>
+      <TopNav />
+      {/* useSearchParams를 사용하는 컴포넌트는 Suspense로 감싸야 빌드됩니다 */}
+      <Suspense fallback={<div style={{ padding: '80px 20px', textAlign: 'center' }}>로딩 중...</div>}>
+        <LoginContent />
+      </Suspense>
+      <BottomNav />
     </div>
   );
 }

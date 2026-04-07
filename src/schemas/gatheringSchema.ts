@@ -9,7 +9,7 @@ export const gatheringSchema = z.object({
     .max(30, '모임 이름은 최대 30자까지 입력 가능합니다.'),
   category: z.string().min(1, '카테고리를 선택해주세요.'),
   capacity: z.coerce
-    .number()
+    .number({ invalid_type_error: '올바른 숫자를 입력해주세요.' })
     .min(1, '최소 1명 이상이어야 합니다.')
     .max(100, '최대 100명까지 가능합니다.'),
   date: z.string().min(1, '날짜를 선택해주세요.'),

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Calendar, Sparkles } from 'lucide-react';
+import { X, Calendar, Sparkles, AlertTriangle } from 'lucide-react';
 
 import styles from "../../create/create.module.css";
 import TopNav from '@/components/TopNav';
@@ -35,11 +35,11 @@ export default function GatheringEditPage() {
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [showAiModal, setShowAiModal] = useState(false);
     const [showEditConfirm, setShowEditConfirm] = useState(false);
-    
+
     // UI Preview
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    
+
     // Fallback error modal
     const [failedMessage, setFailedMessage] = useState<string | null>(null);
 
@@ -102,7 +102,7 @@ export default function GatheringEditPage() {
         const reader = new FileReader();
         reader.onloadend = () => setImagePreview(reader.result as string);
         reader.readAsDataURL(file);
-        
+
         uploadImage(file, {
             onSuccess: ({ objectKey }) => {
                 setValue('gatheringImageObjectKey', objectKey, { shouldDirty: true, shouldValidate: true });
@@ -119,7 +119,7 @@ export default function GatheringEditPage() {
 
     const normalizeDate = (d: string) => {
         if (!d) return '';
-        if (d.length === 16) return `${d}:00`;  
+        if (d.length === 16) return `${d}:00`;
         if (d.length === 19) return d;
         return d;
     };
@@ -173,7 +173,7 @@ export default function GatheringEditPage() {
     const handleAiSubmit = (keywordsStr: string) => {
         const keywords = keywordsStr.split(',').map(k => k.trim()).filter(Boolean);
         setShowAiModal(false);
-        
+
         const { title, date, location, capacity } = getValues();
 
         generateIntro(
@@ -200,7 +200,7 @@ export default function GatheringEditPage() {
         <div className={styles.container}>
             <TopNav />
 
-            {toast && <div style={{position: 'fixed', top: 60, left: 0, width: '100%', textAlign: 'center', background: '#e11d48', color: '#fff', padding: '10px', zIndex: 1000}}>{toast}</div>}
+            {toast && <div style={{ position: 'fixed', top: 60, left: 0, width: '100%', textAlign: 'center', background: '#e11d48', color: '#fff', padding: '10px', zIndex: 1000 }}>{toast}</div>}
 
             <main className={styles.main}>
                 <h1 className={styles.title}>모임 수정</h1>
@@ -215,7 +215,12 @@ export default function GatheringEditPage() {
                             className={`${styles.input} ${errors.title ? styles.inputError : ''}`}
                             {...register('title')}
                         />
-                        {errors.title && <p className={styles.errorText}>{errors.title.message}</p>}
+                        {errors.title && (
+                            <div className={styles.errorWrapper}>
+                                <AlertTriangle className={styles.errorIcon} />
+                                <span className={styles.errorText}>{errors.title.message}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* 모임 이미지 */}
@@ -279,7 +284,12 @@ export default function GatheringEditPage() {
                                 </div>
                             </div>
                         )}
-                        {errors.category && <p className={styles.errorText}>{errors.category.message}</p>}
+                        {errors.category && (
+                            <div className={styles.errorWrapper}>
+                                <AlertTriangle className={styles.errorIcon} />
+                                <span className={styles.errorText}>{errors.category.message}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* 최대 인원 */}
@@ -292,7 +302,12 @@ export default function GatheringEditPage() {
                             className={`${styles.input} ${errors.capacity ? styles.inputError : ''}`}
                             {...register('capacity', { valueAsNumber: true })}
                         />
-                        {errors.capacity && <p className={styles.errorText}>{errors.capacity.message}</p>}
+                        {errors.capacity && (
+                            <div className={styles.errorWrapper}>
+                                <AlertTriangle className={styles.errorIcon} />
+                                <span className={styles.errorText}>{errors.capacity.message}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* 날짜 */}
@@ -306,7 +321,12 @@ export default function GatheringEditPage() {
                             />
                             <Calendar size={20} className={styles.calendarIcon} />
                         </div>
-                        {errors.date && <p className={styles.errorText}>{errors.date.message}</p>}
+                        {errors.date && (
+                            <div className={styles.errorWrapper}>
+                                <AlertTriangle className={styles.errorIcon} />
+                                <span className={styles.errorText}>{errors.date.message}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* 장소 */}
@@ -318,7 +338,12 @@ export default function GatheringEditPage() {
                             className={`${styles.input} ${errors.location ? styles.inputError : ''}`}
                             {...register('location')}
                         />
-                        {errors.location && <p className={styles.errorText}>{errors.location.message}</p>}
+                        {errors.location && (
+                            <div className={styles.errorWrapper}>
+                                <AlertTriangle className={styles.errorIcon} />
+                                <span className={styles.errorText}>{errors.location.message}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* 오픈채팅방 링크 */}
@@ -331,7 +356,10 @@ export default function GatheringEditPage() {
                             {...register('openChatUrl')}
                         />
                         {errors.openChatUrl ? (
-                            <p className={styles.errorText}>{errors.openChatUrl.message}</p>
+                            <div className={styles.errorWrapper}>
+                                <AlertTriangle className={styles.errorIcon} />
+                                <span className={styles.errorText}>{errors.openChatUrl.message}</span>
+                            </div>
                         ) : (
                             <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
                         )}
@@ -359,7 +387,12 @@ export default function GatheringEditPage() {
                             className={`${styles.textarea} ${errors.description ? styles.inputError : ''}`}
                             {...register('description')}
                         />
-                        {errors.description && <p className={styles.errorText}>{errors.description.message}</p>}
+                        {errors.description && (
+                            <div className={styles.errorWrapper}>
+                                <AlertTriangle className={styles.errorIcon} />
+                                <span className={styles.errorText}>{errors.description.message}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* 제출 */}
@@ -375,9 +408,9 @@ export default function GatheringEditPage() {
                 <CategorySelectModal
                     mode="group"
                     initialSelected={selectedCategory ? [selectedCategory] : []}
-                    onConfirm={(cats) => { 
-                        setValue('category', cats[0] || '', { shouldDirty: true, shouldValidate: true }); 
-                        setIsCategoryModalOpen(false); 
+                    onConfirm={(cats) => {
+                        setValue('category', cats[0] || '', { shouldDirty: true, shouldValidate: true });
+                        setIsCategoryModalOpen(false);
                     }}
                     onClose={() => setIsCategoryModalOpen(false)}
                 />
@@ -407,3 +440,4 @@ export default function GatheringEditPage() {
         </div>
     );
 }
+

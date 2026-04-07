@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Calendar, Sparkles } from 'lucide-react';
+import { X, Calendar, Sparkles, AlertTriangle } from 'lucide-react';
 
 import styles from './create.module.css';
 import TopNav from '@/components/TopNav';
@@ -159,7 +159,12 @@ export default function CreateGatheringPage() {
               className={`${styles.input} ${errors.title ? styles.inputError : ''}`}
               {...register('title')}
             />
-            {errors.title && <p className={styles.errorText}>{errors.title.message}</p>}
+            {errors.title && (
+              <div className={styles.errorWrapper}>
+                <AlertTriangle className={styles.errorIcon} />
+                <span className={styles.errorText}>{errors.title.message}</span>
+              </div>
+            )}
           </div>
 
           {/* 모임 이미지 */}
@@ -223,7 +228,12 @@ export default function CreateGatheringPage() {
                 </div>
               </div>
             )}
-            {errors.category && <p className={styles.errorText}>{errors.category.message}</p>}
+            {errors.category && (
+              <div className={styles.errorWrapper}>
+                <AlertTriangle className={styles.errorIcon} />
+                <span className={styles.errorText}>{errors.category.message}</span>
+              </div>
+            )}
           </div>
 
           {/* 최대 인원 */}
@@ -236,7 +246,12 @@ export default function CreateGatheringPage() {
               className={`${styles.input} ${errors.capacity ? styles.inputError : ''}`}
               {...register('capacity', { valueAsNumber: true })}
             />
-            {errors.capacity && <p className={styles.errorText}>{errors.capacity.message}</p>}
+            {errors.capacity && (
+              <div className={styles.errorWrapper}>
+                <AlertTriangle className={styles.errorIcon} />
+                <span className={styles.errorText}>{errors.capacity.message}</span>
+              </div>
+            )}
           </div>
 
           {/* 날짜 */}
@@ -250,7 +265,12 @@ export default function CreateGatheringPage() {
               />
               <Calendar size={20} className={styles.calendarIcon} />
             </div>
-            {errors.date && <p className={styles.errorText}>{errors.date.message}</p>}
+            {errors.date && (
+              <div className={styles.errorWrapper}>
+                <AlertTriangle className={styles.errorIcon} />
+                <span className={styles.errorText}>{errors.date.message}</span>
+              </div>
+            )}
           </div>
 
           {/* 장소 */}
@@ -262,7 +282,12 @@ export default function CreateGatheringPage() {
               className={`${styles.input} ${errors.location ? styles.inputError : ''}`}
               {...register('location')}
             />
-            {errors.location && <p className={styles.errorText}>{errors.location.message}</p>}
+            {errors.location && (
+              <div className={styles.errorWrapper}>
+                <AlertTriangle className={styles.errorIcon} />
+                <span className={styles.errorText}>{errors.location.message}</span>
+              </div>
+            )}
           </div>
 
           {/* 오픈채팅방 링크 */}
@@ -275,7 +300,10 @@ export default function CreateGatheringPage() {
               {...register('openChatUrl')}
             />
             {errors.openChatUrl ? (
-              <p className={styles.errorText}>{errors.openChatUrl.message}</p>
+              <div className={styles.errorWrapper}>
+                <AlertTriangle className={styles.errorIcon} />
+                <span className={styles.errorText}>{errors.openChatUrl.message}</span>
+              </div>
             ) : (
               <p className={styles.hint}>https://를 포함한 전체 링크를 적어주세요</p>
             )}
@@ -303,7 +331,12 @@ export default function CreateGatheringPage() {
               className={`${styles.textarea} ${errors.description ? styles.inputError : ''}`}
               {...register('description')}
             />
-            {errors.description && <p className={styles.errorText}>{errors.description.message}</p>}
+            {errors.description && (
+              <div className={styles.errorWrapper}>
+                <AlertTriangle className={styles.errorIcon} />
+                <span className={styles.errorText}>{errors.description.message}</span>
+              </div>
+            )}
           </div>
 
           {/* 제출 */}

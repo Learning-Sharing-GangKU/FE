@@ -6,18 +6,20 @@
 import styles from "./GatheringFailedModal.module.css";
 
 interface GatheringFailedModalProps {
+  title?: string;
   message: string;
   onClose: () => void;
 }
 
 export default function GatheringFailedModal({
+    title = "정보가 더 필요해요!",
     message,
     onClose,
 }: GatheringFailedModalProps) {
   return (
     <div className={styles.overlay}>
         <div className={styles.modal}>
-            <h2 className={styles.title}>정보가 더 필요해요!</h2>
+            <h2 className={styles.title}>{title}</h2>
 
             <p className={styles.subtitle}>{message}</p>
 
