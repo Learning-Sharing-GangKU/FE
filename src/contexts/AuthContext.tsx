@@ -127,7 +127,7 @@ export const useAuth = () => {
       console.error('로그아웃 API 요청 실패:', err);
     } finally {
       useAuthStore.getState().logout();
-      window.location.href = '/home';
+      router.push('/home');
     }
   };
 
