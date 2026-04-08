@@ -5,8 +5,12 @@ export const ACCESS_TOKEN_KEY = 'accessToken';
 export const TOKEN_ISSUED_AT_KEY = 'tokenIssuedAt';
 
 export function setAccessToken(token: string) {
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
-  localStorage.setItem(TOKEN_ISSUED_AT_KEY, Date.now().toString());
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    localStorage.setItem(TOKEN_ISSUED_AT_KEY, Date.now().toString());
+    document.cookie = `accessToken=${token}; path=/; max-age=86400; SameSite=Lax;`;
+    document.cookie = `isAuthenticated=true; path=/; max-age=86400; SameSite=Lax;`;
+  }
 }
 
 export function getAccessToken(): string | null {
@@ -19,8 +23,12 @@ export function getTokenIssuedAt(): number | null {
 }
 
 export function removeAccessToken() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(TOKEN_ISSUED_AT_KEY);
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(TOKEN_ISSUED_AT_KEY);
+    document.cookie = `accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax;`;
+    document.cookie = `isAuthenticated=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax;`;
+  }
 }
 
 export function isTokenExpiredOrNearExpiry(minutesBeforeExpiry = 1): boolean {

@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoggedIn(true);
 
         // 2) 백그라운드에서 재발급 시도 (실패해도 기존 토큰 유지)
-        reissueToken().catch(() => {});
+        reissueToken().catch(() => { });
       } else {
         // 토큰 없으면 재발급 시도 (실패 시 로그아웃 처리)
         await reissueToken(true);
@@ -226,9 +226,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('로그아웃 API 요청 실패:', err);
     } finally {
       removeAccessToken();
-      setMyUserId(null);
       localStorage.removeItem('userId');
-      setIsLoggedIn(false);
+      window.location.href = '/home';
     }
   };
 
