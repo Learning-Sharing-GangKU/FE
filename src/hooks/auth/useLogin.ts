@@ -15,7 +15,7 @@ export function useLogin() {
     onSuccess: (data) => {
       authLogin(data.accessToken);
       const from = searchParams.get('from');
-      router.push(from ?? '/home');
+      window.location.href = from ?? '/home';
     },
   });
 }
