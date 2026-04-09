@@ -23,8 +23,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   // 이미 로그인된 유저가 재방문 시 쿠키 동기화 (1회)
   useEffect(() => {
     const token = getAccessToken();
-    if (token && !document.cookie.includes('accessToken=')) {
-      document.cookie = `accessToken=${token}; path=/; max-age=86400; SameSite=Lax`;
+    if (token) {
+      document.cookie = `accessToken=${token}; path=/; max-age=1209600; SameSite=Lax`;
     }
   }, []);
 
