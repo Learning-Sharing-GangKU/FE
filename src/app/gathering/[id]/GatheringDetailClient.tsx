@@ -29,6 +29,18 @@ import { useAuthStore } from '@/stores/authStore';
 
 const ITEMS_PER_PAGE = 5;
 
+function formatGatheringDate(dateString: string) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(dateString));
+}
+
 export default function GatheringDetailClient() {
   const params = useParams();
   const router = useRouter();
@@ -69,7 +81,9 @@ export default function GatheringDetailClient() {
             <Link href="/home" className={styles.backButton}>
               <ArrowLeft size={24} />
             </Link>
-            <h1 className={styles.headerTitle}>GangKU 🎓</h1>
+            <Link href="/home" className={styles.headerTitleLink} aria-label="홈으로 이동">
+              <h1 className={styles.headerTitle}>GangKU 🎓</h1>
+            </Link>
           </div>
 
           {isHost && (
@@ -135,7 +149,7 @@ export default function GatheringDetailClient() {
 
             <div className={styles.metaItem}>
               <Calendar size={16} className={styles.metaIcon} />
-              <span>{new Date(gathering.date).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span>{formatGatheringDate(gathering.date)}</span>
               <Link 
                 href={`/profile/${String(gathering.host.id).startsWith('usr_') ? gathering.host.id : `usr_${gathering.host.id}`}`}
                 style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}

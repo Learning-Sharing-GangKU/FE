@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import styles from "./home.module.css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import TopNav from "@/components/TopNav";
 import HomeGatheringCard from "@/components/home/HomeGatheringCard";
@@ -22,7 +23,7 @@ function Section({ title, rooms }: { title: string; rooms: GatheringItem[] }) {
         <h2 className={styles.sectionTitle}>{title}</h2>
       </div>
       <div className={styles.carouselWrapper}>
-        <button onClick={() => scroll("left")} className={styles.arrowButton}>
+        <button type="button" onClick={() => scroll("left")} className={styles.arrowButton}>
           <ChevronLeft size={20} />
         </button>
         <div ref={carouselRef} className={styles.carousel}>
@@ -30,7 +31,7 @@ function Section({ title, rooms }: { title: string; rooms: GatheringItem[] }) {
             <HomeGatheringCard key={room.id} room={room} />
           ))}
         </div>
-        <button onClick={() => scroll("right")} className={styles.arrowButton}>
+        <button type="button" onClick={() => scroll("right")} className={styles.arrowButton}>
           <ChevronRight size={20} />
         </button>
       </div>
@@ -48,13 +49,35 @@ export default function HomeClient() {
     { title: "인기 모임", rooms: data?.popular.data ?? [] },
   ];
 
+  const isEmpty = sections.every(({ rooms }) => rooms.length === 0);
+
   return (
     <div className={styles.container}>
       <TopNav />
       <main className={styles.main}>
-        {sections.map(({ title, rooms }) => (
-          <Section key={title} title={title} rooms={rooms} />
-        ))}
+        {isEmpty ? (
+          <div className={styles.emptyWrapper}>
+            <div className={styles.emptyIconWrap}>
+              <div className={styles.emptyIconCircle}>
+                <Search size={64} color="#374151" strokeWidth={1.5} />
+              </div>
+              <div className={styles.emptyDecorPing} />
+              <div className={styles.emptyDecorDot} />
+            </div>
+            <div className={styles.emptyTextWrap}>
+              <h2 className={styles.emptyTitle}>모임이 없습니다.</h2>
+              <p className={styles.emptyMessage}>아직 등록된 모임이 없어요.{"\n"}첫 번째 모임을 만들어보세요!</p>
+            </div>
+            <Link href="/gathering/create" className={styles.emptyButton}>
+              <Search size={20} />
+              모임 만들기
+            </Link>
+          </div>
+        ) : (
+          sections.map(({ title, rooms }) => (
+            <Section key={title} title={title} rooms={rooms} />
+          ))
+        )}
       </main>
       <BottomNav />
     </div>
