@@ -26,6 +26,36 @@ function formatReviewDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
+/**
+ * 소수점 평점을 정확히 비율로 반영하는 별점 렌더러
+ * 예) 3.3점 → 66%, 3.7점 → 74% 채워짐
+ */
+function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
+  const fillPercent = Math.max(0, Math.min(100, (rating / 5) * 100));
+  // display:block + flexShrink:0 → SVG baseline 정렬 문제 해결
+  const starBase: React.CSSProperties = { display: 'block', flexShrink: 0 };
+  const starFilled: React.CSSProperties = { ...starBase, fill: '#facc15', color: '#facc15' };
+  const starEmpty: React.CSSProperties = { ...starBase, fill: '#e5e7eb', color: '#e5e7eb' };
+  // lineHeight:0 → flex 컨테이너 내 SVG 주변 여백 제거
+  const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', lineHeight: 0, gap: 1 };
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex', lineHeight: 0, verticalAlign: 'middle' }}>
+      {/* 배경: 회색 빈 별 5개 */}
+      <div style={rowStyle}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star key={i} size={size} style={starEmpty} />
+        ))}
+      </div>
+      {/* 오버레이: 노란 별 5개를 rating 비율만큼 클리핑 */}
+      <div style={{ ...rowStyle, position: 'absolute', top: 0, left: 0, overflow: 'hidden', width: `${fillPercent}%`, whiteSpace: 'nowrap' }}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star key={i} size={size} style={starFilled} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProfileClient() {
   const { userId } = useParams<{ userId: string }>();
   const router = useRouter();
@@ -118,15 +148,7 @@ export default function ProfileClient() {
           </div>
 
           <div className={styles.ratingSummary}>
-            <div className={styles.stars}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  size={16}
-                  className={star <= Math.floor(profile.averageRating || 0) ? styles.starFilled : styles.starEmpty}
-                />
-              ))}
-            </div>
+            <StarRating rating={profile.averageRating || 0} size={16} />
             <span className={styles.ratingValue}>{profile.averageRating ? profile.averageRating.toFixed(1) : '0.0'}</span>
             <span className={styles.reviewCount}>(리뷰 {profile.reviewCount}개)</span>
           </div>
@@ -148,13 +170,7 @@ export default function ProfileClient() {
                     </span>
                   </div>
                   <div className={styles.reviewStarRow}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        size={12}
-                        className={star <= review.rating ? styles.starFilled : styles.starEmpty}
-                      />
-                    ))}
+                    <StarRating rating={review.rating} size={12} />
                   </div>
                   <p className={styles.reviewText}>{review.content}</p>
                 </div>
