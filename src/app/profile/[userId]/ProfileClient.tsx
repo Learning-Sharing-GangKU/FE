@@ -17,6 +17,15 @@ import { useToast } from '@/hooks/useToast';
 import { createReview } from '@/api/user';
 import { useQueryClient } from '@tanstack/react-query';
 
+function formatReviewDate(dateString: string) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).format(new Date(dateString));
+}
+
 export default function ProfileClient() {
   const { userId } = useParams<{ userId: string }>();
   const router = useRouter();
@@ -135,7 +144,7 @@ export default function ProfileClient() {
                   <div className={styles.reviewMeta}>
                     <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>
                     <span className={styles.reviewDate}>
-                      {new Date(review.createdAt).toLocaleDateString()}
+                      {formatReviewDate(review.createdAt)}
                     </span>
                   </div>
                   <div className={styles.reviewStarRow}>

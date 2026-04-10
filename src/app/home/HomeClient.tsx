@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import styles from "./home.module.css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import TopNav from "@/components/TopNav";
 import HomeGatheringCard from "@/components/home/HomeGatheringCard";
@@ -89,6 +89,7 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
         <h2 className={styles.sectionTitle}>{title}</h2>
       </div>
       <div className={styles.carouselWrapper}>
+
         {needsArrows && (
           <button onClick={() => handleArrowClick("left")} className={`${styles.arrowButton} ${styles.arrowButtonLeft}`}>
             <ChevronLeft size={20} />
@@ -99,11 +100,13 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
             <HomeGatheringCard key={room.id} room={room} />
           ))}
         </div>
+
         {needsArrows && (
           <button onClick={() => handleArrowClick("right")} className={`${styles.arrowButton} ${styles.arrowButtonRight}`}>
             <ChevronRight size={20} />
           </button>
         )}
+
       </div>
     </section>
   );
@@ -119,13 +122,17 @@ export default function HomeClient() {
     { title: "인기 모임", sortKey: "popular" as SortType, initialRooms: data?.popular.data ?? [], initialMeta: data?.popular.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
   ];
 
+  const isEmpty = sections.every(({ rooms }) => rooms.length === 0);
+
   return (
     <div className={styles.container}>
       <TopNav />
       <main className={styles.main}>
+
         {sections.map(({ title, initialRooms, initialMeta, sortKey }) => (
           <Section key={title} title={title} initialRooms={initialRooms} initialMeta={initialMeta} sortKey={sortKey} />
         ))}
+
       </main>
       <BottomNav />
     </div>

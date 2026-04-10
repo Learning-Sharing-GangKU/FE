@@ -1,7 +1,10 @@
-import Providers from "@/components/Providers" 
+import Providers from "@/components/Providers"
 import { Toaster } from "@/components/Toaster"
+import { Noto_Sans_KR } from 'next/font/google';
 import type { Metadata } from 'next';
+
 import { cookies } from 'next/headers';
+
 
 export const metadata: Metadata = {
   title: 'GangKU',
@@ -14,7 +17,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialIsLoggedIn = !!token;
 
   return (
-    <html lang="ko">
+    <html lang="ko" className={notoSansKr.className}>
       <body>
         <Providers initialIsLoggedIn={initialIsLoggedIn}>{children}</Providers>
         <Toaster />
