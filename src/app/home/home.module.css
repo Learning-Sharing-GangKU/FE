@@ -39,7 +39,6 @@
   font-weight: 600;
 }
 
-/* 캐러셀 래퍼 */
 .carouselWrapper {
   display: flex;
   align-items: center;
@@ -48,8 +47,10 @@
   gap: 8px;
 }
 
-/* 화살표 버튼 */
 .arrowButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   flex-shrink: 0;
   background: white;
   border: none;
@@ -60,8 +61,16 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s;
-  z-index: 1;
+  transition: background 0.15s, opacity 0.2s;
+  z-index: 10;
+}
+
+.arrowButtonLeft {
+  left: -28px;
+}
+
+.arrowButtonRight {
+  right: -28px;
 }
 
 .arrowButton:hover {

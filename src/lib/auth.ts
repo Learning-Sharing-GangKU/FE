@@ -1,5 +1,5 @@
 // ✅ src/lib/auth.ts
-import axios from 'axios'
+
 
 export const ACCESS_TOKEN_KEY = 'accessToken';
 export const TOKEN_ISSUED_AT_KEY = 'tokenIssuedAt';
@@ -25,17 +25,4 @@ export function removeAccessToken() {
   localStorage.removeItem(TOKEN_ISSUED_AT_KEY);
   document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
 }
-
-export function isTokenExpiredOrNearExpiry(minutesBeforeExpiry = 1): boolean {
-  const issuedAt = getTokenIssuedAt();
-  if (!issuedAt) return true;
-
-  const now = Date.now();
-  const elapsedMinutes = (now - issuedAt) / (1000 * 60);
-  // 15분 - 1분 = 14분 경과 시 만료 임박으로 간주
-  return elapsedMinutes >= (15 - minutesBeforeExpiry);
-}
-
-export async function logoutUser() {
-  await axios.post('/api/v1/auth/logout', {}, { withCredentials: true });
-}
+

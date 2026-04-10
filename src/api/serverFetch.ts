@@ -170,8 +170,8 @@ export async function fetchUserProfileSSR(userId: string) {
     gender: raw.gender ?? 'MALE',
     enrollNumber: raw.enrollNumber ?? 0,
     preferredCategories,
-    reviewsPublic: raw.reviewsPublic ?? true,
-    rating: raw.reviewsRating ?? 0,
+    reviewsPublic: raw.reviewPublic ?? true,
+    averageRating: raw.averageRating ?? null,
     reviewCount: raw.reviewCount ?? 0,
     reviews: reviewsData.map((r: any) => ({
       id: r.id,

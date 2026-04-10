@@ -66,14 +66,14 @@ export default function ProfileClient() {
       </div>
     );
   }
-
+  /*
   if (isLoggedIn === false) {
     return (
       <div style={{ width: '100vw', height: '100vh' }}>
         <div>로그인이 필요합니다.</div>
       </div>
     );
-  }
+  }*/
 
   if (!profile) {
     return null;
@@ -123,11 +123,11 @@ export default function ProfileClient() {
                 <Star
                   key={star}
                   size={16}
-                  className={star <= Math.floor(profile.rating) ? styles.starFilled : styles.starEmpty}
+                  className={star <= Math.floor(profile.averageRating || 0) ? styles.starFilled : styles.starEmpty}
                 />
               ))}
             </div>
-            <span className={styles.ratingValue}>{profile.rating}</span>
+            <span className={styles.ratingValue}>{profile.averageRating ? profile.averageRating.toFixed(1) : '0.0'}</span>
             <span className={styles.reviewCount}>(리뷰 {profile.reviewCount}개)</span>
           </div>
 

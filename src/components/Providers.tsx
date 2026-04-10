@@ -5,7 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getAccessToken } from '@/lib/auth';
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children, initialIsLoggedIn = false }: { children: React.ReactNode, initialIsLoggedIn?: boolean }) {
   const [queryClient] = React.useState(
     () =>
       new QueryClient({
@@ -30,7 +30,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider initialIsLoggedIn={initialIsLoggedIn}>{children}</AuthProvider>
     </QueryClientProvider>
   );
 }
