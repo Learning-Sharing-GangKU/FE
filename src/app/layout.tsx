@@ -5,6 +5,10 @@ import type { Metadata } from 'next';
 
 import { cookies } from 'next/headers';
 
+const notoSansKr = Noto_Sans_KR({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+});
 
 export const metadata: Metadata = {
   title: 'GangKU',

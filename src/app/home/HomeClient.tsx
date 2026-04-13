@@ -122,7 +122,7 @@ export default function HomeClient() {
     { title: "인기 모임", sortKey: "popular" as SortType, initialRooms: data?.popular.data ?? [], initialMeta: data?.popular.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
   ];
 
-  const isEmpty = sections.every(({ rooms }) => rooms.length === 0);
+  const isEmpty = sections.every(({ initialRooms }) => initialRooms.length === 0);
 
   return (
     <div className={styles.container}>
