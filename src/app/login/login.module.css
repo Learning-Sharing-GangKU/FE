@@ -134,3 +134,17 @@
 .signupLink:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 480px) {
+  .main {
+    padding: 20px 16px 88px;
+  }
+
+  .inner {
+    max-width: 100%;
+  }
+
+  .logoEmoji {
+    font-size: 4.5rem;
+  }
+}

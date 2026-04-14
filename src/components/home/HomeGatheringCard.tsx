@@ -32,7 +32,7 @@ export default function HomeGatheringCard({ room }: Props) {
       >
         <div className={styles.imageWrapper}>
           <img
-            src={room.imageUrl ?? '/images/logo.png'}
+            src={room.imageUrl ?? '/images/logo.jpg'}
             alt={room.title}
             className={styles.image}
           />

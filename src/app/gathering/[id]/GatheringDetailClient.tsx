@@ -123,7 +123,7 @@ export default function GatheringDetailClient() {
         <div className={styles.card}>
           <div className={styles.imageWrapper}>
             <img
-              src={gathering.imageUrl ?? '/images/logo.png'}
+              src={gathering.imageUrl ?? '/images/logo.jpg'}
               alt={gathering.title}
               className={styles.image}
             />
