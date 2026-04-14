@@ -12,7 +12,7 @@ interface GatheringFailedModalProps {
 }
 
 export default function GatheringFailedModal({
-    title = "정보가 더 필요해요!",
+    title,
     message,
     onClose,
 }: GatheringFailedModalProps) {

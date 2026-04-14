@@ -12,6 +12,8 @@ import BottomNav from '@/components/BottomNav';
 import CategorySelectModal from '@/components/CategorySelectModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import AiIntroModal from '@/components/gathering/AiIntroModal';
+import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
+
 import { useCreateGathering } from '@/hooks/gathering/useCreateGathering';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useDefaultCategoryImage } from '@/hooks/useDefaultCategoryImage';
@@ -33,6 +35,10 @@ export default function CreateGatheringPage() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+
+  // Ai description generator error modal
+  const [failedMessage, setFailedMessage] = useState<string | null>(null);
+  const [failedTitle, setFailedTitle] = useState<string | null>(null);
   
   // 제출 예정 폼 데이터 임시 보관
   const [pendingData, setPendingData] = useState<GatheringFormData | null>(null);
@@ -137,9 +143,13 @@ export default function CreateGatheringPage() {
         onSuccess: (data) => {
           setValue('description', data.intro, { shouldDirty: true, shouldValidate: true });
         },
-        onError: (error) => {
-          console.error('AI 생성 오류:', error);
-          showToast('AI 모임 설명 생성 중 오류가 발생했습니다.');
+        onError: (err: any) => {
+          if ((err as any)?.code === 'INVALID_GATHERING_CONTENT') {
+            setFailedTitle('AI 모임 소개 자동 생성 실패');
+            setFailedMessage('모임 정보 내용에 금칙어가 포함되어 있습니다.');
+          } else {
+            showToast('AI 모임 설명 생성 중 오류가 발생했습니다.');
+          }
         }
       }
     );
@@ -375,6 +385,16 @@ export default function CreateGatheringPage() {
         title="모임을 생성하시겠습니까?"
         confirmText="생성하기"
       />
+            {failedMessage && (
+        <GatheringFailedModal
+          title={failedTitle ?? ''}
+          message={failedMessage ?? ''}
+          onClose={() => {
+            setFailedTitle(null);
+            setFailedMessage(null);
+          }}
+          />
+      )}
     </div>
   );
 }
