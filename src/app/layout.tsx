@@ -20,11 +20,6 @@ export const metadata: Metadata = {
   description: '강쿠 프로젝트',
 };
 
-const notoSansKr = Noto_Sans_KR({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-});
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const token = cookieStore.get('accessToken')?.value;
