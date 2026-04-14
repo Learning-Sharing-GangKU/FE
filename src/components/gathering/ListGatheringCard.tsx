@@ -32,7 +32,7 @@ export default function ListGatheringCard({ gathering }: Props) {
       >
         <div className={styles.imageBox}>
           <img
-            src={gathering.imageUrl ?? '/images/logo.png'}
+            src={gathering.imageUrl ?? '/images/logo.jpg'}
             alt={gathering.title}
             className={styles.image}
           />

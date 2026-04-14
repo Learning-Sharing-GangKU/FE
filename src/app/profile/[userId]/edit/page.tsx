@@ -55,15 +55,22 @@ export default function ProfileEditPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: UpdateProfilePayload = {
-      nickname,
-      age: Number(age),
-      gender: gender as UpdateProfilePayload['gender'],
-      enrollNumber: Number(enrollNumber),
-      preferredCategories: selectedCategories,
-    };
+    if (!profile) return;
 
+    const payload: UpdateProfilePayload = {};
+
+    if (nickname !== profile.nickname) payload.nickname = nickname;
+    if (Number(age) !== profile.age) payload.age = Number(age);
+    if (gender !== profile.gender) payload.gender = gender as UpdateProfilePayload['gender'];
+    if (Number(enrollNumber) !== profile.enrollNumber) payload.enrollNumber = Number(enrollNumber);
+    if (JSON.stringify(selectedCategories) !== JSON.stringify(profile.preferredCategories))
+      payload.preferredCategories = selectedCategories;
     if (profileImageObjectKey) payload.profileImageObjectKey = profileImageObjectKey;
+
+    if (Object.keys(payload).length === 0) {
+      showToast('변경된 내용이 없습니다.');
+      return;
+    }
 
     updateProfile(payload, {
       onSuccess: () => router.push(`/profile/${userId}`),

@@ -61,7 +61,7 @@ export interface UserProfile {
   enrollNumber: number;
   preferredCategories: string[];
   reviewsPublic: boolean;
-  averageRating: number | null;
+  rating: number;
   reviewCount: number;
   reviews: ReviewItem[];
   reviewsMeta: ReviewsMeta;
