@@ -21,13 +21,25 @@ import { useParams, useRouter } from 'next/navigation';
 import { useGatheringDetail } from '@/hooks/gathering/useGatheringDetail';
 import { useDeleteGathering } from '@/hooks/gathering/useDeleteGathering';
 import ProfileAvatar from '@/components/ProfileAvatar';
-import { useQueryClient } from '@tanstack/react-query';
-import { joinGathering, exitGathering, finishGathering } from '@/api/gathering';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { joinGathering, exitGathering, finishGathering, getParticipants } from '@/api/gathering';
 import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
 
 const ITEMS_PER_PAGE = 5;
+
+function formatGatheringDate(dateString: string) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(dateString));
+}
 
 export default function GatheringDetailClient() {
   const params = useParams();
@@ -48,13 +60,16 @@ export default function GatheringDetailClient() {
 
   const { myUserId } = useAuthStore();
 
+  const { data: participantsData } = useQuery({
+    queryKey: ['gathering', gatheringId, 'participants', currentPage],
+    queryFn: () => getParticipants(gatheringId, { page: currentPage + 1, size: ITEMS_PER_PAGE, sort: 'joinedAt,asc' }),
+    enabled: !!gatheringId,
+  });
+
   if (!gathering) return null;
 
-  const totalPages = Math.ceil(gathering.participants.length / ITEMS_PER_PAGE);
-  const pageParticipants = gathering.participants.slice(
-    currentPage * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE + ITEMS_PER_PAGE
-  );
+  const totalPages = (participantsData?.meta?.totalPages ?? Math.ceil(gathering.participantCount / ITEMS_PER_PAGE)) || 1;
+  const pageParticipants = participantsData?.data ?? gathering.participants;
 
   const isHost =
     myUserId === String(gathering.host.id) ||
@@ -69,7 +84,9 @@ export default function GatheringDetailClient() {
             <Link href="/home" className={styles.backButton}>
               <ArrowLeft size={24} />
             </Link>
-            <h1 className={styles.headerTitle}>GangKU 🎓</h1>
+            <Link href="/home" className={styles.headerTitleLink} aria-label="홈으로 이동">
+              <h1 className={styles.headerTitle}>GangKU 🎓</h1>
+            </Link>
           </div>
 
           {isHost && (
@@ -119,7 +136,7 @@ export default function GatheringDetailClient() {
             <div className={styles.metaList}>
               <div className={styles.metaItem}>
                 <User size={16} className={styles.metaIcon} />
-                <span>{gathering.participants.length}명 참여중</span>
+                <span>{gathering.participantCount}명 참여중</span>
               </div>
               <div className={styles.metaItem}>
                 <MapPin size={16} className={styles.metaIcon} />
@@ -135,7 +152,7 @@ export default function GatheringDetailClient() {
 
             <div className={styles.metaItem}>
               <Calendar size={16} className={styles.metaIcon} />
-              <span>{new Date(gathering.date).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span>{formatGatheringDate(gathering.date)}</span>
               <Link 
                 href={`/profile/${String(gathering.host.id).startsWith('usr_') ? gathering.host.id : `usr_${gathering.host.id}`}`}
                 style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
@@ -152,7 +169,7 @@ export default function GatheringDetailClient() {
             <h3 className={styles.sectionTitle}>
               참여 인원
               <span className={styles.sectionCount}>
-                ({gathering.participants.length}/{gathering.capacity})
+                ({gathering.participantCount}/{gathering.capacity})
               </span>
             </h3>
             <div className={styles.pageIndicators}>
@@ -241,7 +258,7 @@ export default function GatheringDetailClient() {
           <button className={styles.joinButton} onClick={() => setShowCancelJoinModal(true)}>
             참여 취소하기
           </button>
-        ) : gathering.status === 'FULL' || gathering.participants.length >= gathering.capacity ? (
+        ) : gathering.status === 'FULL' || gathering.participantCount >= gathering.capacity ? (
           <button className={`${styles.joinButton} ${styles.disabledButton}`} disabled>
             모집 완료
           </button>

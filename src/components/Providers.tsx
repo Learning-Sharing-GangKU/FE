@@ -5,7 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getAccessToken } from '@/lib/auth';
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children, initialIsLoggedIn = false }: { children: React.ReactNode, initialIsLoggedIn?: boolean }) {
   const [queryClient] = React.useState(
     () =>
       new QueryClient({
@@ -23,14 +23,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   // 이미 로그인된 유저가 재방문 시 쿠키 동기화 (1회)
   useEffect(() => {
     const token = getAccessToken();
-    if (token && !document.cookie.includes('accessToken=')) {
-      document.cookie = `accessToken=${token}; path=/; max-age=86400; SameSite=Lax`;
+    if (token) {
+      document.cookie = `accessToken=${token}; path=/; max-age=1209600; SameSite=Lax`;
     }
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider initialIsLoggedIn={initialIsLoggedIn}>{children}</AuthProvider>
     </QueryClientProvider>
   );
 }

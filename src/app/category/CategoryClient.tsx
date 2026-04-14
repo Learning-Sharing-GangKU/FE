@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronDown, Search } from 'lucide-react';
 import styles from './category.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
@@ -38,8 +39,6 @@ export default function CategoryClient() {
       <TopNav />
 
       <main className={styles.main}>
-        <h1 className={styles.pageTitle}>모임 둘러보기</h1>
-
         {/* 필터 바 */}
         <div className={styles.filterBar}>
           <button
@@ -83,15 +82,31 @@ export default function CategoryClient() {
         </div>
 
         {/* 모임 리스트 */}
-        <div className={styles.listWrapper}>
-          {gatherings.length === 0 ? (
-            <div className={styles.empty}>모임이 없습니다.</div>
-          ) : (
-            gatherings.map((g) => (
+        {gatherings.length === 0 ? (
+          <div className={styles.emptyWrapper}>
+            <div className={styles.emptyIconWrap}>
+              <div className={styles.emptyIconCircle}>
+                <Search size={64} color="#374151" strokeWidth={1.5} />
+              </div>
+              <div className={styles.emptyDecorPing} />
+              <div className={styles.emptyDecorDot} />
+            </div>
+            <div className={styles.emptyTextWrap}>
+              <h2 className={styles.emptyTitle}>모임이 없습니다.</h2>
+              <p className={styles.emptyMessage}>아직 등록된 모임이 없어요.{"\n"}첫 번째 모임을 만들어보세요!</p>
+            </div>
+            <Link href="/gathering/create" className={styles.emptyButton}>
+              <Search size={20} />
+              모임 만들기
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.listWrapper}>
+            {gatherings.map((g) => (
               <ListGatheringCard key={g.id} gathering={g} />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
 
       <BottomNav />

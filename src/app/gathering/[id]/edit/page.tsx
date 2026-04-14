@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Calendar, Sparkles, AlertTriangle } from 'lucide-react';
+import { X, Sparkles, AlertTriangle } from 'lucide-react';
 
 import styles from "../../create/create.module.css";
 import TopNav from '@/components/TopNav';
@@ -74,7 +74,12 @@ export default function GatheringEditPage() {
                 let localDateStr = "";
                 if (json.date) {
                     const local = new Date(json.date);
-                    localDateStr = local.toISOString().slice(0, 16);
+                    const year = local.getFullYear();
+                    const month = String(local.getMonth() + 1).padStart(2, '0');
+                    const day = String(local.getDate()).padStart(2, '0');
+                    const hours = String(local.getHours()).padStart(2, '0');
+                    const minutes = String(local.getMinutes()).padStart(2, '0');
+                    localDateStr = `${year}-${month}-${day}T${hours}:${minutes}`;
                 }
 
                 reset({
@@ -201,8 +206,6 @@ export default function GatheringEditPage() {
             <TopNav />
 
             <main className={styles.main}>
-                <h1 className={styles.title}>모임 수정</h1>
-
                 <form className={styles.form} onSubmit={handleSubmit(onValidSubmit)} noValidate>
                     {/* 모임 이름 */}
                     <div className={styles.fieldGroup}>
@@ -317,7 +320,6 @@ export default function GatheringEditPage() {
                                 className={`${styles.input} ${errors.date ? styles.inputError : ''}`}
                                 {...register('date')}
                             />
-                            <Calendar size={20} className={styles.calendarIcon} />
                         </div>
                         {errors.date && (
                             <div className={styles.errorWrapper}>
@@ -438,4 +440,3 @@ export default function GatheringEditPage() {
         </div>
     );
 }
-
