@@ -16,7 +16,7 @@
 .tabInner {
   max-width: 672px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 20px;
 }
 
 .tabGroup {
@@ -51,7 +51,7 @@
 .main {
   max-width: 672px;
   margin: 0 auto;
-  padding: 24px 24px;
+  padding: 24px 20px;
 }
 
 /* 카드 리스트 */
