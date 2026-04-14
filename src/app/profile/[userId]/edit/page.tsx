@@ -65,14 +65,13 @@ export default function ProfileEditPage() {
     if (Number(enrollNumber) !== profile.enrollNumber) payload.enrollNumber = Number(enrollNumber);
     if (JSON.stringify(selectedCategories) !== JSON.stringify(profile.preferredCategories))
       payload.preferredCategories = selectedCategories;
-
     if (profileImageObjectKey) payload.profileImageObjectKey = profileImageObjectKey;
 
     if (Object.keys(payload).length === 0) {
       showToast('변경된 내용이 없습니다.');
       return;
     }
-    
+
     updateProfile(payload, {
       onSuccess: () => router.push(`/profile/${userId}`),
       onError: () => showToast('수정에 실패했습니다.'),
