@@ -1,5 +1,5 @@
 // ✅ src/lib/auth.ts
-
+import axios from 'axios'
 
 export const ACCESS_TOKEN_KEY = 'accessToken';
 export const TOKEN_ISSUED_AT_KEY = 'tokenIssuedAt';
@@ -7,8 +7,9 @@ export const TOKEN_ISSUED_AT_KEY = 'tokenIssuedAt';
 export function setAccessToken(token: string) {
   localStorage.setItem(ACCESS_TOKEN_KEY, token);
   localStorage.setItem(TOKEN_ISSUED_AT_KEY, Date.now().toString());
-  // SSR 및 미들웨어를 위해 쿠키에 저장 (수명은 백엔드 리프레시 토큰과 동일한 14일로 설정)
-  document.cookie = `accessToken=${token}; path=/; max-age=1209600; SameSite=Lax`;
+  document.cookie = 'isAuthenticated=1; path=/; max-age=86400; SameSite=Lax';
+  // SSR을 위해 쿠키에도 저장 (서버 컴포넌트가 읽어서 인증 API 호출 가능)
+  document.cookie = `accessToken=${token}; path=/; max-age=86400; SameSite=Lax`;
 }
 
 export function getAccessToken(): string | null {
@@ -23,6 +24,20 @@ export function getTokenIssuedAt(): number | null {
 export function removeAccessToken() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(TOKEN_ISSUED_AT_KEY);
+  document.cookie = 'isAuthenticated=; path=/; max-age=0; SameSite=Lax';
   document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
 }
-
+
+export function isTokenExpiredOrNearExpiry(minutesBeforeExpiry = 1): boolean {
+  const issuedAt = getTokenIssuedAt();
+  if (!issuedAt) return true;
+
+  const now = Date.now();
+  const elapsedMinutes = (now - issuedAt) / (1000 * 60);
+  // 15분 - 1분 = 14분 경과 시 만료 임박으로 간주
+  return elapsedMinutes >= (15 - minutesBeforeExpiry);
+}
+
+export async function logoutUser() {
+  await axios.post('/api/v1/auth/logout', {}, { withCredentials: true });
+}
