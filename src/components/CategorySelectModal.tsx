@@ -39,9 +39,6 @@ export default function CategorySelectModal({
       setSelected([category]);
     } else if (selected.length < maxSelection) {
       setSelected((prev) => [...prev, category]);
-    } else {
-      // preference 모드에서 최대 개수 초과 시 가장 먼저 선택한 항목 제거 후 추가
-      setSelected((prev) => [...prev.slice(1), category]);
     }
   };
 
@@ -77,13 +74,15 @@ export default function CategorySelectModal({
           <div className={styles.row} style={{ flexWrap: 'wrap' }}>
             {categories.map((category) => {
               const isSelected = selected.includes(category);
+              const isDisabled = !isSelected && selected.length >= maxSelection;
 
               return (
                 <button
                   key={category}
                   type="button"
+                  disabled={isDisabled}
                   onClick={() => handleToggle(category)}
-                  className={`${styles.chip} ${isSelected ? styles.chipSelected : ''}`}
+                  className={`${styles.chip} ${isSelected ? styles.chipSelected : ''} ${isDisabled ? styles.chipDisabled : ''}`}
                 >
                   {category}
                 </button>

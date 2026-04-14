@@ -245,8 +245,7 @@ export async function getParticipants(
     `/api/v1/gatherings/${gatheringId}/participants?${query.toString()}`
   );
 
-  const preview = raw?.participantsPreview;
-  const data = (preview?.data ?? []).map((p: any) => ({
+  const data = (raw?.data ?? []).map((p: any) => ({
     userId: String(p.userId ?? ''),
     nickname: p.nickname ?? '',
     profileImageUrl: p.profileImageUrl ?? null,
@@ -254,7 +253,7 @@ export async function getParticipants(
     joinedAt: p.joinedAt ?? null,
   }));
 
-  const meta = preview?.meta ?? {
+  const meta = raw?.meta ?? {
     page: 1, size: 0, totalElements: 0, totalPages: 0,
     sortedBy: 'joinedAt,asc', hasPrev: false, hasNext: false,
   };

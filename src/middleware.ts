@@ -18,9 +18,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const accessToken = request.cookies.get('accessToken')?.value;
+  const isAuthenticated = request.cookies.get('isAuthenticated')?.value;
 
-  if (!accessToken) {
+  if (!isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('unauthorized', '1');
     loginUrl.searchParams.set('from', pathname);

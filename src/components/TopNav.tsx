@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './TopNav.module.css';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,10 +19,10 @@ export default function TopNav() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link href="/home" className={styles.logo} aria-label="홈으로 이동">
+        <div className={styles.logo}>
           <span className={styles.logoText}>GangKU</span>
           <span>🎓</span>
-        </Link>
+        </div>
         <div className={styles.spacer} />
         <div className={styles.authArea}>
           {isLoggedIn !== null && (
