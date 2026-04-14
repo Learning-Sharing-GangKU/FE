@@ -157,3 +157,31 @@
     justify-content: flex-end;
   }
 }
+
+
+@media (max-width: 480px) {
+  .main {
+    padding: 20px 16px 88px;
+  }
+
+  .pageTitle {
+    font-size: 1.375rem;
+    margin-bottom: 24px;
+  }
+
+  .filterBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .categoryButton {
+    width: 100%;
+    text-align: center;
+  }
+
+  .sortWrapper {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
