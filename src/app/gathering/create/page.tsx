@@ -14,6 +14,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import AiIntroModal from '@/components/gathering/AiIntroModal';
 import { useCreateGathering } from '@/hooks/gathering/useCreateGathering';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useDefaultCategoryImage } from '@/hooks/useDefaultCategoryImage';
 import { useAiIntro } from '@/hooks/useAiIntro';
 import { useToast } from '@/hooks/useToast';
 import { gatheringSchema, GatheringFormData } from '@/schemas/gatheringSchema';
@@ -24,6 +25,7 @@ export default function CreateGatheringPage() {
   
   const { mutate: createGathering, isPending } = useCreateGathering();
   const { mutate: uploadImage } = useImageUpload();
+  const { getDefaultImageObjectKey } = useDefaultCategoryImage();
   const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
   const { toast, showToast } = useToast(3000);
 
@@ -82,16 +84,18 @@ export default function CreateGatheringPage() {
     setShowCreateConfirm(true);
   };
 
-  const handleCreateConfirm = () => {
+  const handleCreateConfirm = async () => {
     if (!pendingData) return;
     setShowCreateConfirm(false);
-    
+
     const apiData: any = {
       ...pendingData,
       date: normalizeDate(pendingData.date),
     };
     if (!apiData.gatheringImageObjectKey) {
-      delete apiData.gatheringImageObjectKey;
+      const defaultKey = await getDefaultImageObjectKey(apiData.category);
+      if (defaultKey) apiData.gatheringImageObjectKey = defaultKey;
+      else delete apiData.gatheringImageObjectKey;
     }
 
     createGathering(apiData, {
