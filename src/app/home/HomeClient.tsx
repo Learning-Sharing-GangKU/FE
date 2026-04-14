@@ -8,8 +8,10 @@ import TopNav from "@/components/TopNav";
 import HomeGatheringCard from "@/components/home/HomeGatheringCard";
 import type { GatheringItem } from "@/types/gathering";
 import type { PaginationMeta } from "@/types/common";
+import Link from "next/link";
 import { useHome } from "@/hooks/gathering/useGatheringList";
 import { getGatherings } from "@/api/gathering";
+import EmptyState from "@/components/EmptyState";
 
 type SortType = "latest" | "popular" | "recommended";
 
@@ -22,16 +24,9 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
   const [rotateOffset, setRotateOffset] = useState(0);
 
   useEffect(() => {
-    const handleResize = () => {
-      if (!carouselRef.current) return;
-      const { scrollWidth, clientWidth } = carouselRef.current;
-      setNeedsArrows(scrollWidth > clientWidth || meta.hasNext);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    
-    return () => window.removeEventListener('resize', handleResize);
+    // 2개 이상이면 회전(rotation)이 의미 있으므로 화살표 표시
+    // 1개이면 회전해도 같은 카드라 의미 없으므로 숨김
+    setNeedsArrows(items.length >= 2 || meta.hasNext);
   }, [items.length, meta.hasNext]);
 
   const loadMore = async () => {
@@ -42,7 +37,7 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
       // "recommended" -> "recommend" (API 명세서 일치)
       const apiSort = sortKey === "recommended" ? "recommend" : sortKey;
       const res = await getGatherings({ sort: apiSort as any, page: nextPage, size: 3 });
-      
+
       if (res.data.length > 0) {
         setItems(prev => [...prev, ...res.data]);
         setMeta(res.meta);
@@ -68,7 +63,7 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
     } else {
       setRotateOffset(prev => prev - 1);
     }
-    
+
     // 강제로 스크롤 위치를 0으로 리셋하여 깔끔하게 첫 카드가 보이도록 함
     if (carouselRef.current) {
       carouselRef.current.scrollTo({ left: 0, behavior: "instant" as any });
@@ -89,22 +84,26 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
         <h2 className={styles.sectionTitle}>{title}</h2>
       </div>
       <div className={styles.carouselWrapper}>
-
-        {needsArrows && (
-          <button onClick={() => handleArrowClick("left")} className={`${styles.arrowButton} ${styles.arrowButtonLeft}`}>
-            <ChevronLeft size={20} />
-          </button>
-        )}
-        <div ref={carouselRef} className={styles.carousel}>
-          {getDisplayItems().map((room) => (
-            <HomeGatheringCard key={room.id} room={room} />
-          ))}
-        </div>
-
-        {needsArrows && (
-          <button onClick={() => handleArrowClick("right")} className={`${styles.arrowButton} ${styles.arrowButtonRight}`}>
-            <ChevronRight size={20} />
-          </button>
+        {items.length === 0 ? (
+          <EmptyState type="no-meetings" />
+        ) : (
+          <>
+            {needsArrows && (
+              <button onClick={() => handleArrowClick("left")} className={styles.arrowButton}>
+                <ChevronLeft size={20} />
+              </button>
+            )}
+            <div ref={carouselRef} className={styles.carousel}>
+              {getDisplayItems().map((room) => (
+                <HomeGatheringCard key={room.id} room={room} />
+              ))}
+            </div>
+            {needsArrows && (
+              <button onClick={() => handleArrowClick("right")} className={styles.arrowButton}>
+                <ChevronRight size={20} />
+              </button>
+            )}
+          </>
         )}
 
       </div>
@@ -122,16 +121,35 @@ export default function HomeClient() {
     { title: "인기 모임", sortKey: "popular" as SortType, initialRooms: data?.popular.data ?? [], initialMeta: data?.popular.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
   ];
 
-  const isEmpty = sections.every(({ rooms }) => rooms.length === 0);
+  const isEmpty = sections.every(({ initialRooms }) => initialRooms.length === 0);
 
   return (
     <div className={styles.container}>
       <TopNav />
       <main className={styles.main}>
 
-        {sections.map(({ title, initialRooms, initialMeta, sortKey }) => (
-          <Section key={title} title={title} initialRooms={initialRooms} initialMeta={initialMeta} sortKey={sortKey} />
-        ))}
+        {isEmpty ? (
+          <div className={styles.emptyWrapper}>
+            <div className={styles.emptyIconWrap}>
+              <div className={styles.emptyIconCircle}>
+                <Search size={48} color="#9ca3af" strokeWidth={1.5} />
+              </div>
+              <div className={styles.emptyDecorPing} />
+              <div className={styles.emptyDecorDot} />
+            </div>
+            <div className={styles.emptyTextWrap}>
+              <h3 className={styles.emptyTitle}>참여 가능한 모임이 없습니다</h3>
+              <p className={styles.emptyMessage}>새로운 모임을 개설하고 멤버를 모집해보세요!</p>
+            </div>
+            <Link href="/gathering/create" className={styles.emptyButton}>
+              새 모임 만들기
+            </Link>
+          </div>
+        ) : (
+          sections.map(({ title, initialRooms, initialMeta, sortKey }) => (
+            <Section key={title} title={title} initialRooms={initialRooms} initialMeta={initialMeta} sortKey={sortKey} />
+          ))
+        )}
 
       </main>
       <BottomNav />

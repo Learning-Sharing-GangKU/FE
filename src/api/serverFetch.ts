@@ -14,6 +14,22 @@ async function serverFetch(path: string) {
   return res.json();
 }
 
+// 선택적 인증 API (토큰이 있으면 포함, 없어도 요청은 전송)
+async function serverOptionalAuthFetch(path: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('accessToken')?.value;
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, { cache: 'no-store', headers });
+  if (!res.ok) return null;
+  if (res.status === 204) return null;
+  return res.json();
+}
+
 // 인증 API (쿠키에서 토큰 읽어 Authorization 헤더 포함)
 async function serverAuthFetch(path: string) {
   const cookieStore = await cookies();
@@ -53,7 +69,7 @@ function mapItems(items: any[]) {
 }
 
 export async function fetchHomeSSR(): Promise<HomeData | null> {
-  const raw = await serverFetch('/api/v1/home');
+  const raw = await serverOptionalAuthFetch('/api/v1/home');
   if (!raw) return null;
   return {
     recommended: { data: mapItems(raw.recommended?.data), meta: raw.recommended?.meta },

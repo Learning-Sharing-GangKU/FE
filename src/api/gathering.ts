@@ -242,7 +242,7 @@ export async function getParticipants(
   if (params?.sort) query.set('sort', params.sort);
 
   const raw = await apiFetch(
-    `/api/v1/gatherings/${gatheringId}?${query.toString()}`
+    `/api/v1/gatherings/${gatheringId}/participants?${query.toString()}`
   );
 
   const preview = raw?.participantsPreview;
