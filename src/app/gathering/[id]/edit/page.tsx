@@ -40,8 +40,10 @@ export default function GatheringEditPage() {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Fallback error modal
+    // Ai description generator error modal
     const [failedMessage, setFailedMessage] = useState<string | null>(null);
+    const [failedTitle, setFailedTitle] = useState<string | null>(null);
+
 
     const {
         register,
@@ -194,7 +196,14 @@ export default function GatheringEditPage() {
                 onSuccess: (data) => {
                     setValue('description', data.intro, { shouldDirty: true, shouldValidate: true });
                 },
-                onError: () => showToast("AI 요청 중 오류가 발생했습니다."),
+                onError: (err: any) => {
+                    if ((err as any)?.code === 'INVALID_GATHERING_CONTENT') {
+                        setFailedTitle('AI 모임 소개 자동 생성 실패');
+                        setFailedMessage('모임 정보 내용에 금칙어가 포함되어 있습니다.');
+                    } else {
+                        showToast('AI 모임 설명 생성 중 오류가 발생했습니다.');
+                    }
+                },
             }
         );
     };
@@ -432,10 +441,14 @@ export default function GatheringEditPage() {
             />
 
             {failedMessage && (
-                <GatheringFailedModal
-                    onClose={() => setFailedMessage(null)}
-                    message={failedMessage}
-                />
+            <GatheringFailedModal
+                title={failedTitle ?? ''}
+                message={failedMessage ?? ''}
+                onClose={() => {
+                    setFailedTitle(null);
+                    setFailedMessage(null);
+            }}
+            />
             )}
         </div>
     );
