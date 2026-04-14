@@ -1,20 +1,19 @@
 import { useImageUpload } from '@/hooks/useImageUpload';
 
 const CATEGORY_IMAGE_MAP: Record<string, string> = {
-  '게임':    '/images/게임.jpeg',
-  '공연/축제': '/images/공연:축제 .png',
-  '공연:축제': '/images/공연:축제 .png',
-  '독서':    '/images/독서.png',
-  '반려동물': '/images/반려동물.jpg',
-  '봉사':    '/images/봉사.png',
-  '사진':    '/images/사진.jpeg',
-  '스터디':  '/images/스터디.jpeg',
-  '스포츠':  '/images/스포츠.jpg',
-  '여행':    '/images/여행.jpg',
-  '요리':    '/images/요리.png',
-  '운동':    '/images/운동.jpg',
-  '음악':    '/images/음악.png',
-  '친목':    '/images/친목.png',
+  '게임':    '/images/game.jpeg',
+  '공연_축제': '/images/festival.jpg',
+  '독서':    '/images/reading.jpg',
+  '반려동물': '/images/pet.jpg',
+  '봉사':    '/images/volunteer.jpg',
+  '사진':    '/images/photo.jpeg',
+  '스터디':  '/images/study.jpeg',
+  '스포츠':  '/images/sports.jpg',
+  '여행':    '/images/travel.jpg',
+  '요리':    '/images/cooking.jpg',
+  '운동':    '/images/exercise.jpg',
+  '음악':    '/images/music.jpg',
+  '친목':    '/images/social.jpg',
 };
 
 export function useDefaultCategoryImage() {
