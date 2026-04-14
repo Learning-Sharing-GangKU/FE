@@ -21,6 +21,21 @@
   padding: 32px 24px 96px;
 }
 
+@media (max-width: 480px) {
+  .main {
+    padding: 20px 16px 88px;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .arrowButton {
+    width: 28px;
+    height: 28px;
+  }
+}
+
 /* 섹션 */
 .section {
   margin-bottom: 40px;

@@ -220,3 +220,14 @@
   white-space: nowrap;
   z-index: 100;
 }
+
+@media (max-width: 480px) {
+  .reviewCard {
+    padding: 16px;
+  }
+
+  .visibilityToggle {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

@@ -1,10 +1,15 @@
 import Providers from "@/components/Providers"
 import { Toaster } from "@/components/Toaster"
 import { Noto_Sans_KR } from 'next/font/google';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
 import { cookies } from 'next/headers';
 
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: 'GangKU',
