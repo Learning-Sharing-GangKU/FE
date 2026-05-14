@@ -41,9 +41,7 @@ export default function HomeGatheringCard({ room }: Props) {
         <div className={styles.content}>
           <h3 className={styles.title}>{room.title}</h3>
 
-          {room.description && (
-            <p className={styles.description}>{room.description}</p>
-          )}
+          <p className={styles.description}>{room.description ?? ''}</p>
 
           <div className={styles.meta}>
             {room.participantCount != null && (

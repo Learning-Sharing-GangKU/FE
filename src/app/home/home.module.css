@@ -6,7 +6,7 @@
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  background-color: #f3f4f6;
+  background-color: white;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -30,6 +30,10 @@
     font-size: 1rem;
   }
 
+  .sectionHeader {
+    padding-left: 36px;
+  }
+
   .arrowButton {
     width: 28px;
     height: 28px;
@@ -47,6 +51,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  padding-left: 44px;
 }
 
 .sectionTitle {
@@ -88,6 +93,7 @@
   flex: 1;
   min-width: 0;
   scrollbar-width: none;
+  padding-right: 1px;
 }
 
 .carousel::-webkit-scrollbar {
@@ -189,4 +195,3 @@
   background: #374151;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-

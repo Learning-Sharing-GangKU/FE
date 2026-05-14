@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Users, MapPin, BookOpen } from 'lucide-react';
+import { Users, MapPin, Tag } from 'lucide-react';
 import styles from './ListGatheringCard.module.css';
 import type { GatheringItem } from '@/types/gathering';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,9 +41,7 @@ export default function ListGatheringCard({ gathering }: Props) {
         <div className={styles.infoBox}>
           <div className={styles.textGroup}>
             <h3 className={styles.title}>{gathering.title}</h3>
-            {gathering.description && (
-              <p className={styles.description}>{gathering.description}</p>
-            )}
+            <p className={styles.description}>{gathering.description ?? ''}</p>
           </div>
 
           <div className={styles.metaRow}>
@@ -61,7 +59,7 @@ export default function ListGatheringCard({ gathering }: Props) {
             )}
             {gathering.category && (
               <div className={styles.metaItem}>
-                <BookOpen size={16} />
+                <Tag size={16} />
                 <span>{gathering.category}</span>
               </div>
             )}

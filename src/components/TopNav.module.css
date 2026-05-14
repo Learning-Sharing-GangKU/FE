@@ -14,7 +14,7 @@
   height: 64px;
   max-width: 1024px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 clamp(12px, 3vw, 24px);
 }
 
 .logo {
@@ -28,7 +28,13 @@
 
 .logoText {
   font-weight: bold;
-  font-size: 1.5rem;
+  font-size: clamp(1.1rem, 5vw, 1.5rem);
+  white-space: nowrap;
+}
+
+.logoIcon {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .spacer {
@@ -47,7 +53,8 @@
   color: #111827;
   background: white;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: clamp(0.75rem, 3vw, 0.875rem);
+  white-space: nowrap;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }

@@ -22,7 +22,7 @@ export default function TopNav() {
       <div className={styles.inner}>
         <Link href="/home" className={styles.logo} aria-label="홈으로 이동">
           <span className={styles.logoText}>GangKU</span>
-          <span>🎓</span>
+          <span className={styles.logoIcon}>🎓</span>
         </Link>
         <div className={styles.spacer} />
         <div className={styles.authArea}>

@@ -7,6 +7,7 @@ export function Toaster() {
     <Sonner
       position="top-center"
       toastOptions={{
+        duration: 2000,
         style: {
           background: 'white',
           color: '#111827',

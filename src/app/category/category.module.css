@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f3f4f6;
+  background-color: white;
 }
 
 .main {
@@ -49,16 +49,21 @@
   background-color: #374151;
 }
 
+.categoryButtonActive {
+  background-color: #ede9fe;
+  color: #818CF8;
+  border: 1px solid #818CF8;
+}
+
+.categoryButtonActive:hover {
+  background-color: #ddd6fe;
+}
+
 /* 정렬 영역 */
 .sortWrapper {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.sortLabel {
-  font-size: 0.875rem;
-  color: #6b7280;
 }
 
 /* 드롭다운 */
@@ -120,7 +125,8 @@
 .listWrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
+  border-top: 1px solid #e5e7eb;
 }
 
 /* 빈 상태 */

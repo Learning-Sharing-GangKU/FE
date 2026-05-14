@@ -1,16 +1,17 @@
 .container {
   min-height: 100vh;
-  background-color: #f3f4f6;
+  background-color: white;
   padding-bottom: 80px;
 }
 
 /* 세그먼트 탭 바 */
 .tabBar {
-  background-color: #f3f4f6;
+  background-color: white;
   position: sticky;
   top: 64px;
   z-index: 10;
   padding: 16px 0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .tabInner {
@@ -58,7 +59,8 @@
 .listWrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
+  border-top: 1px solid #e5e7eb;
 }
 
 /* 빈 상태 */
