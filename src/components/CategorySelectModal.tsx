@@ -46,15 +46,15 @@ export default function CategorySelectModal({
   };
 
   const handleConfirm = () => {
-    if (mode === 'group' && selected.length === 0) {
-      alert('카테고리를 1개 선택해주세요.');
-      return;
-    }
+    // if (mode === 'group' && selected.length === 0) {
+    //   alert('카테고리를 1개 선택해주세요.');
+    //   return;
+    // }
     onConfirm(selected);
     onClose();
   };
 
-  const isConfirmDisabled = mode === 'group' && selected.length === 0;
+  // const isConfirmDisabled = mode === 'group' && selected.length === 0;
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -95,8 +95,8 @@ export default function CategorySelectModal({
         {/* 완료 버튼 */}
         <div className={styles.footer}>
           <button
-            className={`${styles.confirmButton} ${isConfirmDisabled ? styles.confirmDisabled : ''}`}
-            disabled={isConfirmDisabled}
+            // className={`${styles.confirmButton} ${isConfirmDisabled ? styles.confirmDisabled : ''}`}
+            className={styles.confirmButton}
             onClick={handleConfirm}
           >
             완료
