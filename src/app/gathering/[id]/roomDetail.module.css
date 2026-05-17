@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background-color: #f3f4f6;
+  background-color: white;
   display: flex;
   flex-direction: column;
   padding-bottom: 80px;
@@ -16,48 +16,44 @@
 }
 
 .headerInner {
-  max-width: 896px;
+  max-width: 1024px;
   margin: 0 auto;
-  padding: 16px 24px;
-  display: flex;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
   align-items: center;
-  justify-content: space-between;
-}
-
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.backButton {
-  display: flex;
-  align-items: center;
-  color: #111827;
-  padding: 4px;
-  border-radius: 8px;
-  transition: background 0.15s;
-}
-
-.backButton:hover {
-  background: #f3f4f6;
+  height: 64px;
 }
 
 .headerTitle {
-  font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.headerTitleText {
+  font-size: 1.5rem;
+}
+
+.headerTitleIcon {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .headerTitleLink {
   color: inherit;
   text-decoration: none;
+  display: flex;
+  justify-content: center;
 }
 
 /* 더보기 메뉴 */
 .menuWrapper {
   position: relative;
+  justify-self: center;
 }
 
 .moreButton {
@@ -131,14 +127,13 @@
   padding: 24px 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
 }
 
 /* 카드 */
 .card {
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid #e5e7eb;
   overflow: hidden;
 }
 
@@ -320,25 +315,28 @@
 /* 채팅방 링크 */
 .chatRow {
   display: flex;
+  align-items: center;
   gap: 12px;
-  padding: 0 24px 20px;
+  padding: 0 16px 20px;
 }
 
 .chatInput {
   flex: 1;
-  height: 44px;
-  padding: 0 16px;
+  min-width: 0;
+  height: 56px;
+  padding: 0 20px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #374151;
   outline: none;
+  text-overflow: ellipsis;
 }
 
 .copyButton {
-  padding: 0 24px;
-  height: 44px;
+  padding: 0 28px;
+  height: 56px;
   background: #111827;
   color: white;
   border: none;
@@ -416,12 +414,14 @@
   }
 
   .chatRow {
-    padding: 0 16px 16px;
+    padding: 0 8px 16px;
     flex-direction: column;
+    gap: 12px;
   }
 
   .copyButton {
     width: 100%;
+    height: 52px;
   }
 
   .sectionHeader {

@@ -29,7 +29,7 @@ export default function CreateGatheringPage() {
   const { mutate: uploadImage } = useImageUpload();
   const { getDefaultImageObjectKey } = useDefaultCategoryImage();
   const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
-  const { toast, showToast } = useToast(3000);
+  const { toast, showToast } = useToast(2000);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);

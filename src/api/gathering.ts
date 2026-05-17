@@ -166,11 +166,13 @@ export async function fetchUserGatherings(
   const data = list.map((g: any) => ({
     id: g.id,
     title: g.title,
+    description: g.description ?? undefined,
     category: g.category,
     imageUrl: g.gatheringImageUrl ?? null,
     hostName: g.hostName,
     participantCount: g.participantCount,
     capacity: g.capacity,
+    location: g.location ?? undefined,
   }));
 
   const meta = raw?.meta ?? {

@@ -30,7 +30,7 @@ export default function GatheringEditPage() {
     const { mutate: updateGathering, isPending: isUpdating } = useUpdateGathering();
     const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
     const { mutate: uploadImage } = useImageUpload();
-    const { toast, showToast } = useToast(3000);
+    const { toast, showToast } = useToast(2000);
 
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [showAiModal, setShowAiModal] = useState(false);

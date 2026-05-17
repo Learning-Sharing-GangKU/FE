@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Star, ChevronDown } from 'lucide-react';
+import { Star, ChevronDown, LockKeyhole } from 'lucide-react';
 import styles from '../profile.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
@@ -16,6 +16,7 @@ import { useReviewToggle } from '@/hooks/profile/useReviewToggle';
 import { useToast } from '@/hooks/useToast';
 import { createReview } from '@/api/user';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast as sonnerToast } from 'sonner';
 
 function formatReviewDate(dateString: string) {
   return new Intl.DateTimeFormat('ko-KR', {
@@ -67,6 +68,9 @@ export default function ProfileClient() {
   const { toast, showToast } = useToast();
 
   const isMine = myUserId !== null && myUserId === userId;
+  const shouldShowReviews = isMine || Boolean(profile?.reviewsPublic);
+  const displayAverageRating = shouldShowReviews ? (profile?.averageRating ?? 0) : 0;
+  const displayReviewCount = profile?.reviewCount ?? 0;
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -76,11 +80,11 @@ export default function ProfileClient() {
     if (!profile || !isMine) return;
     try {
       await reviewToggle.mutateAsync(!profile.reviewsPublic);
-      showToast(profile.reviewsPublic ? '리뷰가 비공개되었습니다.' : '리뷰가 공개되었습니다.');
+      sonnerToast.success(profile.reviewsPublic ? '리뷰가 비공개되었습니다.' : '리뷰가 공개되었습니다.');
     } catch {
-      showToast('리뷰 공개 설정 변경 실패');
+      sonnerToast.error('리뷰 공개 설정 변경 실패');
     }
-  }, [profile, isMine, reviewToggle, showToast]);
+  }, [profile, isMine, reviewToggle]);
 
   const handleProfileEdit = useCallback(() => {
     router.push(`/profile/${userId}/edit`);
@@ -148,37 +152,44 @@ export default function ProfileClient() {
           </div>
 
           <div className={styles.ratingSummary}>
-            <StarRating rating={profile.averageRating || 0} size={16} />
-            <span className={styles.ratingValue}>{profile.averageRating ? profile.averageRating.toFixed(1) : '0.0'}</span>
-            <span className={styles.reviewCount}>(리뷰 {profile.reviewCount}개)</span>
+            <StarRating rating={displayAverageRating} size={16} />
+            <span className={styles.ratingValue}>{displayAverageRating.toFixed(1)}</span>
+            <span className={styles.reviewCount}>(리뷰 {displayReviewCount}개)</span>
           </div>
 
-          <div className={styles.reviewList}>
-            {profile.reviews.map((review: any, index: number) => (
-              <div
-                key={review.id}
-                className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
-              >
-                <div className={styles.reviewAvatarCircle}>
-                  {review.reviewerNickname.charAt(0)}
-                </div>
-                <div className={styles.reviewContent}>
-                  <div className={styles.reviewMeta}>
-                    <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>
-                    <span className={styles.reviewDate}>
-                      {formatReviewDate(review.createdAt)}
-                    </span>
+          {shouldShowReviews ? (
+            <div className={styles.reviewList}>
+              {profile.reviews.map((review: any, index: number) => (
+                <div
+                  key={review.id}
+                  className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
+                >
+                  <div className={styles.reviewAvatarCircle}>
+                    {review.reviewerNickname.charAt(0)}
                   </div>
-                  <div className={styles.reviewStarRow}>
-                    <StarRating rating={review.rating} size={12} />
+                  <div className={styles.reviewContent}>
+                    <div className={styles.reviewMeta}>
+                      <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>
+                      <span className={styles.reviewDate}>
+                        {formatReviewDate(review.createdAt)}
+                      </span>
+                    </div>
+                    <div className={styles.reviewStarRow}>
+                      <StarRating rating={review.rating} size={12} />
+                    </div>
+                    <p className={styles.reviewText}>{review.content}</p>
                   </div>
-                  <p className={styles.reviewText}>{review.content}</p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.privateReviewBox}>
+              <LockKeyhole size={32} strokeWidth={1.75} />
+              <p>리뷰가 비공개 설정되어 있습니다.</p>
+            </div>
+          )}
 
-          {profile.reviewsMeta.hasNext && (
+          {shouldShowReviews && profile.reviewsMeta.hasNext && (
             <button className={styles.loadMoreBtn} onClick={loadMoreReviews}>
               리뷰 더보기
               <ChevronDown size={16} />
