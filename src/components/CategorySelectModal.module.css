@@ -75,13 +75,13 @@
 }
 
 .chipSelected {
-  background-color: #111827;
+  background-color: #4338CA;
   color: white;
   border-color: #111827;
 }
 
 .chipSelected:hover:not(:disabled) {
-  background-color: #374151;
+  background-color: #3730A3;
 }
 
 .chipDisabled {
@@ -105,7 +105,7 @@
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
-  background-color: #111827;
+  background-color: #4338CA;
   color: white;
   border: none;
   cursor: pointer;
@@ -113,7 +113,7 @@
 }
 
 .confirmButton:hover:not(:disabled) {
-  background-color: #374151;
+  background-color: #3730A3;
 }
 
 .confirmDisabled {
