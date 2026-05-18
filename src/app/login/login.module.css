@@ -28,9 +28,8 @@
   margin-bottom: 40px;
 }
 
-.logoEmoji {
-  font-size: 6rem;
-  line-height: 1;
+.logoImage {
+  object-fit: contain;
 }
 
 /* 타이틀 */
@@ -142,9 +141,5 @@
 
   .inner {
     max-width: 100%;
-  }
-
-  .logoEmoji {
-    font-size: 4.5rem;
   }
 }

@@ -36,8 +36,8 @@
 }
 
 .label {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   color: #111;
 }
 
@@ -53,6 +53,7 @@
   box-sizing: border-box;
   outline: none;
   background: white;
+  accent-color: #4338CA;
 }
 
 .input:focus {
@@ -308,6 +309,166 @@
   color: #d32f2f;
 }
 
+/* DateTime Custom Component */
+.dateTimeContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+}
+
+.dateRow {
+  position: relative;
+  flex: 1.2;
+  min-width: 0;
+}
+
+.dateInput {
+  padding-right: 36px !important;
+}
+
+.calendarIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+  width: 20px;
+  height: 20px;
+}
+
+.timeSelects {
+  display: flex;
+  gap: 8px;
+  flex: 1.8;
+  min-width: 0;
+}
+
+.timeSelect {
+  flex: 1;
+  height: 44px;
+  padding: 0 24px 0 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #111;
+  box-sizing: border-box;
+  outline: none;
+  background: white;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  min-width: 0;
+}
+
+.timeSelect:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
+}
+
+/* Custom DatePicker Styles */
+.customDatepicker {
+  width: 100%;
+}
+
+.dateRow :global(.react-datepicker-wrapper) {
+  width: 100%;
+}
+
+.dateRow :global(.react-datepicker-popper) {
+  z-index: 9999 !important;
+}
+
+.dateRow :global(.react-datepicker) {
+  font-family: inherit;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  padding: 12px;
+  border: none;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.dateRow :global(.react-datepicker__header) {
+  background-color: transparent;
+  border-bottom: none;
+  padding-bottom: 8px;
+}
+
+.dateRow :global(.react-datepicker__current-month) {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.dateRow :global(.react-datepicker__day-names) {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.dateRow :global(.react-datepicker__day-name) {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 0.875rem;
+  width: 2.25rem;
+  line-height: 2.25rem;
+}
+
+.dateRow :global(.react-datepicker__month) {
+  margin: 0;
+}
+
+.dateRow :global(.react-datepicker__day) {
+  color: #4b5563;
+  width: 2.25rem;
+  height: 2.25rem;
+  line-height: 2.25rem;
+  border-radius: 50% !important;
+  margin: 0.15rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.dateRow :global(.react-datepicker__day:hover) {
+  background-color: #f3f4f6;
+  border-radius: 50% !important;
+}
+
+.dateRow :global(.react-datepicker__day--selected),
+.dateRow :global(.react-datepicker__day--keyboard-selected) {
+  background-color: #4338CA !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.dateRow :global(.react-datepicker__day--outside-month) {
+  color: #d1d5db;
+}
+
+.dateRow :global(.react-datepicker-popper[data-placement^="bottom"] .react-datepicker__triangle),
+.dateRow :global(.react-datepicker-popper[data-placement^="top"] .react-datepicker__triangle) {
+  display: none;
+}
+
+
+
+.dateRow :global(.react-datepicker__time-container) {
+  border-left: 1px solid #e5e7eb;
+}
+
+.dateRow :global(.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item--selected) {
+  background-color: #4338CA !important;
+}
 
 @media (max-width: 480px) {
   .main {
@@ -323,5 +484,24 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+  }
+  
+  .timeSelect {
+    padding: 0 16px 0 4px;
+    font-size: 0.75rem;
+    background-position: right 4px center;
+    background-size: 12px;
+  }
+  
+  .input.dateInput {
+    font-size: 0.75rem;
+    padding-left: 8px;
+    padding-right: 28px !important;
+  }
+  
+  .calendarIcon {
+    right: 8px;
+    width: 16px;
+    height: 16px;
   }
 }

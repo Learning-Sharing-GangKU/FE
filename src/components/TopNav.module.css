@@ -32,9 +32,8 @@
   white-space: nowrap;
 }
 
-.logoIcon {
-  font-size: 1.25rem;
-  line-height: 1;
+.logoImage {
+  object-fit: contain;
 }
 
 .spacer {
