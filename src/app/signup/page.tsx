@@ -49,7 +49,7 @@ export default function SignupPage() {
     confirmVerification(undefined, {
       onSuccess: () => {
         setEmailVerified(true);
-        setEmailStatusText('이메일 인증이 완료되었습니다. ✅');
+        setEmailStatusText('이메일 인증이 완료되었습니다');
       },
       onError: () => {
         setEmailStatusText('이메일 인증을 완료해주세요. 링크를 클릭한 후 다시 시도해주세요.');
