@@ -30,7 +30,7 @@
     font-size: 1rem;
   }
 
-  .sectionHeader {
+  .sectionHeader.withArrows {
     padding-left: 36px;
   }
 
@@ -51,6 +51,9 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.sectionHeader.withArrows {
   padding-left: 44px;
 }
 
@@ -179,7 +182,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 32px;
-  background: #111827;
+  background: #4338CA;
   color: white;
   font-size: 0.9375rem;
   font-weight: 700;
@@ -192,6 +195,6 @@
 }
 
 .emptyButton:hover {
-  background: #374151;
+  background: #3730A3;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }

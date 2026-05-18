@@ -2,9 +2,11 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Sparkles, AlertTriangle } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { X, Sparkles, AlertTriangle, Calendar } from 'lucide-react';
 
 import styles from './create.module.css';
 import TopNav from '@/components/TopNav';
@@ -49,6 +51,7 @@ export default function CreateGatheringPage() {
     setValue,
     watch,
     getValues,
+    control,
     formState: { errors },
   } = useForm<GatheringFormData>({
     resolver: zodResolver(gatheringSchema),
@@ -80,9 +83,9 @@ export default function CreateGatheringPage() {
 
   const normalizeDate = (d: string) => {
     if (!d) return '';
-    if (d.length === 16) return `${d}:00`;  // HH:mm → HH:mm:ss
-    if (d.length === 19) return d;
-    return d;
+    const dateObj = new Date(d);
+    if (isNaN(dateObj.getTime())) return d;
+    return dateObj.toISOString().split('.')[0] + 'Z';
   };
 
   const onValidSubmit = (data: GatheringFormData) => {
@@ -268,14 +271,78 @@ export default function CreateGatheringPage() {
 
           {/* 날짜 */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>모임 날짜</label>
-            <div className={styles.dateRow}>
-              <input
-                type="datetime-local"
-                className={`${styles.input} ${errors.date ? styles.inputError : ''}`}
-                {...register('date')}
-              />
-            </div>
+            <label className={styles.label}>모임 날짜 및 시간</label>
+            <Controller
+              control={control}
+              name="date"
+              render={({ field }) => {
+                const val = field.value ? new Date(field.value) : null;
+                
+                const currentH = val ? val.getHours() : 12;
+                const currentM = val ? val.getMinutes() : 0;
+                const amPm = currentH >= 12 ? 'PM' : 'AM';
+                const displayH = currentH % 12 === 0 ? 12 : currentH % 12;
+
+                const updateDate = (newDate: Date | null, newAmPm: 'AM' | 'PM', newH: number, newM: number) => {
+                  if (!newDate) {
+                    field.onChange('');
+                    return;
+                  }
+                  let h = newH;
+                  if (newAmPm === 'PM' && h < 12) h += 12;
+                  if (newAmPm === 'AM' && h === 12) h = 0;
+
+                  const updated = new Date(newDate);
+                  updated.setHours(h, newM, 0, 0);
+                  const offset = updated.getTimezoneOffset() * 60000;
+                  const localISOTime = new Date(updated.getTime() - offset).toISOString().slice(0, 16);
+                  field.onChange(localISOTime);
+                };
+
+                return (
+                  <div className={styles.dateTimeContainer}>
+                    <div className={styles.dateRow}>
+                      <DatePicker
+                        selected={val}
+                        onChange={(date) => updateDate(date, amPm, displayH, currentM)}
+                        dateFormat="yyyy.MM.dd"
+                        placeholderText="YYYY.MM.DD"
+                        className={`${styles.input} ${styles.dateInput} ${errors.date ? styles.inputError : ''} ${styles.customDatepicker}`}
+                      />
+                      <Calendar className={styles.calendarIcon} />
+                    </div>
+                    <div className={styles.timeSelects}>
+                      <select
+                        value={amPm}
+                        onChange={(e) => updateDate(val || new Date(), e.target.value as 'AM' | 'PM', displayH, currentM)}
+                        className={styles.timeSelect}
+                      >
+                        <option value="AM">오전</option>
+                        <option value="PM">오후</option>
+                      </select>
+                      <select
+                        value={displayH}
+                        onChange={(e) => updateDate(val || new Date(), amPm, parseInt(e.target.value), currentM)}
+                        className={styles.timeSelect}
+                      >
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                          <option key={h} value={h}>{h}시</option>
+                        ))}
+                      </select>
+                      <select
+                        value={currentM}
+                        onChange={(e) => updateDate(val || new Date(), amPm, displayH, parseInt(e.target.value))}
+                        className={styles.timeSelect}
+                      >
+                        {Array.from({ length: 6 }, (_, i) => i * 10).map((m) => (
+                          <option key={m} value={m}>{m.toString().padStart(2, '0')}분</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                );
+              }}
+            />
             {errors.date && (
               <div className={styles.errorWrapper}>
                 <AlertTriangle className={styles.errorIcon} />

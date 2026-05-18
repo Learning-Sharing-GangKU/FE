@@ -34,7 +34,7 @@
 /* 카테고리 버튼 */
 .categoryButton {
   padding: 10px 24px;
-  background-color: #111827;
+  background-color: #4338CA;
   color: white;
   border: none;
   border-radius: 8px;
@@ -46,7 +46,7 @@
 }
 
 .categoryButton:hover {
-  background-color: #374151;
+  background-color: #3730A3;
 }
 
 .categoryButtonActive {
@@ -208,7 +208,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 32px;
-  background: #111827;
+  background: #4338CA;
   color: white;
   font-size: 0.9375rem;
   font-weight: 700;
@@ -221,7 +221,7 @@
 }
 
 .emptyButton:hover {
-  background: #374151;
+  background: #3730A3;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 

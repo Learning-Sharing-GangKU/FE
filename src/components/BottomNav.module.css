@@ -34,11 +34,11 @@
   white-space: nowrap;
 }
 
-.item:hover {
+.item:not(.active):hover {
   color: #6b7280;
 }
 
 .active {
-  color: #111827;
+  color: #4338CA;
   font-weight: 600;
 }
