@@ -12,6 +12,7 @@ import { useUpdateProfile } from '@/hooks/profile/useUpdateProfile';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useToast } from '@/hooks/useToast';
 import type { UpdateProfilePayload } from '@/types/user';
+import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 
 export default function ProfileEditPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -24,6 +25,8 @@ export default function ProfileEditPage() {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [profileImageObjectKey, setProfileImageObjectKey] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [failedTitle, setFailedTitle] = useState<string | null>(null);
+  const [failedMessage, setFailedMessage] = useState<string | null>(null);
 
   const [nickname, setNickname] = useState('');
   const [age, setAge] = useState('');
@@ -75,7 +78,14 @@ export default function ProfileEditPage() {
     
     updateProfile(payload, {
       onSuccess: () => router.push(`/profile/${userId}`),
-      onError: () => showToast('수정에 실패했습니다.'),
+      onError: (err: any) => {
+        if (err?.code === 'INVALID_NICKNAME' || err?.message?.includes('부적') || err?.message?.includes('금칙어')) {
+          setFailedTitle('닉네임 변경 실패');
+          setFailedMessage('닉네임에 부적절한 단어(금칙어)가 포함되어 있습니다.');
+        } else {
+          showToast('수정에 실패했습니다.');
+        }
+      },
     });
   };
 
@@ -241,6 +251,17 @@ export default function ProfileEditPage() {
           initialSelected={selectedCategories}
           onConfirm={(cats) => setSelectedCategories(cats)}
           onClose={() => setShowCategoryModal(false)}
+        />
+      )}
+
+      {failedMessage && (
+        <GatheringFailedModal
+          title={failedTitle ?? ''}
+          message={failedMessage}
+          onClose={() => {
+            setFailedTitle(null);
+            setFailedMessage(null);
+          }}
         />
       )}
     </div>

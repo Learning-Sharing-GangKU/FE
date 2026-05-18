@@ -48,10 +48,11 @@
 
 /* ===== 로그인 버튼 스타일 ===== */
 .loginButton {
-  background-color: #2196f3;
+  width: 100%;
+  background-color: #4338CA;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 12px 0;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -59,9 +60,10 @@
   transition: background-color 0.2s ease;
   text-align: center;
   text-decoration: none;
-  display: block;
+  display: inline-block;
+  box-sizing: border-box;
 }
 
 .loginButton:hover {
-  background-color: #1976d2;
+  background-color: #3730A3;
 }
