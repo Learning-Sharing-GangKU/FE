@@ -112,8 +112,14 @@ export default function CreateGatheringPage() {
         router.push(`/gathering/${resData.id}`);
       },
       onError: (err: any) => {
-        const errorMsg = err.message || '알 수 없는 오류가 발생했습니다.';
-        showToast(`모임 생성 실패: ${errorMsg}`);
+        if (err?.code === 'INVALID_GATHERING_CONTENT' || err?.message?.includes('부적')) {
+          setFailedTitle('모임 생성 실패');
+          setFailedMessage('모임 이름 혹은 설명(키워드)에 부적절한 단어가 들어가있습니다.');
+        } else {
+          const errorMsg = err?.message || '알 수 없는 오류가 발생했습니다.';
+          const codeMsg = err?.code ? `(코드: ${err.code})` : '(코드 없음)';
+          showToast(`모임 생성 실패: ${errorMsg} ${codeMsg}`);
+        }
       },
     });
   };
