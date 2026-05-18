@@ -1,18 +1,20 @@
 .card {
   display: flex;
   background: white;
+  border-radius: 18px;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  border-bottom: 1px solid #e5e7eb;
-  border-left: 1px solid #e5e7eb;
-  border-right: 1px solid #e5e7eb;
-  transition: background 0.15s;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.08);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
   cursor: pointer;
 }
 
 .card:hover {
   background: #f9fafb;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.12);
+  transform: translateY(-1px);
 }
 
 /* 썸네일 */

@@ -60,8 +60,7 @@
 .listWrapper {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  border-top: 1px solid #e5e7eb;
+  gap: 20px;
 }
 
 /* 빈 상태 */
