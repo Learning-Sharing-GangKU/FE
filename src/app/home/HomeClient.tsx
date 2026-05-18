@@ -80,12 +80,14 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
 
   return (
     <section className={styles.section}>
-      <div className={`${styles.sectionHeader} ${needsArrows ? styles.withArrows : ""}`}>
+      <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>{title}</h2>
       </div>
       <div className={styles.carouselWrapper}>
         {items.length === 0 ? (
-          <EmptyState type="no-meetings" />
+          <div className={styles.emptyStateRail}>
+            <EmptyState type="no-meetings" />
+          </div>
         ) : (
           <>
             {needsArrows && (

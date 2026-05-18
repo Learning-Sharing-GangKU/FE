@@ -30,7 +30,11 @@
     font-size: 1rem;
   }
 
-  .sectionHeader.withArrows {
+  .sectionHeader {
+    padding-left: 36px;
+  }
+
+  .emptyStateRail {
     padding-left: 36px;
   }
 
@@ -51,9 +55,6 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-}
-
-.sectionHeader.withArrows {
   padding-left: 44px;
 }
 
@@ -101,6 +102,10 @@
 
 .carousel::-webkit-scrollbar {
   display: none;
+}
+
+.emptyStateRail {
+  padding-left: 44px;
 }
 
 /* 빈 상태 */
