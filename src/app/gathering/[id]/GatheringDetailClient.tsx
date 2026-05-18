@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import styles from './roomDetail.module.css';
 import BottomNav from '@/components/BottomNav';
+import TopNav from '@/components/TopNav';
 import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -76,46 +77,7 @@ export default function GatheringDetailClient() {
 
   return (
     <div className={styles.container}>
-      {/* 헤더 */}
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <Link href="/home" className={styles.headerTitleLink} aria-label="홈으로 이동">
-            <h1 className={styles.headerTitle}>
-              <span className={styles.headerTitleText}>GangKU</span>
-              <span className={styles.headerTitleIcon}>🎓</span>
-            </h1>
-          </Link>
-
-          <div />
-
-          {isHost && (
-            <div className={styles.menuWrapper}>
-              <button
-                className={styles.moreButton}
-                onClick={() => setMenuOpen(!menuOpen)}
-              >
-                <MoreVertical size={20} />
-              </button>
-
-              {menuOpen && (
-                <>
-                  <div className={styles.menuBackdrop} onClick={() => setMenuOpen(false)} />
-                  <div className={styles.menuPopup}>
-                    <button className={styles.menuItem} onClick={() => { setMenuOpen(false); router.push(`/gathering/${gatheringId}/edit`); }}>
-                      <Edit size={16} />
-                      모임 수정
-                    </button>
-                    <button className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={() => { setMenuOpen(false); setShowDeleteModal(true); }}>
-                      <Trash2 size={16} />
-                      모임 삭제
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      <TopNav />
 
       <main className={styles.main}>
         {/* 메인 카드 */}
@@ -126,6 +88,32 @@ export default function GatheringDetailClient() {
               alt={gathering.title}
               className={styles.image}
             />
+            {isHost && (
+              <div className={styles.imageMenuWrapper}>
+                <button
+                  className={styles.imageMoreButton}
+                  onClick={() => setMenuOpen(!menuOpen)}
+                >
+                  <MoreVertical size={20} />
+                </button>
+
+                {menuOpen && (
+                  <>
+                    <div className={styles.menuBackdrop} onClick={() => setMenuOpen(false)} />
+                    <div className={styles.menuPopup}>
+                      <button className={styles.menuItem} onClick={() => { setMenuOpen(false); router.push(`/gathering/${gatheringId}/edit`); }}>
+                        <Edit size={16} />
+                        모임 수정
+                      </button>
+                      <button className={`${styles.menuItem} ${styles.menuItemDelete}`} onClick={() => { setMenuOpen(false); setShowDeleteModal(true); }}>
+                        <Trash2 size={16} />
+                        모임 삭제
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           <div className={styles.cardContent}>
