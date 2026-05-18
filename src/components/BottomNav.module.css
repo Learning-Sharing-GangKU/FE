@@ -16,7 +16,7 @@
   height: 64px;
   max-width: 1024px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0;
 }
 
 .item {
@@ -28,16 +28,17 @@
   padding: 8px 0;
   text-decoration: none;
   color: #9ca3af;
-  font-size: 0.75rem;
+  font-size: clamp(0.6rem, 2.8vw, 0.75rem);
   font-weight: 400;
   transition: color 0.15s;
+  white-space: nowrap;
 }
 
-.item:hover {
+.item:not(.active):hover {
   color: #6b7280;
 }
 
 .active {
-  color: #111827;
+  color: #4338CA;
   font-weight: 600;
 }

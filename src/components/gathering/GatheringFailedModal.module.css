@@ -42,7 +42,7 @@
 /* ===== 확인 버튼 ===== */
 .button {
   width: 100%;
-  background-color: #111827;
+  background-color: #4338CA;
   color: white;
   border: none;
   padding: 12px 0;
@@ -54,5 +54,5 @@
 }
 
 .button:hover {
-  background-color: #374151;
+  background-color: #3730A3;
 }

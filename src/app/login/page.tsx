@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import styles from './login.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
@@ -37,11 +38,15 @@ function LoginContent() {
       <main className={styles.main}>
         <div className={styles.inner}>
           <div className={styles.logoWrapper}>
-            <div className={styles.logoEmoji}>🎓</div>
+            <Image
+              src="/logo.png"
+              alt="GangKU Logo"
+              width={280}
+              height={280}
+              priority
+              className={styles.logoImage}
+            />
           </div>
-
-          <h1 className={styles.title}>로그인</h1>
-
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.fieldGroup}>
               <label htmlFor="email" className={styles.label}>이메일</label>

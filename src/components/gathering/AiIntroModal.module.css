@@ -105,7 +105,7 @@
   height: 44px;
   border-radius: 8px;
   border: none;
-  background: #111827;
+  background: #4338CA;
   color: white;
   font-size: 0.875rem;
   font-weight: 700;
@@ -114,5 +114,5 @@
 }
 
 .confirm:hover {
-  background: #374151;
+  background: #3730A3;
 }

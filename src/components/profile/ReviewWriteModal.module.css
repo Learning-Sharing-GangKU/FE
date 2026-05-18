@@ -262,7 +262,7 @@
 .submitButton {
   width: 100%;
   padding: 14px 24px;
-  background: #111827;
+  background: #4338CA;
   color: white;
   font-size: 1rem;
   font-weight: 600;
@@ -273,7 +273,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background: #000;
+  background: #312E81;
 }
 
 .submitButton:disabled {
@@ -317,7 +317,7 @@
 .confirmSubmitBtn {
   flex: 1;
   padding: 12px 16px;
-  background: #111827;
+  background: #4338CA;
   color: white;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -328,7 +328,7 @@
 }
 
 .confirmSubmitBtn:hover {
-  background: #000;
+  background: #312E81;
 }
 
 .confirmCancelBtn {

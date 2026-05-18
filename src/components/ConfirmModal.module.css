@@ -40,7 +40,7 @@
 
 .confirmBtn {
   flex: 1;
-  background: #111827;
+  background: #4338CA;
   color: white;
   padding: 16px;
   border: none;
@@ -52,7 +52,7 @@
 }
 
 .confirmBtn:hover {
-  background: #374151;
+  background: #3730A3;
 }
 
 .cancelBtn {

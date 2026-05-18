@@ -43,16 +43,15 @@ export default function CategoryClient() {
         <div className={styles.filterBar}>
           <button
             type="button"
-            className={styles.categoryButton}
+            className={`${styles.categoryButton} ${selectedCategories.length > 0 ? styles.categoryButtonActive : ''}`}
             onClick={() => setShowCategoryModal(true)}
           >
             {selectedCategories.length > 0
-              ? `카테고리 (${selectedCategories.length})`
+              ? selectedCategories[0]
               : '카테고리'}
           </button>
 
           <div className={styles.sortWrapper}>
-            <span className={styles.sortLabel}>정렬:</span>
             <div className={styles.dropdown}>
               <button
                 className={styles.dropdownToggle}

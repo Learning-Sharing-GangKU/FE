@@ -85,7 +85,9 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
       </div>
       <div className={styles.carouselWrapper}>
         {items.length === 0 ? (
-          <EmptyState type="no-meetings" />
+          <div className={styles.emptyStateRail}>
+            <EmptyState type="no-meetings" />
+          </div>
         ) : (
           <>
             {needsArrows && (
@@ -116,9 +118,9 @@ export default function HomeClient() {
   const { data } = useHome();
 
   const sections = [
-    { title: "추천 모임", sortKey: "recommended" as SortType, initialRooms: data?.recommended.data ?? [], initialMeta: data?.recommended.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
-    { title: "최신 모임", sortKey: "latest" as SortType, initialRooms: data?.latest.data ?? [], initialMeta: data?.latest.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
-    { title: "인기 모임", sortKey: "popular" as SortType, initialRooms: data?.popular.data ?? [], initialMeta: data?.popular.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
+    { title: "이런 모임은 어때요? 👀", sortKey: "recommended" as SortType, initialRooms: data?.recommended.data ?? [], initialMeta: data?.recommended.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
+    { title: "방금 생긴 따끈따끈한 모임 🍞", sortKey: "latest" as SortType, initialRooms: data?.latest.data ?? [], initialMeta: data?.latest.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
+    { title: "지금 가장 핫한 모임 🔥", sortKey: "popular" as SortType, initialRooms: data?.popular.data ?? [], initialMeta: data?.popular.meta ?? { page: 1, size: 0, hasNext: false, hasPrev: false, totalElements: 0, totalPages: 0, sortedBy: '' } },
   ];
 
   const isEmpty = sections.every(({ initialRooms }) => initialRooms.length === 0);

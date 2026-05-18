@@ -8,10 +8,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 // 공개 API (토큰 없이 호출)
 async function serverFetch(path: string) {
-  const res = await fetch(`${API_BASE}${path}`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  if (res.status === 204) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    if (res.status === 204) return null;
+    return res.json();
+  } catch (error) {
+    console.error(`[serverFetch] Failed to fetch ${path}`, error);
+    return null;
+  }
 }
 
 // 선택적 인증 API (토큰이 있으면 포함, 없어도 요청은 전송)
@@ -24,10 +29,15 @@ async function serverOptionalAuthFetch(path: string) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { cache: 'no-store', headers });
-  if (!res.ok) return null;
-  if (res.status === 204) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { cache: 'no-store', headers });
+    if (!res.ok) return null;
+    if (res.status === 204) return null;
+    return res.json();
+  } catch (error) {
+    console.error(`[serverOptionalAuthFetch] Failed to fetch ${path}`, error);
+    return null;
+  }
 }
 
 // 인증 API (쿠키에서 토큰 읽어 Authorization 헤더 포함)
@@ -36,16 +46,21 @@ async function serverAuthFetch(path: string) {
   const token = cookieStore.get('accessToken')?.value;
   if (!token) return null;
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    cache: 'no-store',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (!res.ok) return null;
-  if (res.status === 204) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) return null;
+    if (res.status === 204) return null;
+    return res.json();
+  } catch (error) {
+    console.error(`[serverAuthFetch] Failed to fetch ${path}`, error);
+    return null;
+  }
 }
 
 
@@ -153,11 +168,13 @@ export async function fetchUserGatheringsSSR(role: 'host' | 'guest') {
   const data = (raw.data ?? []).map((g: any) => ({
     id: g.id,
     title: g.title,
+    description: g.description ?? undefined,
     category: g.category,
     imageUrl: g.gatheringImageUrl ?? null,
     hostName: g.hostName,
     participantCount: g.participantCount,
     capacity: g.capacity,
+    location: g.location ?? undefined,
   }));
 
   const meta = raw.meta ?? { page: 1, size: 0, sortedBy: '', hasPrev: false, hasNext: false };
@@ -206,4 +223,3 @@ export async function fetchUserProfileSSR(userId: string) {
     },
   };
 }
-

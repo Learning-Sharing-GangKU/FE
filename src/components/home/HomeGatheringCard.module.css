@@ -4,10 +4,11 @@
   flex-direction: column;
   text-decoration: none;
   color: inherit;
-  background: #f3f4f6;
+  background: white;
   border-radius: 16px;
   overflow: hidden;
-  border: none;
+  border: 1px solid #e5e7eb;
+  box-sizing: border-box;
   transition: opacity 0.2s;
 }
 
@@ -54,6 +55,9 @@
   font-weight: 600;
   color: #111827;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .description {
@@ -61,6 +65,7 @@
   color: #6b7280;
   line-height: 1.6;
   margin: 0;
+  min-height: calc(0.875rem * 1.6 * 2);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -82,6 +87,14 @@
   gap: 8px;
   font-size: 0.875rem;
   color: #374151;
+  min-width: 0;
+}
+
+.metaRow span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metaIcon {

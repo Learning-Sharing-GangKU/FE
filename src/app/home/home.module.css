@@ -6,7 +6,7 @@
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  background-color: #f3f4f6;
+  background-color: white;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -30,6 +30,14 @@
     font-size: 1rem;
   }
 
+  .sectionHeader {
+    padding-left: 36px;
+  }
+
+  .emptyStateRail {
+    padding-left: 36px;
+  }
+
   .arrowButton {
     width: 28px;
     height: 28px;
@@ -47,6 +55,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  padding-left: 44px;
 }
 
 .sectionTitle {
@@ -88,10 +97,15 @@
   flex: 1;
   min-width: 0;
   scrollbar-width: none;
+  padding-right: 1px;
 }
 
 .carousel::-webkit-scrollbar {
   display: none;
+}
+
+.emptyStateRail {
+  padding-left: 44px;
 }
 
 /* 빈 상태 */
@@ -173,7 +187,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 32px;
-  background: #111827;
+  background: #4338CA;
   color: white;
   font-size: 0.9375rem;
   font-weight: 700;
@@ -186,7 +200,6 @@
 }
 
 .emptyButton:hover {
-  background: #374151;
+  background: #3730A3;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-

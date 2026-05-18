@@ -1,7 +1,7 @@
 .profileCard {
   background: white;
   padding: 24px 20px;
-  margin-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .profileRow {
@@ -74,8 +74,8 @@
 .tag {
   padding: 4px 10px;
   font-size: 0.75rem;
-  background-color: #f3f4f6;
-  color: #1f2937;
+  background-color: #ede9fe;
+  color: #818CF8;
   border-radius: 9999px;
 }
 

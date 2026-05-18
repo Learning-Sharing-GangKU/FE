@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import {
-  ArrowLeft,
   MoreVertical,
   User,
   Calendar,
@@ -80,14 +79,14 @@ export default function GatheringDetailClient() {
       {/* 헤더 */}
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <div className={styles.headerLeft}>
-            <Link href="/home" className={styles.backButton}>
-              <ArrowLeft size={24} />
-            </Link>
-            <Link href="/home" className={styles.headerTitleLink} aria-label="홈으로 이동">
-              <h1 className={styles.headerTitle}>GangKU 🎓</h1>
-            </Link>
-          </div>
+          <Link href="/home" className={styles.headerTitleLink} aria-label="홈으로 이동">
+            <h1 className={styles.headerTitle}>
+              <span className={styles.headerTitleText}>GangKU</span>
+              <span className={styles.headerTitleIcon}>🎓</span>
+            </h1>
+          </Link>
+
+          <div />
 
           {isHost && (
             <div className={styles.menuWrapper}>
@@ -95,7 +94,7 @@ export default function GatheringDetailClient() {
                 className={styles.moreButton}
                 onClick={() => setMenuOpen(!menuOpen)}
               >
-                <MoreVertical size={24} />
+                <MoreVertical size={20} />
               </button>
 
               {menuOpen && (
@@ -220,7 +219,9 @@ export default function GatheringDetailClient() {
         {/* 채팅방 링크 카드 */}
         {gathering.joined && gathering.openChatUrl && (
           <div className={styles.card}>
-            <h3 className={styles.sectionTitle}>모임 대화방 링크</h3>
+            <div className={styles.sectionHeader}>
+              <h3 className={styles.sectionTitle}>모임 대화방 링크</h3>
+            </div>
             <div className={styles.chatRow}>
               <input
                 type="text"
