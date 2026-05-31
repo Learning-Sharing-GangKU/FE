@@ -9,11 +9,13 @@ export function Toaster() {
       toastOptions={{
         duration: 2000,
         style: {
-          background: 'white',
-          color: '#111827',
-          border: '1px solid #e5e7eb',
+          background: '#1E1E4B',
+          color: 'white',
+          border: '1px solid #818CF8',
           borderRadius: '12px',
           fontSize: '0.9375rem',
+          fontWeight: '500',
+          boxShadow: '0 4px 20px rgba(67, 56, 202, 0.35)',
         },
       }}
     />
