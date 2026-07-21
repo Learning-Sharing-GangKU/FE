@@ -129,9 +129,11 @@ export default function GatheringEditPage() {
 
     const normalizeDate = (d: string) => {
         if (!d) return '';
+        if (d.length === 16) return d + ':00'; // YYYY-MM-DDTHH:mm -> YYYY-MM-DDTHH:mm:ss (KST 로컬 타임)
         const dateObj = new Date(d);
         if (isNaN(dateObj.getTime())) return d;
-        return dateObj.toISOString().split('.')[0] + 'Z';
+        const offset = dateObj.getTimezoneOffset() * 60000;
+        return new Date(dateObj.getTime() - offset).toISOString().split('.')[0];
     };
 
     const handleSave = () => {
