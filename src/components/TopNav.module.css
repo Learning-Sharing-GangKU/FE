@@ -41,9 +41,6 @@
   object-fit: contain;
 }
 
-.middleSpacer {
-  /* 중간 빈 공간 */
-}
 
 .authArea {
   display: flex;
