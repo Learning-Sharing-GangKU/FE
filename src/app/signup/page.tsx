@@ -9,6 +9,7 @@ import CategorySelectModal from '@/components/CategorySelectModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useSignup, useSendEmailVerification, useConfirmEmailVerification } from '@/hooks/auth/useSignup';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +22,8 @@ export default function SignupPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailStatusText, setEmailStatusText] = useState('');
+  const [failedTitle, setFailedTitle] = useState<string | null>(null);
+  const [failedMessage, setFailedMessage] = useState<string | null>(null);
 
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
@@ -49,7 +52,7 @@ export default function SignupPage() {
     confirmVerification(undefined, {
       onSuccess: () => {
         setEmailVerified(true);
-        setEmailStatusText('이메일 인증이 완료되었습니다. ✅');
+        setEmailStatusText('이메일 인증이 완료되었습니다');
       },
       onError: () => {
         setEmailStatusText('이메일 인증을 완료해주세요. 링크를 클릭한 후 다시 시도해주세요.');
@@ -302,11 +305,32 @@ export default function SignupPage() {
             enrollNumber: Number(enrollNumber),
             preferredCategories: selectedCategories,
             ...(profileImageObjectKey && { profileImageObjectKey }),
+          }, {
+            onError: (err: any) => {
+              if (err?.code === 'INVALID_NICKNAME' || err?.message?.includes('부적') || err?.message?.includes('금칙어')) {
+                setFailedTitle('가입 실패');
+                setFailedMessage('닉네임에 부적절한 단어(금칙어)가 포함되어 있습니다.');
+              } else {
+                setFailedTitle('가입 실패');
+                setFailedMessage('회원가입 처리 중 오류가 발생했습니다.');
+              }
+            }
           });
         }}
         title="회원 가입을 완료하시겠습니까?"
         confirmText="가입하기"
       />
+
+      {failedMessage && (
+        <GatheringFailedModal
+          title={failedTitle ?? ''}
+          message={failedMessage}
+          onClose={() => {
+            setFailedTitle(null);
+            setFailedMessage(null);
+          }}
+        />
+      )}
     </div>
   );
 }

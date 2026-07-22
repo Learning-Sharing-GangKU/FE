@@ -118,6 +118,29 @@
   background: #fef2f2;
 }
 
+.imageMenuWrapper {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.imageMoreButton {
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  color: white;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.imageMoreButton:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
 /* 메인 */
 .main {
   flex: 1;
@@ -139,6 +162,7 @@
 
 /* 이미지 */
 .imageWrapper {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
@@ -337,7 +361,7 @@
 .copyButton {
   padding: 0 28px;
   height: 56px;
-  background: #111827;
+  background: #4338CA;
   color: white;
   border: none;
   border-radius: 8px;

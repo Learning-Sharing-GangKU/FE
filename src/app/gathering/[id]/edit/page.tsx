@@ -129,9 +129,11 @@ export default function GatheringEditPage() {
 
     const normalizeDate = (d: string) => {
         if (!d) return '';
-        if (d.length === 16) return `${d}:00`;
-        if (d.length === 19) return d;
-        return d;
+        if (d.length === 16) return d + ':00'; // YYYY-MM-DDTHH:mm -> YYYY-MM-DDTHH:mm:ss (KST 로컬 타임)
+        const dateObj = new Date(d);
+        if (isNaN(dateObj.getTime())) return d;
+        const offset = dateObj.getTimezoneOffset() * 60000;
+        return new Date(dateObj.getTime() - offset).toISOString().split('.')[0];
     };
 
     const handleSave = () => {
@@ -160,8 +162,14 @@ export default function GatheringEditPage() {
                     router.push(`/gathering/${gatheringId}`);
                 },
                 onError: (err: any) => {
-                    const message = err.message || "수정에 실패했습니다.";
-                    setFailedMessage(`수정 실패: ${message}`);
+                    if (err?.code === 'INVALID_GATHERING_CONTENT' || err?.message?.includes('부적')) {
+                        setFailedTitle('수정 실패');
+                        setFailedMessage('모임 이름 혹은 설명(키워드)에 부적절한 단어가 들어가있습니다.');
+                    } else {
+                        const message = err?.message || "수정에 실패했습니다.";
+                        setFailedTitle('수정 오류');
+                        setFailedMessage(message);
+                    }
                 },
             }
         );

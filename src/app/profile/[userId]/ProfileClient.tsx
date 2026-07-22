@@ -6,15 +6,18 @@ import { Star, ChevronDown, LockKeyhole } from 'lucide-react';
 import styles from '../profile.module.css';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
+import ProfileAvatar from '@/components/ProfileAvatar';
 import ReviewWriteModal from '@/components/profile/ReviewWriteModal';
 import ProfileSection from '@/components/profile/ProfileSection';
 import WriteReviewButton from '@/components/profile/WriteReviewButton';
 import ConfirmModal from '@/components/ConfirmModal';
+import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/profile/useProfile';
 import { useReviewToggle } from '@/hooks/profile/useReviewToggle';
 import { useToast } from '@/hooks/useToast';
 import { createReview } from '@/api/user';
+import type { ReviewItem } from '@/types/user';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast as sonnerToast } from 'sonner';
 
@@ -75,6 +78,8 @@ export default function ProfileClient() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [failedTitle, setFailedTitle] = useState<string | null>(null);
+  const [failedMessage, setFailedMessage] = useState<string | null>(null);
 
   const handleReviewVisibilityToggle = useCallback(async () => {
     if (!profile || !isMine) return;
@@ -159,14 +164,16 @@ export default function ProfileClient() {
 
           {shouldShowReviews ? (
             <div className={styles.reviewList}>
-              {profile.reviews.map((review: any, index: number) => (
+              {profile.reviews.map((review: ReviewItem, index: number) => (
                 <div
                   key={review.id}
                   className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
                 >
-                  <div className={styles.reviewAvatarCircle}>
-                    {review.reviewerNickname.charAt(0)}
-                  </div>
+                  <ProfileAvatar
+                    profileImageUrl={review.reviewerProfileImageUrl}
+                    nickname={review.reviewerNickname}
+                    size="md"
+                  />
                   <div className={styles.reviewContent}>
                     <div className={styles.reviewMeta}>
                       <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>
@@ -212,8 +219,13 @@ export default function ProfileClient() {
               queryClient.invalidateQueries({ queryKey: ['profile', userId] });
               setShowReviewModal(false);
               showToast('리뷰가 등록되었습니다.');
-            } catch {
-              showToast('리뷰 등록에 실패했습니다.');
+            } catch (err: any) {
+              if (err?.code === 'INVALID_REVIEW_COMMENT' || err?.message?.includes('부적') || err?.message?.includes('금칙어')) {
+                setFailedTitle('리뷰 등록 실패');
+                setFailedMessage('리뷰 내용에 부적절한 단어(금칙어)가 포함되어 있습니다.');
+              } else {
+                showToast('리뷰 등록에 실패했습니다.');
+              }
             }
           }}
         />
@@ -233,6 +245,17 @@ export default function ProfileClient() {
         title="정말 로그아웃 하시겠습니까?"
         confirmText="로그아웃"
       />
+
+      {failedMessage && (
+        <GatheringFailedModal
+          title={failedTitle ?? ''}
+          message={failedMessage}
+          onClose={() => {
+            setFailedTitle(null);
+            setFailedMessage(null);
+          }}
+        />
+      )}
     </div>
   );
 }
