@@ -1,10 +1,15 @@
 .header {
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   border-bottom: 1px solid #e5e7eb;
   background: white;
-  position: sticky;
-  top: 0;
   z-index: 10;
+}
+
+.spacer {
+  height: 64px;
 }
 
 .inner {
@@ -36,7 +41,7 @@
   object-fit: contain;
 }
 
-.spacer {
+.middleSpacer {
   /* 중간 빈 공간 */
 }
 
