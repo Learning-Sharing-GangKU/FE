@@ -55,7 +55,6 @@ export default function CreateGatheringPage() {
     trigger,
     formState: { errors },
   } = useForm<GatheringFormData>({
-    mode: 'onChange',
     resolver: zodResolver(gatheringSchema),
     defaultValues: {
       category: '',

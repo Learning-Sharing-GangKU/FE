@@ -60,7 +60,6 @@ export default function GatheringEditPage() {
         trigger,
         formState: { errors, dirtyFields },
     } = useForm<GatheringFormData>({
-        mode: 'onChange',
         resolver: zodResolver(gatheringSchema),
     });
 
