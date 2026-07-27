@@ -150,29 +150,50 @@ export default function GatheringEditPage() {
             updated.date = normalizeDate(updated.date);
         }
 
-        if (Object.keys(updated).length === 0) {
-            showToast("변경된 내용이 없습니다.");
-            return;
-        }
-
-        updateGathering(
-            { gatheringId, data: updated },
-            {
-                onSuccess: () => {
-                    router.push(`/gathering/${gatheringId}`);
-                },
-                onError: (err: any) => {
-                    if (err?.code === 'INVALID_GATHERING_CONTENT' || err?.message?.includes('부적')) {
-                        setFailedTitle('수정 실패');
-                        setFailedMessage('모임 이름 혹은 설명(키워드)에 부적절한 단어가 들어가있습니다.');
-                    } else {
-                        const message = err?.message || "수정에 실패했습니다.";
-                        setFailedTitle('수정 오류');
-                        setFailedMessage(message);
-                    }
-                },
+        // 카테고리가 변경되었고, 이미지가 기본 이미지거나 없는 경우 카테고리에 맞는 기본 이미지로 변경
+        const updateGatheringWithImage = async () => {
+            if (updated.category) {
+                 const currentValues = getValues();
+                 // 이미지가 사용자가 직접 올린 이미지가 아닌 경우 (기본 이미지이거나 없는 경우) 카테고리 변경에 따라 이미지 변경 처리
+                 // 여기서는 간단하게 사용자가 이미지 변경(imagePreview 변경)을 하지 않았고, 카테고리가 변경되었다면 새 카테고리의 기본 이미지를 가져오는 로직을 추가합니다.
+                 // 엄밀하게는 "현재 이미지가 기본 이미지인지" 여부를 알아야 하지만, 로직 복잡성을 피하기 위해 카테고리 변경 시 사용자가 이미지를 명시적으로 바꾸지 않았다면 기본 이미지를 새로 받아오도록 처리합니다.
+                 
+                 // gatheringImageObjectKey 값이 dirtyFields에 없다면 사용자가 이미지를 건드리지 않은 것
+                 if (!dirtyFields.gatheringImageObjectKey) {
+                     const { getDefaultImageObjectKey } = await import('@/hooks/useDefaultCategoryImage').then(m => m.useDefaultCategoryImage());
+                     const defaultKey = await getDefaultImageObjectKey(updated.category);
+                     if (defaultKey) {
+                         updated.gatheringImageObjectKey = defaultKey;
+                     }
+                 }
             }
-        );
+            
+            if (Object.keys(updated).length === 0) {
+                showToast("변경된 내용이 없습니다.");
+                return;
+            }
+
+            updateGathering(
+                { gatheringId, data: updated },
+                {
+                    onSuccess: () => {
+                        router.push(`/gathering/${gatheringId}`);
+                    },
+                    onError: (err: any) => {
+                        if (err?.code === 'INVALID_GATHERING_CONTENT' || err?.message?.includes('부적')) {
+                            setFailedTitle('수정 실패');
+                            setFailedMessage('모임 이름 혹은 설명(키워드)에 부적절한 단어가 들어가있습니다.');
+                        } else {
+                            const message = err?.message || "수정에 실패했습니다.";
+                            setFailedTitle('수정 오류');
+                            setFailedMessage(message);
+                        }
+                    },
+                }
+            );
+        };
+        
+        updateGatheringWithImage();
     };
 
     const onValidSubmit = () => {
