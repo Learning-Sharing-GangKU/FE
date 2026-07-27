@@ -30,17 +30,14 @@
     font-size: 1rem;
   }
 
-  .sectionHeader {
-    padding-left: 36px;
-  }
-
-  .emptyStateRail {
-    padding-left: 36px;
-  }
-
   .arrowButton {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .carousel {
+    overflow: hidden;
+    scroll-snap-type: x mandatory;
   }
 }
 
@@ -56,6 +53,12 @@
   justify-content: space-between;
   margin-bottom: 16px;
   padding-left: 44px;
+}
+
+@media (max-width: 480px) {
+  .sectionHeader {
+    padding-left: 0;
+  }
 }
 
 .sectionTitle {
@@ -106,6 +109,12 @@
 
 .emptyStateRail {
   padding-left: 44px;
+}
+
+@media (max-width: 480px) {
+  .emptyStateRail {
+    padding-left: 0;
+  }
 }
 
 /* 빈 상태 */

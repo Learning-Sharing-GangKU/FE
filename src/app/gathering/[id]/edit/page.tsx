@@ -19,6 +19,7 @@ import GatheringFailedModal from '@/components/gathering/GatheringFailedModal';
 import { useUpdateGathering } from '@/hooks/gathering/useUpdateGathering';
 import { useAiIntro } from '@/hooks/useAiIntro';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useDefaultCategoryImage } from '@/hooks/useDefaultCategoryImage';
 import { useToast } from '@/hooks/useToast';
 import { gatheringSchema, GatheringFormData } from '@/schemas/gatheringSchema';
 
@@ -33,6 +34,7 @@ export default function GatheringEditPage() {
     const { mutate: generateIntro, isPending: isGenerating } = useAiIntro();
     const { mutate: uploadImage } = useImageUpload();
     const { toast, showToast } = useToast(2000);
+    const { getDefaultImageObjectKey } = useDefaultCategoryImage();
 
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [showAiModal, setShowAiModal] = useState(false);
@@ -55,8 +57,10 @@ export default function GatheringEditPage() {
         watch,
         reset,
         control,
+        trigger,
         formState: { errors, dirtyFields },
     } = useForm<GatheringFormData>({
+        mode: 'onChange',
         resolver: zodResolver(gatheringSchema),
     });
 
@@ -160,7 +164,6 @@ export default function GatheringEditPage() {
                  
                  // gatheringImageObjectKey 값이 dirtyFields에 없다면 사용자가 이미지를 건드리지 않은 것
                  if (!dirtyFields.gatheringImageObjectKey) {
-                     const { getDefaultImageObjectKey } = await import('@/hooks/useDefaultCategoryImage').then(m => m.useDefaultCategoryImage());
                      const defaultKey = await getDefaultImageObjectKey(updated.category);
                      if (defaultKey) {
                          updated.gatheringImageObjectKey = defaultKey;
@@ -200,10 +203,9 @@ export default function GatheringEditPage() {
         setShowEditConfirm(true);
     };
 
-    const handleOpenAiModal = () => {
-        const { title, date, location, capacity } = getValues();
-        if (!title?.trim() || !selectedCategory || !capacity || capacity < 1 || !date || !location?.trim()) {
-            showToast('AI 설명을 생성하기 전에 메인 정보를 모두 입력해주세요.');
+    const handleOpenAiModal = async () => {
+        const isValid = await trigger(['title', 'category', 'capacity', 'date', 'location']);
+        if (!isValid) {
             return;
         }
         setShowAiModal(true);
