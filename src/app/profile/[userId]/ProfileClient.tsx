@@ -21,6 +21,8 @@ import type { ReviewItem } from '@/types/user';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast as sonnerToast } from 'sonner';
 
+import Link from 'next/link';
+
 function formatReviewDate(dateString: string) {
   return new Intl.DateTimeFormat('ko-KR', {
     timeZone: 'Asia/Seoul',
@@ -164,30 +166,45 @@ export default function ProfileClient() {
 
           {shouldShowReviews ? (
             <div className={styles.reviewList}>
-              {profile.reviews.map((review: ReviewItem, index: number) => (
-                <div
-                  key={review.id}
-                  className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
-                >
-                  <ProfileAvatar
-                    profileImageUrl={review.reviewerProfileImageUrl}
-                    nickname={review.reviewerNickname}
-                    size="md"
-                  />
-                  <div className={styles.reviewContent}>
-                    <div className={styles.reviewMeta}>
-                      <span className={styles.reviewAuthor}>{review.reviewerNickname}</span>
-                      <span className={styles.reviewDate}>
-                        {formatReviewDate(review.createdAt)}
-                      </span>
+              {profile.reviews.map((review: ReviewItem, index: number) => {
+                const reviewerProfileHref = `/profile/${
+                  String(review.reviewerId).startsWith('usr_')
+                    ? review.reviewerId
+                    : `usr_${review.reviewerId}`
+                }`;
+
+                return (
+                  <div
+                    key={review.id}
+                    className={`${styles.reviewItem} ${index > 0 ? styles.reviewItemBorder : ''}`}
+                  >
+                    <Link href={reviewerProfileHref} className={styles.reviewAvatarLink}>
+                      <ProfileAvatar
+                        profileImageUrl={review.reviewerProfileImageUrl}
+                        nickname={review.reviewerNickname}
+                        size="md"
+                      />
+                    </Link>
+
+                    <div className={styles.reviewContent}>
+                      <div className={styles.reviewMeta}>
+                        <Link href={reviewerProfileHref} className={styles.reviewAuthorLink}>
+                          {review.reviewerNickname}
+                        </Link>
+                        <span className={styles.reviewDate}>
+                          {formatReviewDate(review.createdAt)}
+                        </span>
+                      </div>
+
+                      <div className={styles.reviewStarRow}>
+                        <StarRating rating={review.rating} size={12} />
+                      </div>
+
+                      <p className={styles.reviewText}>{review.content}</p>
                     </div>
-                    <div className={styles.reviewStarRow}>
-                      <StarRating rating={review.rating} size={12} />
-                    </div>
-                    <p className={styles.reviewText}>{review.content}</p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className={styles.privateReviewBox}>
