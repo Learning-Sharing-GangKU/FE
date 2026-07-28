@@ -26,6 +26,21 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
     setNeedsArrows(items.length >= 2 || meta.hasNext);
   }, [items.length, meta.hasNext]);
 
+  useEffect(() => {
+    // 초기 렌더링 시 스크롤바가 생기지 않을 만큼 카드가 적은데 서버에 다음 페이지가 있다면,
+    // 스와이프(스크롤) 이벤트를 활성화하기 위해 추가 데이터를 미리 불러옵니다.
+    const timer = setTimeout(() => {
+      if (carouselRef.current && meta.hasNext && !isLoadingMore) {
+        const target = carouselRef.current;
+        if (target.scrollWidth <= target.clientWidth + 10) {
+          loadMore();
+        }
+      }
+    }, 200); // DOM에 카드가 렌더링될 시간 확보
+
+    return () => clearTimeout(timer);
+  }, [items.length, meta.hasNext, isLoadingMore]);
+
   const loadMore = async () => {
     if (isLoadingMore || !meta.hasNext) return false;
     setIsLoadingMore(true);
@@ -48,13 +63,29 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
     return false;
   };
 
-  const handleArrowClick = (dir: "left" | "right") => {
+  const handleArrowClick = async (dir: "left" | "right") => {
     if (carouselRef.current) {
-      const scrollAmount = 300; // 한 번에 스크롤할 픽셀 수 (카드 너비에 맞게 조절 가능)
+      const target = carouselRef.current;
+      const firstChild = target.firstElementChild as HTMLElement;
+      // getBoundingClientRect().width를 사용하여 테두리(border)와 소수점 픽셀(calc)까지 정확히 계산
+      const scrollAmount = firstChild ? firstChild.getBoundingClientRect().width + 12 : 300; 
+      
       if (dir === "right") {
-        carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+        const isAtEnd = target.scrollWidth - target.scrollLeft - target.clientWidth < scrollAmount;
+        
+        if (isAtEnd && meta.hasNext && !isLoadingMore) {
+          const success = await loadMore();
+          if (success) {
+            setTimeout(() => {
+              target.scrollBy({ left: scrollAmount, behavior: "smooth" });
+            }, 100);
+            return;
+          }
+        }
+        
+        target.scrollBy({ left: scrollAmount, behavior: "smooth" });
       } else {
-        carouselRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+        target.scrollBy({ left: -scrollAmount, behavior: "smooth" });
       }
     }
   };
