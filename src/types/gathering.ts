@@ -11,6 +11,7 @@ export interface GatheringItem {
   participantCount?: number;
   capacity?: number;
   location?: string;
+  date?: string;
 }
 
 
