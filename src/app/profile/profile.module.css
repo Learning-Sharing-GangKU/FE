@@ -2,7 +2,6 @@
   min-height: 100vh;
   background-color: white;
   padding-bottom: 80px;
-  overflow-x: hidden;
 }
 
 .loading {
@@ -204,6 +203,22 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
+}
+
+.reviewAvatarLink {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.reviewAuthorLink {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  text-decoration: none;
+}
+
+.reviewAuthorLink:hover {
+  text-decoration: underline;
 }
 
 /* 더보기 버튼 */
