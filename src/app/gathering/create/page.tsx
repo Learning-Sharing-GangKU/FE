@@ -52,6 +52,7 @@ export default function CreateGatheringPage() {
     watch,
     getValues,
     control,
+    trigger,
     formState: { errors },
   } = useForm<GatheringFormData>({
     resolver: zodResolver(gatheringSchema),
@@ -126,10 +127,9 @@ export default function CreateGatheringPage() {
     });
   };
 
-  const handleOpenAiModal = () => {
-    const { title, date, location, capacity } = getValues();
-    if (!title?.trim() || !selectedCategory || !capacity || capacity < 1 || !date || !location?.trim()) {
-      showToast('AI 설명을 생성하기 전에 모임 이름, 카테고리, 인원, 날짜, 장소를 먼저 입력해주세요.');
+  const handleOpenAiModal = async () => {
+    const isValid = await trigger(['title', 'category', 'capacity', 'date', 'location']);
+    if (!isValid) {
       return;
     }
     setShowAiModal(true);

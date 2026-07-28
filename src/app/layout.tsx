@@ -2,6 +2,7 @@ import Providers from "@/components/Providers"
 import { Toaster } from "@/components/Toaster"
 import { Noto_Sans_KR } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
+import './globals.css';
 
 import { cookies } from 'next/headers';
 

@@ -238,18 +238,19 @@
   }
 
   .filterBar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
   .categoryButton {
-    width: 100%;
-    text-align: center;
+    width: auto;
+    padding: 8px 16px;
   }
 
   .sortWrapper {
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
   }
 }

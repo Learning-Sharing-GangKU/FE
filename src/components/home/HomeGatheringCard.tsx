@@ -2,11 +2,22 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Users, MapPin, Tag } from 'lucide-react';
+import { Calendar, MapPin, Tag } from 'lucide-react';
 import styles from './HomeGatheringCard.module.css';
 import type { GatheringItem } from '@/types/gathering';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthRequiredModal from '@/components/AuthRequiredModal';
+
+function formatDate(dateString: string) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(dateString));
+}
 
 type Props = {
   room: GatheringItem;
@@ -44,10 +55,10 @@ export default function HomeGatheringCard({ room }: Props) {
           <p className={styles.description}>{room.description ?? ''}</p>
 
           <div className={styles.meta}>
-            {room.participantCount != null && (
+            {room.date && (
               <div className={styles.metaRow}>
-                <Users size={16} className={styles.metaIcon} />
-                <span>{room.participantCount}명 참여중</span>
+                <Calendar size={16} className={styles.metaIcon} />
+                <span>{formatDate(room.date)}</span>
               </div>
             )}
             {room.location && (
