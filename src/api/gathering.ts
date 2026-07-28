@@ -83,6 +83,7 @@ export async function getGatherings(params?: {
     participantCount: g.participantCount,
     capacity: g.capacity,
     location: g.location ?? undefined,
+    date: g.date ?? undefined,
   }));
 
   const meta = raw?.meta ?? {
@@ -173,6 +174,7 @@ export async function fetchUserGatherings(
     participantCount: g.participantCount,
     capacity: g.capacity,
     location: g.location ?? undefined,
+    date: g.date ?? undefined,
   }));
 
   const meta = raw?.meta ?? {

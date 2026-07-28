@@ -80,6 +80,7 @@ function mapItems(items: any[]) {
     imageUrl: g.gatheringImageUrl ?? null,
     participantCount: g.participantCount,
     location: g.location ?? undefined,
+    date: g.date ?? undefined,
   }));
 }
 
@@ -155,6 +156,7 @@ export async function fetchGatheringsSSR(params?: {
     participantCount: g.participantCount,
     capacity: g.capacity,
     location: g.location ?? undefined,
+    date: g.date ?? undefined,
   }));
 
   return { data, meta: raw.meta ?? null };
@@ -175,6 +177,7 @@ export async function fetchUserGatheringsSSR(role: 'host' | 'guest') {
     participantCount: g.participantCount,
     capacity: g.capacity,
     location: g.location ?? undefined,
+    date: g.date ?? undefined,
   }));
 
   const meta = raw.meta ?? { page: 1, size: 0, sortedBy: '', hasPrev: false, hasNext: false };

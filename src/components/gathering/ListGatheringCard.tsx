@@ -2,7 +2,18 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Users, MapPin, Tag } from 'lucide-react';
+import { Calendar, MapPin, Tag } from 'lucide-react';
+
+function formatDate(dateString: string) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(dateString));
+}
 import styles from './ListGatheringCard.module.css';
 import type { GatheringItem } from '@/types/gathering';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,10 +56,10 @@ export default function ListGatheringCard({ gathering }: Props) {
           </div>
 
           <div className={styles.metaRow}>
-            {gathering.participantCount != null && (
+            {gathering.date && (
               <div className={styles.metaItem}>
-                <Users size={16} />
-                <span>{gathering.participantCount}명 참여중</span>
+                <Calendar size={16} />
+                <span>{formatDate(gathering.date)}</span>
               </div>
             )}
             {gathering.location && (
