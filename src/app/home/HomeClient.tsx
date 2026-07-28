@@ -21,11 +21,8 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
   const [meta, setMeta] = useState<PaginationMeta>(initialMeta);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [needsArrows, setNeedsArrows] = useState(false);
-  const [rotateOffset, setRotateOffset] = useState(0);
 
   useEffect(() => {
-    // 2개 이상이면 회전(rotation)이 의미 있으므로 화살표 표시
-    // 1개이면 회전해도 같은 카드라 의미 없으므로 숨김
     setNeedsArrows(items.length >= 2 || meta.hasNext);
   }, [items.length, meta.hasNext]);
 
@@ -51,31 +48,25 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
     return false;
   };
 
-  const handleArrowClick = async (dir: "left" | "right") => {
-    if (dir === "right") {
-      // 만약 오른쪽 화살표를 누를 때 보여질 카드가 모자라고(서버에 더 있다면) 불러옴
-      // 현재 배열: items, 보여지는 선두 인덱스: rotateOffset + 1
-      // 화면에 통상 3개가 보이므로 items.length 범위에 완전히 포함되지 못한다면 불러오기
-      if (meta.hasNext) {
-        await loadMore();
-      }
-      setRotateOffset(prev => prev + 1);
-    } else {
-      setRotateOffset(prev => prev - 1);
-    }
-
-    // 강제로 스크롤 위치를 0으로 리셋하여 깔끔하게 첫 카드가 보이도록 함
+  const handleArrowClick = (dir: "left" | "right") => {
     if (carouselRef.current) {
-      carouselRef.current.scrollTo({ left: 0, behavior: "instant" as any });
+      const scrollAmount = 300; // 한 번에 스크롤할 픽셀 수 (카드 너비에 맞게 조절 가능)
+      if (dir === "right") {
+        carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      } else {
+        carouselRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      }
     }
   };
 
-  // 현재 rotateOffset 위치에 따른 배열 재배치(Infinite Circular Loop)
-  const getDisplayItems = () => {
-    if (items.length === 0) return [];
-    const len = items.length;
-    const startIndex = ((rotateOffset % len) + len) % len;
-    return [...items.slice(startIndex), ...items.slice(0, startIndex)];
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    // 스크롤이 오른쪽 끝에 거의 다다랐을 때 (여유분 50px)
+    if (target.scrollWidth - target.scrollLeft - target.clientWidth < 50) {
+      if (meta.hasNext && !isLoadingMore) {
+        loadMore();
+      }
+    }
   };
 
   return (
@@ -95,8 +86,8 @@ function Section({ title, initialRooms, initialMeta, sortKey }: { title: string;
                 <ChevronLeft size={20} />
               </button>
             )}
-            <div ref={carouselRef} className={styles.carousel}>
-              {getDisplayItems().map((room) => (
+            <div ref={carouselRef} className={styles.carousel} onScroll={handleScroll}>
+              {items.map((room) => (
                 <HomeGatheringCard key={room.id} room={room} />
               ))}
             </div>
